@@ -80,6 +80,8 @@
   .steps span.ok { background: var(--ok-soft); color: var(--ok); }
   .box { border-radius: 12px; padding: 10px 12px; margin-top: 10px; font-size: 15px; }
   .box.rej { background: var(--danger-soft); color: var(--danger); }
+  .box.live { background: var(--ok-soft); color: var(--ok); }
+  .box.live.way { background: #fff3cd; color: #7a4b00; }
   .box.ask { background: #efe9fb; color: #3b2a73; }
   .box.ask textarea { margin-top: 8px; min-height: 70px; }
   .hidden { display: none !important; }
@@ -150,6 +152,7 @@
       <div style="color:var(--muted)">سيتواصل معك فريق الصيانة قريباً</div>
       <div class="hint" id="doneWarn" style="color:var(--warn)"></div>
     </div>
+    <a class="btn2" id="tgBtn" target="_blank" rel="noopener" style="text-decoration:none;text-align:center;background:#e8f4fd;border-color:#9ccaf0;color:#0b5a8c">🔔 وصّل لي التحديثات على تليجرام (تلقائي)</a>
     <button class="btn2" onclick="showTrack()">📋 متابعة حالة طلباتي</button>
     <button class="btn2" onclick="shareLink()">🔗 احفظ رابط المتابعة (واتساب)</button>
     <button class="btn2" onclick="newRequest()">➕ بلاغ جديد</button>
@@ -176,6 +179,7 @@
   const _q = new URLSearchParams(location.search);
   const TRACK = (_q.get('t') || '').replace(/[^a-f0-9]/g, '').slice(0, 20), APP_URL = location.origin + location.pathname, API_URL = 'https://script.google.com/macros/s/AKfycby4tmfamJKcw5g29sgp45Rp6j_jSC_1TB5a28VDDbqjznHfN8aZFDdc8Bn9pcWkLs6u7g/exec';
   const TYPES = [['plumb','🚿','سباكة'],['elec','⚡','كهرباء'],['elev','🛗','مصعد'],['other','🛠️','أخرى']];
+  const BOT_USER = 'Aljulsi_maint_bot';   // بوت تليجرام: ربط المستأجر بتحديثات طلبه
   const OFFICE_WA = '966572294942';   // رقم واتساب المكتب (يظهر في زر «واتساب المكتب»)
   const MAX_PHOTOS = 4, MAX_VIDEO_SEC = 30, MAX_VIDEO_MB = 45, CHUNK = 4 * 1024 * 1024; // مضاعف 256KB (شرط Drive)
   let selType = '', photos = [], video = null, lastToken = '';
@@ -315,6 +319,7 @@
       const t = lsGet('mr_tokens', []); t.push(res.token); lsSet('mr_tokens', t);
     }
     lastToken = res.token;
+    $('tgBtn').href = 'https://t.me/' + BOT_USER + '?start=t_' + res.token;
     $('overlay').style.display = 'none'; $('sendBtn').disabled = false;
     $('doneNum').textContent = '#' + res.id;
     $('doneWarn').textContent = failed ? 'تعذر رفع بعض المرفقات — البلاغ نفسه وصل.' : '';
@@ -332,14 +337,14 @@
   }
 
   // ---------- طلباتي ----------
-  async function showTrack() {
-    show('trackView');
+  async function showTrack(quiet) {
+    if (!quiet) show('trackView');
     const tokens = lsGet('mr_tokens', []);
     if (TRACK && tokens.indexOf(TRACK) < 0) tokens.push(TRACK);
     if (!tokens.length) { $('trackList').innerHTML = '<div class="card">لا توجد طلبات محفوظة في هذا الجوال.</div>'; return; }
-    $('trackList').innerHTML = '<div class="card">جاري التحميل…</div>';
+    if (!quiet) $('trackList').innerHTML = '<div class="card">جاري التحميل…</div>';
     let list = [];
-    try { list = await run('getTracking', tokens); } catch (e) { $('trackList').innerHTML = '<div class="card">تعذر التحميل، حاول لاحقاً.</div>'; return; }
+    try { list = await run('getTracking', tokens); } catch (e) { if (!quiet) $('trackList').innerHTML = '<div class="card">تعذر التحميل، حاول لاحقاً.</div>'; return; }
     if (!list.length) { $('trackList').innerHTML = '<div class="card">لا توجد طلبات.</div>'; return; }
     const esc = s => String(s == null ? '' : s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
     $('trackList').innerHTML = list.map(r => {
@@ -350,13 +355,27 @@
       const ask = r.status === 'بانتظار ردك' ? `<div class="box ask"><b>❓ الإدارة تسأل:</b><div>${esc(r.question)}</div>
         <textarea id="rp${esc(r.id)}" placeholder="اكتب ردك هنا…"></textarea>
         <button class="submit" style="font-size:17px;padding:12px;margin-top:8px" onclick="sendReply('${esc(r.id)}','${esc(r.token)}')">إرسال الرد</button></div>` : '';
+      const live = r.ts === 'way' ? `<div class="box live way">🚗 الفني ${esc(r.tech)} <b>في الطريق إليك الآن</b></div>`
+        : r.ts === 'work' ? `<div class="box live">🔧 الفني ${esc(r.tech)} <b>يعمل على طلبك</b></div>`
+        : r.ts === 'assigned' ? `<div class="box live">👷 تم تعيين الفني ${esc(r.tech)} لطلبك</div>`
+        : r.ts === 'done' ? `<div class="box live">✔️ أنهى الفني ${esc(r.tech)} العمل، ونتأكد من الإنجاز</div>` : '';
+      const tg = !r.linked && r.status !== 'مرفوض' && r.status !== 'تمت المعالجة'
+        ? `<a class="hint" target="_blank" rel="noopener" style="display:block;margin-top:8px;color:#0b5a8c;font-weight:700" href="https://t.me/${BOT_USER}?start=t_${esc(r.token)}">🔔 وصّل لي تحديثات هذا الطلب على تليجرام</a>` : '';
       const note = r.status === 'تمت المعالجة' && r.note ? `<div class="hint">ملاحظة: ${esc(r.note)}</div>` : '';
       const when = r.closed ? (r.status === 'مرفوض' ? ' · ' : ' · أُنجز ') + esc(r.closed) : '';
       return `<div class="card"><div class="treq"><div class="ic">${esc(r.icon)}</div><div style="flex:1">
         <div class="t">طلب #${esc(r.id)} — ${esc(r.type)}</div><div class="d">${esc(r.date)}${when}</div>
-        ${steps}${rej}${ask}${note}</div></div></div>`;
+        ${steps}${live}${rej}${ask}${note}${tg}</div></div></div>`;
     }).join('');
   }
+  // تحديث تلقائي كل 20 ثانية والمستأجر فاتح «طلباتي» (لا نمسح ما يكتبه برد معلّق)
+  setInterval(() => {
+    try {
+      if ($('trackView').classList.contains('hidden') || document.hidden) return;
+      if ([...document.querySelectorAll('#trackList textarea')].some(t => t.value.trim() || document.activeElement === t)) return;
+      showTrack(true);
+    } catch (e) {}
+  }, 20000);
   async function sendReply(id, token) {
     const ta = $('rp' + id), text = (ta.value || '').trim();
     if (text.length < 2) { ta.focus(); return; }
