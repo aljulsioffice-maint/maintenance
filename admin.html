@@ -10,33 +10,38 @@
   :root {
     --bg: #f3f5f9; --card: #ffffff; --tx: #18212e; --mut: #667286; --bd: #e0e5ee; --pri: #1f5fd1; --pri-soft: #e6eefc;
     --ok: #17794a; --ok-soft: #dff3e8; --warn: #8a5a00; --warn-soft: #fff1cc; --bad: #b3261e; --bad-soft: #fbe3e1;
-    --new: #1f5fd1; --new-soft: #e6eefc; --ask: #5b3fb0; --ask-soft: #ece6fa; --wait: #a14a00; --wait-soft: #ffe9d6;
+    --new: #1f5fd1; --new-soft: #e6eefc; --ask: #5b3fb0; --ask-soft: #ece6fa; --wait: #a14a00; --wait-soft: #ffe9d6; --bar: #7da6ee;
   }
   @media (prefers-color-scheme: dark) {
     :root:not([data-theme="light"]) {
       --bg: #0f141b; --card: #171e28; --tx: #e8edf4; --mut: #93a0b3; --bd: #263041; --pri: #6ea2ff; --pri-soft: #1c2b47;
       --ok: #59d391; --ok-soft: #14301f; --warn: #f1c35a; --warn-soft: #382c0e; --bad: #ff8a80; --bad-soft: #3b1a18;
-      --new: #6ea2ff; --new-soft: #1c2b47; --ask: #b9a2ff; --ask-soft: #2a2145; --wait: #ffb27a; --wait-soft: #3a2412;
+      --new: #6ea2ff; --new-soft: #1c2b47; --ask: #b9a2ff; --ask-soft: #2a2145; --wait: #ffb27a; --wait-soft: #3a2412; --bar: #3d6fc4;
     }
   }
   :root[data-theme="dark"] {
     --bg: #0f141b; --card: #171e28; --tx: #e8edf4; --mut: #93a0b3; --bd: #263041; --pri: #6ea2ff; --pri-soft: #1c2b47;
     --ok: #59d391; --ok-soft: #14301f; --warn: #f1c35a; --warn-soft: #382c0e; --bad: #ff8a80; --bad-soft: #3b1a18;
-    --new: #6ea2ff; --new-soft: #1c2b47; --ask: #b9a2ff; --ask-soft: #2a2145; --wait: #ffb27a; --wait-soft: #3a2412;
+    --new: #6ea2ff; --new-soft: #1c2b47; --ask: #b9a2ff; --ask-soft: #2a2145; --wait: #ffb27a; --wait-soft: #3a2412; --bar: #3d6fc4;
   }
   * { box-sizing: border-box; }
   html, body { margin: 0; background: var(--bg); color: var(--tx); font-family: "Segoe UI", Tahoma, system-ui, sans-serif; font-size: 15px; }
   button { font: inherit; cursor: pointer; }
-  header { position: sticky; top: 0; z-index: 5; background: var(--card); border-bottom: 1px solid var(--bd); padding: 10px 16px; display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
-  header h1 { font-size: 18px; margin: 0; flex: 1; min-width: 150px; }
-  header .me { color: var(--mut); font-size: 13px; }
-  .ib { border: 1px solid var(--bd); background: var(--card); color: var(--tx); border-radius: 10px; padding: 7px 11px; }
+  header { position: sticky; top: 0; z-index: 5; background: var(--card); border-bottom: 1px solid var(--bd); padding: 8px 16px; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+  header h1 { font-size: 17px; margin: 0; }
+  header .sp { flex: 1; }
+  header .me { color: var(--mut); font-size: 12.5px; }
+  .tabs { display: flex; gap: 4px; }
+  .tab { border: 0; background: transparent; color: var(--mut); padding: 8px 12px; border-radius: 10px; font-weight: 700; }
+  .tab.on { background: var(--pri-soft); color: var(--pri); }
+  .ib { border: 1px solid var(--bd); background: var(--card); color: var(--tx); border-radius: 10px; padding: 6px 10px; }
   .wrap { display: grid; grid-template-columns: minmax(320px, 440px) 1fr; gap: 14px; padding: 14px 16px; align-items: start; }
   @media (max-width: 860px) { .wrap { grid-template-columns: 1fr; padding: 10px 16px; } #detail { display: none; } body.showd #list, body.showd .stats { display: none; } body.showd #detail { display: block; } }
-  .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(110px, 1fr)); gap: 8px; padding: 12px 16px 0; }
-  .stat { background: var(--card); border: 1px solid var(--bd); border-radius: 12px; padding: 9px 12px; cursor: pointer; text-align: start; color: var(--tx); }
+  .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(105px, 1fr)); gap: 8px; padding: 12px 16px 0; }
+  .stat { background: var(--card); border: 1px solid var(--bd); border-radius: 12px; padding: 9px 12px; text-align: start; color: var(--tx); }
   .stat b { display: block; font-size: 22px; line-height: 1.2; }
   .stat span { color: var(--mut); font-size: 12.5px; }
+  button.stat { cursor: pointer; }
   .stat.on { border-color: var(--pri); background: var(--pri-soft); }
   .stat.red b { color: var(--bad); }
   .tools { display: flex; gap: 8px; margin-bottom: 10px; }
@@ -56,9 +61,10 @@
   .b-مرفوض { background: var(--bad-soft); color: var(--bad); }
   .b-بانتظار { background: var(--ask-soft); color: var(--ask); }
   .urg { color: var(--bad); font-weight: 800; }
-  #detail { background: var(--card); border: 1px solid var(--bd); border-radius: 14px; padding: 16px; position: sticky; top: 70px; max-height: calc(100vh - 90px); overflow: auto; }
+  .panel { background: var(--card); border: 1px solid var(--bd); border-radius: 14px; padding: 16px; }
+  #detail { position: sticky; top: 62px; max-height: calc(100vh - 80px); overflow: auto; }
   #detail h2 { margin: 0 0 4px; font-size: 19px; }
-  .row { display: flex; gap: 8px; flex-wrap: wrap; margin: 10px 0; }
+  .row { display: flex; gap: 8px; flex-wrap: wrap; margin: 10px 0; align-items: center; }
   .kv { display: grid; grid-template-columns: 90px 1fr; gap: 6px 10px; margin: 10px 0; }
   .kv div:nth-child(odd) { color: var(--mut); }
   .desc { background: var(--bg); border-radius: 10px; padding: 10px 12px; white-space: pre-wrap; line-height: 1.6; }
@@ -66,21 +72,36 @@
   .btn.pri { background: var(--pri); color: #fff; border-color: var(--pri); }
   .btn.ok { background: var(--ok-soft); color: var(--ok); border-color: transparent; font-weight: 700; }
   .btn.bad { background: var(--bad-soft); color: var(--bad); border-color: transparent; }
-  .btn:disabled { opacity: .5; cursor: default; }
-  select { border: 1px solid var(--bd); background: var(--card); color: var(--tx); border-radius: 10px; padding: 8px; font: inherit; }
+  .btn.sm { padding: 5px 9px; font-size: 13px; }
+  select, .inp { border: 1px solid var(--bd); background: var(--card); color: var(--tx); border-radius: 10px; padding: 8px; font: inherit; }
   h3 { font-size: 14px; color: var(--mut); margin: 18px 0 6px; }
   .log { font-size: 13px; border-inline-start: 2px solid var(--bd); padding-inline-start: 10px; }
   .log div { margin-bottom: 7px; } .log small { color: var(--mut); display: block; }
   .empty { text-align: center; color: var(--mut); padding: 40px 10px; }
-  .modal { position: fixed; inset: 0; background: #0008; display: none; align-items: center; justify-content: center; z-index: 20; padding: 16px; }
+  .thumbs { display: grid; grid-template-columns: repeat(auto-fill, minmax(96px, 1fr)); gap: 8px; }
+  .thumbs .th { aspect-ratio: 1; border-radius: 10px; background: var(--bg); border: 1px solid var(--bd); overflow: hidden; display: flex; align-items: center; justify-content: center; font-size: 12px; color: var(--mut); text-align: center; cursor: pointer; }
+  .thumbs img { width: 100%; height: 100%; object-fit: cover; }
+  .modal { position: fixed; inset: 0; background: #000a; display: none; align-items: center; justify-content: center; z-index: 20; padding: 16px; }
   .modal.on { display: flex; }
   .modal .box { background: var(--card); border-radius: 14px; padding: 16px; width: min(440px, 100%); }
   .modal textarea { width: 100%; min-height: 90px; border: 1px solid var(--bd); background: var(--bg); color: var(--tx); border-radius: 10px; padding: 9px; font: inherit; }
-  .toast { position: fixed; bottom: 18px; inset-inline: 0; margin: auto; width: fit-content; background: #222; color: #fff; padding: 9px 16px; border-radius: 10px; display: none; z-index: 30; }
+  #lb img { max-width: 96vw; max-height: 90vh; border-radius: 10px; }
+  .toast { position: fixed; bottom: 18px; inset-inline: 0; margin: auto; width: fit-content; max-width: 92vw; background: #222; color: #fff; padding: 9px 16px; border-radius: 10px; display: none; z-index: 30; }
   .toast.on { display: block; }
   .back { display: none; }
   @media (max-width: 860px) { .back { display: inline-block; margin-bottom: 8px; } }
   #gate { max-width: 420px; margin: 60px auto; padding: 0 16px; text-align: center; }
+  .page { padding: 14px 16px; max-width: 1100px; margin: 0 auto; }
+  .grid2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 14px; margin-top: 14px; }
+  .bars div.b { display: grid; grid-template-columns: 130px 1fr 34px; gap: 8px; align-items: center; margin: 5px 0; font-size: 13.5px; }
+  .bars i { display: block; height: 14px; border-radius: 7px; background: var(--bar); min-width: 3px; }
+  .days { display: flex; align-items: flex-end; gap: 5px; height: 110px; margin-top: 10px; }
+  .days div { flex: 1; text-align: center; font-size: 10.5px; color: var(--mut); display: flex; flex-direction: column; justify-content: flex-end; height: 100%; }
+  .days i { display: block; background: var(--bar); border-radius: 5px 5px 0 0; min-height: 2px; }
+  table { width: 100%; border-collapse: collapse; font-size: 14px; }
+  th, td { text-align: start; padding: 8px 6px; border-bottom: 1px solid var(--bd); }
+  th { color: var(--mut); font-weight: 600; font-size: 12.5px; }
+  .off { opacity: .5; }
 </style>
 </head>
 <body>
@@ -91,20 +112,33 @@
 
 <div id="app" style="display:none">
   <header>
-    <h1>🛠️ لوحة متابعة الصيانة</h1>
+    <h1>🛠️ الصيانة</h1>
+    <div class="tabs">
+      <button class="tab on" id="tabReq" onclick="setTab('req')">📋 الطلبات</button>
+      <button class="tab" id="tabRep" onclick="setTab('rep')">📊 التقارير</button>
+      <button class="tab" id="tabTeam" onclick="setTab('team')">👥 الفريق والحراس</button>
+    </div>
+    <span class="sp"></span>
     <span class="me" id="me"></span>
     <span class="me" id="upd"></span>
     <button class="ib" onclick="load(true)" title="تحديث">🔄</button>
     <button class="ib" onclick="toggleTheme()" title="الوضع">🌓</button>
+    <button class="ib" onclick="renewKey()" title="تجديد رابطي الشخصي">🔑</button>
   </header>
-  <div class="stats" id="stats"></div>
-  <div class="wrap">
-    <div id="list">
-      <div class="tools"><input id="q" placeholder="🔎 بحث: رقم الطلب، اسم، عمارة، شقة، فني…" oninput="draw()"></div>
-      <div id="items"></div>
+
+  <div id="vReq">
+    <div class="stats" id="stats"></div>
+    <div class="wrap">
+      <div id="list">
+        <div class="tools"><input id="q" placeholder="🔎 بحث: رقم الطلب، اسم، عمارة، شقة، فني…" oninput="draw()"></div>
+        <div id="items"></div>
+      </div>
+      <div id="detail" class="panel"><div class="empty">اختر طلباً من القائمة</div></div>
     </div>
-    <div id="detail"><div class="empty">اختر طلباً من القائمة</div></div>
   </div>
+
+  <div id="vRep" class="page" style="display:none"></div>
+  <div id="vTeam" class="page" style="display:none"></div>
 </div>
 
 <div class="modal" id="modal"><div class="box">
@@ -112,13 +146,15 @@
   <textarea id="mText"></textarea>
   <div class="row"><button class="btn pri" id="mOk">تأكيد</button><button class="btn" onclick="closeModal()">إلغاء</button></div>
 </div></div>
+<div class="modal" id="lb" onclick="this.classList.remove('on')"><img id="lbImg" alt=""></div>
 <div class="toast" id="toast"></div>
 
 <script>
   const API_URL = 'https://script.google.com/macros/s/AKfycby4tmfamJKcw5g29sgp45Rp6j_jSC_1TB5a28VDDbqjznHfN8aZFDdc8Bn9pcWkLs6u7g/exec';
   const $ = id => document.getElementById(id);
   const esc = s => String(s == null ? '' : s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
-  let KEY = '', DATA = null, FILTER = 'open', SEL = '', DETAIL = null, busy = false;
+  let KEY = '', DATA = null, FILTER = 'open', SEL = '', DETAIL = null, busy = false, TAB = 'req';
+  const IMG = {};   // معرف الملف ← data URL
 
   // ---------- المفتاح: من الرابط (#k=...) ثم يُحفظ بالمتصفح ويُخفى من الشريط ----------
   try {
@@ -134,14 +170,34 @@
 
   async function api(op, id, arg) {
     const r = await fetch(API_URL, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, credentials: 'omit', redirect: 'follow',
-      body: JSON.stringify({ fn: 'adminApi', args: [KEY, op, id || '', arg == null ? '' : arg] }) });
+      body: JSON.stringify({ fn: 'adminApi', args: [KEY, op, id == null ? '' : id, arg == null ? '' : arg] }) });
     const j = await r.json();
     if (!j.ok) throw new Error(j.error || 'خطأ');
     return j.result;
   }
-  function toast(t) { const e = $('toast'); e.textContent = t; e.classList.add('on'); clearTimeout(toast.t); toast.t = setTimeout(() => e.classList.remove('on'), 2600); }
+  function toast(t) { const e = $('toast'); e.textContent = t; e.classList.add('on'); clearTimeout(toast.t); toast.t = setTimeout(() => e.classList.remove('on'), 2800); }
 
-  // ---------- التحميل ----------
+  async function renewKey() {
+    if (!confirm('تجديد رابطك الشخصي؟ الرابط القديم (وأي جهاز آخر فاتحه) يتوقف فوراً، وهذا الجهاز يستمر.')) return;
+    try {
+      const r = await api('newkey');
+      if (!r.ok) { toast(r.msg || 'تعذّر'); return; }
+      KEY = r.key; try { localStorage.setItem('adm_key', KEY); } catch (e) {}
+      toast('✅ تم التجديد — الرابط القديم توقف');
+    } catch (e) { toast('تعذّر: ' + e.message); }
+  }
+
+  // ---------- التبويبات ----------
+  function setTab(t) {
+    TAB = t;
+    ['req', 'rep', 'team'].forEach(k => { $('tab' + k[0].toUpperCase() + k.slice(1)).classList.toggle('on', k === t); });
+    $('vReq').style.display = t === 'req' ? '' : 'none';
+    $('vRep').style.display = t === 'rep' ? '' : 'none';
+    $('vTeam').style.display = t === 'team' ? '' : 'none';
+    if (t === 'rep') loadReport(); if (t === 'team') loadTeam();
+  }
+
+  // ---------- الطلبات ----------
   async function load(manual) {
     if (!KEY) { $('gate').style.display = 'block'; return; }
     if (busy) return; busy = true;
@@ -152,6 +208,7 @@
       $('me').textContent = '👤 ' + r.me; $('upd').textContent = 'آخر تحديث ' + r.at.slice(11);
       draw();
       if (SEL && (manual || DETAIL)) openReq(SEL, true);
+      if (manual && TAB === 'rep') loadReport(); if (manual && TAB === 'team') loadTeam();
     } catch (e) { if (manual) toast('تعذّر التحميل: ' + e.message); }
     finally { busy = false; }
   }
@@ -179,7 +236,7 @@
     const q = $('q').value.trim().toLowerCase(), f = FILTERS.find(x => x[0] === FILTER)[2];
     let list = DATA.reqs.filter(f);
     if (q) list = list.filter(r => [r.id, r.name, r.bld, r.apt, r.tenant, r.tech, r.type, r.phone, r.desc].join(' ').toLowerCase().includes(q));
-    if (FILTER === 'open' || FILTER === 'new' || FILTER === 'wip' || FILTER === 'wait' || FILTER === 'ask' || FILTER === 'urg') list = list.slice().sort((a, b) => (b.urg - a.urg) || (Number(a.id) - Number(b.id)));
+    if (FILTER !== 'closed' && FILTER !== 'all') list = list.slice().sort((a, b) => (b.urg - a.urg) || (Number(a.id) - Number(b.id)));
     $('items').innerHTML = list.length ? list.map(r => `
       <div class="item ${SEL === r.id ? 'sel' : ''}" onclick="openReq('${esc(r.id)}')">
         <div class="ic">${esc(r.icon)}</div>
@@ -198,14 +255,33 @@
     try {
       const r = await api('detail', id);
       if (!r.ok) { $('detail').innerHTML = '<div class="empty">' + esc(r.msg) + '</div>'; return; }
-      DETAIL = r; drawDetail();
+      DETAIL = r; drawDetail(); loadThumbs();
     } catch (e) { $('detail').innerHTML = '<div class="empty">تعذّر التحميل</div>'; }
   }
   function closeDetail() { document.body.classList.remove('showd'); }
+
+  async function loadThumbs() {
+    const id = DETAIL.req.id, files = DETAIL.req.files || [];
+    for (const fid of files) {
+      const slot = document.querySelector(`[data-fid="${fid}"]`); if (!slot) continue;
+      try {
+        if (!IMG[fid]) { const r = await api('media', id, fid); if (r.ok) IMG[fid] = 'data:' + r.mime + ';base64,' + r.b64; else { slot.textContent = '🎞️ فتح'; slot.dataset.nofile = '1'; continue; } }
+        if (DETAIL.req.id !== id) return;
+        slot.innerHTML = `<img src="${IMG[fid]}" alt="">`; slot.dataset.img = fid;
+      } catch (e) { slot.textContent = '📎 فتح'; slot.dataset.nofile = '1'; }
+    }
+  }
+  function openThumb(i) {
+    const slot = document.querySelector(`[data-fid="${DETAIL.req.files[i]}"]`), fid = DETAIL.req.files[i];
+    if (slot && slot.dataset.img && IMG[fid]) { $('lbImg').src = IMG[fid]; $('lb').classList.add('on'); }
+    else window.open(DETAIL.req.links[i] || DETAIL.req.after, '_blank', 'noopener');
+  }
+
   function drawDetail() {
     const r = DETAIL.req, done = isDone(r.st);
     const wa = r.waPhone ? `<a class="btn" target="_blank" rel="noopener" href="https://wa.me/${esc(r.waPhone)}">💬 واتساب</a><a class="btn" href="tel:+${esc(r.waPhone)}">📞 اتصال</a>` : '';
     const techOpts = '<option value="">— اختر الفني —</option>' + DATA.techs.map(t => `<option value="${esc(t.row)}">${esc(t.name)}${t.spec ? ' — ' + esc(t.spec) : ''}</option>`).join('');
+    const files = r.files || [];
     $('detail').innerHTML = `
       <button class="btn back" onclick="closeDetail()">→ رجوع</button>
       <h2>${esc(r.icon)} طلب #${esc(r.id)} ${r.urg ? '<span class="urg">🔴 عاجل</span>' : ''}</h2>
@@ -221,7 +297,9 @@
       <div class="desc">${esc(r.fullDesc) || '—'}</div>
       ${r.question ? `<h3>❓ سؤال الإدارة</h3><div class="desc">${esc(r.question)}${r.reply ? '<hr>💬 ' + esc(r.reply) : ''}</div>` : ''}
       ${r.note ? `<h3>🗒 ملاحظة الإغلاق</h3><div class="desc">${esc(r.note)}</div>` : ''}${r.reason ? `<h3>🚫 سبب الرفض</h3><div class="desc">${esc(r.reason)}</div>` : ''}
-      ${r.links.length || r.after ? `<h3>📎 المرفقات</h3><div class="row">${r.links.map((u, i) => `<a class="btn" target="_blank" rel="noopener" href="${esc(u)}">📎 مرفق ${i + 1}</a>`).join('')}${r.after ? `<a class="btn" target="_blank" rel="noopener" href="${esc(r.after)}">✅ صورة بعد الإصلاح</a>` : ''}</div>` : ''}
+      ${r.links.length || r.after ? `<h3>📎 المرفقات</h3>
+        <div class="thumbs">${files.map((f, i) => `<div class="th" data-fid="${esc(f)}" onclick="openThumb(${i})">⏳</div>`).join('')}</div>
+        <div class="row">${r.links.map((u, i) => `<a class="btn sm" target="_blank" rel="noopener" href="${esc(u)}">فتح مرفق ${i + 1} في Drive</a>`).join('')}${r.after ? `<a class="btn sm" target="_blank" rel="noopener" href="${esc(r.after)}">✅ صورة بعد الإصلاح</a>` : ''}</div>` : ''}
       <div class="row">${wa}</div>
       <h3>إجراءات</h3>
       ${done ? `<div class="row"><button class="btn pri" onclick="act('reopen')">♻️ إعادة فتح</button></div>` : `
@@ -243,7 +321,6 @@
       <div class="log">${DETAIL.logs.map(l => `<div><b>${esc(l.e)}</b> ${l.d ? '— ' + esc(l.d) : ''}<small>${esc(l.t)} · ${esc(l.by)}</small></div>`).reverse().join('') || '—'}</div>`;
   }
 
-  // ---------- إجراءات ----------
   async function act(op, arg) {
     try {
       const r = await api(op, SEL, arg);
@@ -258,7 +335,83 @@
   }
   function closeModal() { $('modal').classList.remove('on'); }
 
-  load(true); setInterval(() => { if (!document.hidden && !$('modal').classList.contains('on')) load(false); }, 30000);
+  // ---------- التقارير ----------
+  let REP_DAYS = 30;
+  async function loadReport(days) {
+    if (days != null) REP_DAYS = days;
+    const v = $('vRep'); v.innerHTML = '<div class="empty">جاري التحميل…</div>';
+    try {
+      const s = await api('stats', REP_DAYS);
+      if (!s.ok) { v.innerHTML = '<div class="empty">' + esc(s.msg || 'تعذّر') + '</div>'; return; }
+      const max = a => Math.max(1, ...a.map(x => x.n));
+      const bars = (a) => `<div class="bars">${a.map(x => `<div class="b"><span>${esc(x.k)}</span><i style="width:${Math.round(100 * x.n / max(a))}%"></i><b>${x.n}</b></div>`).join('') || '—'}</div>`;
+      const dmax = Math.max(1, ...s.daily.map(x => x.n));
+      v.innerHTML = `
+        <div class="row" style="margin-top:0"><b>الفترة:</b>
+          ${[[7, '٧ أيام'], [30, '٣٠ يوماً'], [90, '٩٠ يوماً'], [0, 'الكل']].map(p => `<button class="btn sm ${REP_DAYS === p[0] ? 'pri' : ''}" onclick="loadReport(${p[0]})">${p[1]}</button>`).join('')}</div>
+        <div class="stats" style="padding:0">
+          <div class="stat"><b>${s.total}</b><span>إجمالي البلاغات</span></div>
+          <div class="stat"><b>${s.open}</b><span>مفتوحة الآن</span></div>
+          <div class="stat"><b>${s.closed}</b><span>مغلقة</span></div>
+          <div class="stat"><b>${s.rejected}</b><span>مرفوضة</span></div>
+          <div class="stat ${s.urgent ? 'red' : ''}"><b>${s.urgent}</b><span>عاجلة</span></div>
+          <div class="stat"><b>${s.avgClose ? (s.avgClose >= 48 ? (s.avgClose / 24).toFixed(1) + ' يوم' : s.avgClose + ' س') : '—'}</b><span>متوسط زمن الإغلاق</span></div>
+        </div>
+        <div class="grid2">
+          <div class="panel"><b>آخر ١٤ يوماً</b><div class="days">${s.daily.map(d => `<div title="${d.n}"><i style="height:${Math.round(90 * d.n / dmax)}px"></i>${esc(d.d.slice(3))}</div>`).join('')}</div></div>
+          <div class="panel"><b>حسب النوع</b>${bars(s.byType)}</div>
+          <div class="panel"><b>أكثر العمائر بلاغات</b>${bars(s.byBld)}</div>
+          <div class="panel"><b>حسب الحالة</b>${bars(s.byStatus)}</div>
+        </div>
+        <div class="panel" style="margin-top:14px"><b>أداء الفنيين</b>
+          <table><tr><th>الفني</th><th>الطلبات</th><th>المنجز</th><th>متوسط الإنجاز</th></tr>
+          ${s.techs.map(t => `<tr><td>👷 ${esc(t.name)}</td><td>${t.total}</td><td>${t.done}</td><td>${t.avgH ? (t.avgH >= 48 ? (t.avgH / 24).toFixed(1) + ' يوم' : t.avgH + ' س') : '—'}</td></tr>`).join('') || '<tr><td colspan="4">—</td></tr>'}</table></div>`;
+    } catch (e) { v.innerHTML = '<div class="empty">تعذّر التحميل</div>'; }
+  }
+
+  // ---------- الفريق والحراس ----------
+  async function loadTeam() {
+    const v = $('vTeam'); v.innerHTML = '<div class="empty">جاري التحميل…</div>';
+    try {
+      const [t, g] = await Promise.all([api('team'), api('guards')]);
+      const rows = t.team.map(m => `<tr class="${m.active ? '' : 'off'}">
+        <td><b>${esc(m.name)}</b><br><small style="color:var(--mut)">${esc(m.spec)}</small></td>
+        <td>${m.role === 'مالك' || !t.owner ? esc(m.role) : `<select onchange="setRole(${m.row}, this.value)"><option ${m.role === 'فني' ? 'selected' : ''}>فني</option><option ${m.role === 'أدمن' ? 'selected' : ''}>أدمن</option></select>`}</td>
+        <td>${m.role === 'مالك' ? '✅' : t.owner ? `<button class="btn sm ${m.active ? '' : 'pri'}" onclick="setActive(${m.row}, '${m.active ? 'لا' : 'نعم'}')">${m.active ? '⏸ إيقاف' : '▶ تفعيل'}</button>` : (m.active ? '✅' : '⏸')}</td></tr>`).join('');
+      const grows = g.guards.map(x => `<tr class="${x.active ? '' : 'off'}">
+        <td><b>🛡️ ${esc(x.name)}</b><br><small style="color:var(--mut)">${esc(x.bld)}${x.phone ? ' · ' + esc(x.phone) : ''}</small></td>
+        <td><button class="btn sm" onclick="copyLink('${esc(x.link)}')">🔗 نسخ</button>
+            <a class="btn sm" target="_blank" rel="noopener" href="https://wa.me/${x.phone ? '966' + esc(x.phone.slice(1)) : ''}?text=${encodeURIComponent('رابط رفع بلاغات الصيانة لعمارة ' + x.bld + ' (احفظه): ' + x.link)}">💬</a></td>
+        <td><button class="btn sm ${x.active ? '' : 'pri'}" onclick="setGuard(${x.row}, '${x.active ? 'لا' : 'نعم'}')">${x.active ? '⏸ إيقاف' : '▶ تفعيل'}</button></td></tr>`).join('');
+      v.innerHTML = `<div class="grid2">
+        <div class="panel"><b>👥 الفريق</b>${t.owner ? '' : '<div class="hint" style="color:var(--mut);font-size:13px">تغيير الأدوار للمالك فقط</div>'}
+          <table><tr><th>الاسم</th><th>الدور</th><th></th></tr>${rows}</table>
+          <div style="color:var(--mut);font-size:12.5px;margin-top:8px">عضو جديد: يرسل /start للبوت وتوافق عليه من تليجرام.</div></div>
+        <div class="panel"><b>🛡️ حراس العمائر</b>
+          <table><tr><th>الحارس</th><th>رابطه</th><th></th></tr>${grows || '<tr><td colspan="3">لا يوجد</td></tr>'}</table>
+          <h3>➕ حارس جديد</h3>
+          <div class="row"><input class="inp" id="gName" placeholder="الاسم" style="flex:1;min-width:120px">
+            <input class="inp" id="gPhone" placeholder="الجوال (اختياري)" inputmode="tel" dir="ltr" style="width:140px"></div>
+          <div class="row"><select id="gBld" style="flex:1">${g.blds.map(b => `<option>${esc(b)}</option>`).join('')}</select>
+            <button class="btn pri" onclick="addGuard()">إضافة</button></div>
+        </div></div>`;
+    } catch (e) { v.innerHTML = '<div class="empty">تعذّر التحميل</div>'; }
+  }
+  async function simple(op, id, arg, okMsg) {
+    try { const r = await api(op, id, arg); if (!r.ok) { toast(r.msg || 'تعذّر'); return false; } toast(okMsg || '✅ تم'); loadTeam(); return r; }
+    catch (e) { toast('تعذّر: ' + e.message); return false; }
+  }
+  const setRole = (row, role) => simple('setrole', row + '|' + role, '', '✅ تغيّر الدور وأُبلغ العضو');
+  const setActive = (row, v) => simple('setactive', row + '|' + v);
+  const setGuard = (row, v) => simple('setguard', row + '|' + v);
+  async function addGuard() {
+    const o = { name: $('gName').value.trim(), phone: $('gPhone').value.trim(), bld: $('gBld').value };
+    const r = await simple('addguard', JSON.stringify(o), '', '✅ أُضيف الحارس');
+    if (r && r.link) copyLink(r.link);
+  }
+  function copyLink(u) { try { navigator.clipboard.writeText(u).then(() => toast('🔗 نُسخ رابط الحارس'), () => prompt('انسخ الرابط:', u)); } catch (e) { prompt('انسخ الرابط:', u); } }
+
+  load(true); setInterval(() => { if (!document.hidden && TAB === 'req' && !$('modal').classList.contains('on')) load(false); }, 30000);
 </script>
 </body>
 </html>
