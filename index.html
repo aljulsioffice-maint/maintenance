@@ -344,7 +344,9 @@
   }
 
   // ---------- طلباتي ----------
+  let uploadingMore = false;
   async function showTrack(quiet) {
+    if (quiet && uploadingMore) return;
     if (!quiet) show('trackView');
     const tokens = lsGet('mr_tokens', []);
     if (TRACK && tokens.indexOf(TRACK) < 0) tokens.push(TRACK);
@@ -359,9 +361,13 @@
       const steps = r.status === 'مرفوض' ? '' : '<div class="steps">' + labels.map((s, i) =>
         `<span class="${r.step > i + 1 || r.step === 3 ? 'ok' : r.step === i + 1 ? 'on' : ''}">${s}</span>`).join('') + '</div>';
       const rej = r.status === 'مرفوض' ? `<div class="box rej"><b>🚫 تعذّر تنفيذ الطلب</b>${r.reason ? '<div>السبب: ' + esc(r.reason) + '</div>' : ''}</div>` : '';
-      const ask = r.status === 'بانتظار ردك' ? `<div class="box ask"><b>❓ الإدارة تسأل:</b><div>${esc(r.question)}</div>
+      const askMedia = r.status === 'بانتظار ردك' && r.media ? `<div class="box ask"><b>📷 الإدارة تطلب صورة أو فيديو:</b><div>${esc(r.question)}</div>
+        <input type="file" id="mf${esc(r.id)}" accept="image/*,video/*" multiple class="hidden" onchange="sendMore('${esc(r.id)}','${esc(r.token)}')">
+        <button class="submit" style="font-size:17px;padding:12px;margin-top:8px" onclick="document.getElementById('mf${esc(r.id)}').click()">📷 اختر صورة أو فيديو</button>
+        <div class="hint" id="ms${esc(r.id)}"></div></div>` : '';
+      const ask = askMedia || (r.status === 'بانتظار ردك' ? `<div class="box ask"><b>❓ الإدارة تسأل:</b><div>${esc(r.question)}</div>
         <textarea id="rp${esc(r.id)}" placeholder="اكتب ردك هنا…"></textarea>
-        <button class="submit" style="font-size:17px;padding:12px;margin-top:8px" onclick="sendReply('${esc(r.id)}','${esc(r.token)}')">إرسال الرد</button></div>` : '';
+        <button class="submit" style="font-size:17px;padding:12px;margin-top:8px" onclick="sendReply('${esc(r.id)}','${esc(r.token)}')">إرسال الرد</button></div>` : '');
       const live = r.ts === 'way' ? `<div class="box live way">🚗 الفني ${esc(r.tech)} <b>في الطريق إليك الآن</b></div>`
         : r.ts === 'work' ? `<div class="box live">🔧 الفني ${esc(r.tech)} <b>يعمل على طلبك</b></div>`
         : r.ts === 'assigned' ? `<div class="box live">👷 تم تعيين الفني ${esc(r.tech)} لطلبك</div>`
@@ -378,11 +384,46 @@
   // تحديث تلقائي كل 20 ثانية والمستأجر فاتح «طلباتي» (لا نمسح ما يكتبه برد معلّق)
   setInterval(() => {
     try {
-      if ($('trackView').classList.contains('hidden') || document.hidden) return;
+      if ($('trackView').classList.contains('hidden') || document.hidden || uploadingMore) return;
       if ([...document.querySelectorAll('#trackList textarea')].some(t => t.value.trim() || document.activeElement === t)) return;
       showTrack(true);
     } catch (e) {}
   }, 20000);
+  // الإدارة طلبت صورة/فيديو: يرفعها المستأجر من «طلباتي»
+  async function sendMore(id, token) {
+    const files = [...$('mf' + id).files], st = $('ms' + id);
+    if (!files.length) return;
+    const pics = files.filter(f => /^image\//.test(f.type)).slice(0, MAX_PHOTOS), vid = files.find(f => /^video\//.test(f.type));
+    const total = pics.length + (vid ? 1 : 0);
+    if (!total) { st.textContent = 'اختر صورة أو فيديو'; return; }
+    uploadingMore = true;
+    const guard = e => { e.preventDefault(); e.returnValue = ''; };
+    window.addEventListener('beforeunload', guard);
+    let failed = 0, n = 0;
+    const upd = () => { st.textContent = '⏳ جاري الرفع (' + n + '/' + total + ')… لا تغلق الصفحة'; }; upd();
+    const jobs = pics.map(async f => {
+      try { const r = await run('uploadPhoto', id, token, await compress(f)); if (!r || !r.ok) failed++; } catch (e) { failed++; }
+      n++; upd();
+    });
+    jobs.push((async () => {
+      if (!vid) return;
+      try {
+        if (vid.size > MAX_VIDEO_MB * 1024 * 1024) throw new Error('big');
+        const s = await run('startVideo', id, token, vid.size, vid.type);
+        if (!s.ok) throw new Error(s.msg);
+        for (let off = 0; off < vid.size; off += CHUNK) await run('uploadVideoChunk', s.key, off, await blobToB64(vid.slice(off, off + CHUNK)));
+        await run('finishVideo', id, token, s.key);
+      } catch (e) { failed++; }
+      n++; upd();
+    })());
+    await Promise.all(jobs);
+    window.removeEventListener('beforeunload', guard);
+    if (failed >= total) { uploadingMore = false; st.textContent = 'تعذر الرفع (قد يكون الفيديو كبيراً)، حاول مرة ثانية'; return; }
+    try { await run('mediaDone', id, token); } catch (e) { /* */ }
+    fire('flushMedia', id, token);
+    uploadingMore = false;
+    showTrack();
+  }
   async function sendReply(id, token) {
     const ta = $('rp' + id), text = (ta.value || '').trim();
     if (text.length < 2) { ta.focus(); return; }
