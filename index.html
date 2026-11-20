@@ -228,7 +228,7 @@
   ['name', 'district', 'apt', 'phone'].forEach(k => { if (prof[k]) $(k).value = prof[k]; });
   refreshMyBtn();
   if (GUARD) {
-    ['tenCard', 'probCard', 'myBtn', 'tgBtn', 'trkBtn', 'shBtn'].forEach(k => { const e = $(k); if (e) e.classList.add('hidden'); });
+    ['tenCard', 'probCard', 'tgBtn', 'shBtn'].forEach(k => { const e = $(k); if (e) e.classList.add('hidden'); });
     $('guardCard').classList.remove('hidden'); $('mediaH').textContent = 'الصورة';
     document.querySelectorAll('.media-btns .mbtn').forEach((b, i) => { if (i > 1) b.classList.add('hidden'); });   // الحارس: صورة فقط بلا فيديو
     $('gKinds').addEventListener('click', e => {
@@ -331,7 +331,7 @@
 
     // رقم البلاغ يظهر فوراً؛ المرفقات تكمل رفعها بالخلفية وتظهر حالتها بشاشة «تم الاستلام»
     const ph = photos.slice(), vd = video;
-    if (res.id && !GUARD) { const t = lsGet('mr_tokens', []); t.push(res.token); lsSet('mr_tokens', t); }
+    if (res.id) { const t = lsGet('mr_tokens', []); t.push(res.token); lsSet('mr_tokens', t); }
     lastToken = res.token;
     $('tgBtn').href = 'https://t.me/' + BOT_USER + '?start=t_' + res.token;
     $('overlay').style.display = 'none'; $('sendBtn').disabled = false;
@@ -412,7 +412,7 @@
         : r.ts === 'work' ? `<div class="box live">🔧 الفني ${esc(r.tech)} <b>يعمل على طلبك</b></div>`
         : r.ts === 'assigned' ? `<div class="box live">👷 تم تعيين الفني ${esc(r.tech)} لطلبك</div>`
         : r.ts === 'done' ? `<div class="box live">✔️ أنهى الفني ${esc(r.tech)} العمل، ونتأكد من الإنجاز</div>` : '';
-      const tg = !r.linked && r.status !== 'مرفوض' && r.status !== 'تمت المعالجة'
+      const tg = !GUARD && !r.linked && r.status !== 'مرفوض' && r.status !== 'تمت المعالجة'
         ? `<a class="hint" target="_blank" rel="noopener" style="display:block;margin-top:8px;color:#0b5a8c;font-weight:700" href="https://t.me/${BOT_USER}?start=t_${esc(r.token)}">🔔 وصّل لي تحديثات هذا الطلب على تليجرام</a>` : '';
       const note = r.status === 'تمت المعالجة' && r.note ? `<div class="hint">ملاحظة: ${esc(r.note)}</div>` : '';
       const when = r.closed ? (r.status === 'مرفوض' ? ' · ' : ' · أُنجز ') + esc(r.closed) : '';
