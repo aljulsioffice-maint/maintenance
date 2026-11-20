@@ -289,43 +289,50 @@
     if (!res || !res.ok) return endSend(res && res.msg ? res.msg : 'تعذر الإرسال');
     lsSet('mr_profile', { name: f.name, district: f.district, apt: f.apt, phone: f.phone });
 
-    let failed = 0;
-    const total = photos.length + (video ? Math.max(1, Math.ceil(video.file.size / CHUNK)) : 0);
-    let step = 0;
-    const bump = t => progress(t, 10 + 90 * (++step) / Math.max(1, total));
-    if (res.id) {
-      // الصور كلها والفيديو بنفس الوقت (لا واحد بعد الثاني) — هذا أكبر توفير في الوقت
-      const photoJobs = photos.map(async p => {
-        try { const r = await run('uploadPhoto', res.id, res.token, await compress(p.file)); if (!r || !r.ok) failed++; }
-        catch (e) { failed++; }
-        bump('رفع المرفقات…');
-      });
-      const videoJob = (async () => {
-        if (!video) return;
-        try {
-          const st = await run('startVideo', res.id, res.token, video.file.size, video.file.type);
-          if (!st.ok) throw new Error(st.msg);
-          for (let off = 0; off < video.file.size; off += CHUNK) {
-            const b64 = await blobToB64(video.file.slice(off, off + CHUNK));
-            await run('uploadVideoChunk', st.key, off, b64);
-            bump('رفع المرفقات…');
-          }
-          await run('finishVideo', res.id, res.token, st.key);
-        } catch (e) { failed++; }
-      })();
-      await Promise.all(photoJobs.concat([videoJob]));
-      // الإرسال لمجموعة تليجرام يكمل في الخلفية — المستأجر لا ينتظره
-      if (photos.length || video) fire('flushMedia', res.id, res.token);
-      const t = lsGet('mr_tokens', []); t.push(res.token); lsSet('mr_tokens', t);
-    }
+    // رقم البلاغ يظهر فوراً؛ المرفقات تكمل رفعها بالخلفية وتظهر حالتها بشاشة «تم الاستلام»
+    const ph = photos.slice(), vd = video;
+    if (res.id) { const t = lsGet('mr_tokens', []); t.push(res.token); lsSet('mr_tokens', t); }
     lastToken = res.token;
     $('tgBtn').href = 'https://t.me/' + BOT_USER + '?start=t_' + res.token;
     $('overlay').style.display = 'none'; $('sendBtn').disabled = false;
     $('doneNum').textContent = '#' + res.id;
-    $('doneWarn').textContent = failed ? 'تعذر رفع بعض المرفقات — البلاغ نفسه وصل.' : '';
+    const hasMedia = !!(res.id && (ph.length || vd));
+    $('doneWarn').textContent = hasMedia ? '⏳ جاري رفع المرفقات… لا تغلق الصفحة حتى تظهر «تم رفع المرفقات»' : '';
     photos = []; video = null; drawThumbs(); $('desc').value = ''; $('urgent').checked = false;
     $('urgentBox').classList.remove('on'); selType = ''; document.querySelectorAll('.type').forEach(x => x.classList.remove('on'));
     show('doneView'); refreshMyBtn();
+    if (!hasMedia) return;
+
+    let failed = 0, uploading = true;
+    const guard = e => { if (uploading) { e.preventDefault(); e.returnValue = ''; } };
+    window.addEventListener('beforeunload', guard);
+    const total = ph.length + (vd ? Math.max(1, Math.ceil(vd.file.size / CHUNK)) : 0);
+    let step = 0;
+    const bump = () => { $('doneWarn').textContent = '⏳ جاري رفع المرفقات (' + Math.min(100, Math.round(100 * (++step) / Math.max(1, total))) + '%)… لا تغلق الصفحة'; };
+    // الصور كلها والفيديو بنفس الوقت (لا واحد بعد الثاني) — هذا أكبر توفير في الوقت
+    const photoJobs = ph.map(async p => {
+      try { const r = await run('uploadPhoto', res.id, res.token, await compress(p.file)); if (!r || !r.ok) failed++; }
+      catch (e) { failed++; }
+      bump();
+    });
+    const videoJob = (async () => {
+      if (!vd) return;
+      try {
+        const st = await run('startVideo', res.id, res.token, vd.file.size, vd.file.type);
+        if (!st.ok) throw new Error(st.msg);
+        for (let off = 0; off < vd.file.size; off += CHUNK) {
+          const b64 = await blobToB64(vd.file.slice(off, off + CHUNK));
+          await run('uploadVideoChunk', st.key, off, b64);
+          bump();
+        }
+        await run('finishVideo', res.id, res.token, st.key);
+      } catch (e) { failed++; }
+    })();
+    await Promise.all(photoJobs.concat([videoJob]));
+    uploading = false; window.removeEventListener('beforeunload', guard);
+    // الإرسال لتليجرام يكمل في الخلفية — المستأجر لا ينتظره
+    fire('flushMedia', res.id, res.token);
+    $('doneWarn').textContent = failed ? 'تعذر رفع بعض المرفقات — البلاغ نفسه وصل.' : '✅ تم رفع المرفقات';
   }
   function endSend(msg) { $('overlay').style.display = 'none'; $('sendBtn').disabled = false; showErr(msg); }
 
