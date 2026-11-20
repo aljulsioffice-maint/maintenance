@@ -238,8 +238,8 @@
         <div class="nf" id="nfMsg">ما لقينا هذا الرقم عندنا — سجّل بياناتك وبنكمل 👇</div>
         <div class="fld" id="f_name" style="margin-top:12px"><label for="name">الاسم (الأول والأخير)</label>
           <input type="text" id="name" autocomplete="name" placeholder="مثال: فهد العتيبي"><div class="em">اكتب اسمك</div></div>
-        <div class="fld" id="f_bld"><label for="bld">اسم العمارة أو الحي</label>
-          <input type="text" id="bld" autocomplete="off" placeholder="مثال: التيسير"><div class="em">اكتب اسم عمارتك</div></div>
+        <div class="fld" id="f_bld"><label for="bld">الحي</label>
+          <input type="text" id="bld" autocomplete="off" placeholder="مثال: النسيم"><div class="em">اكتب اسم الحي</div></div>
         <div class="fld" id="f_apt"><label for="apt">رقم الشقة</label><input type="text" id="apt" inputmode="numeric" placeholder="12"><div class="em">اكتب رقم الشقة</div></div>
         <div class="fld" id="f_phone"><label for="phone">جوال للتواصل</label>
           <input type="tel" id="phone" inputmode="tel" autocomplete="tel" placeholder="05xxxxxxxx" dir="ltr" style="text-align:right"><div class="em">رقم الجوال غير صحيح (مثال: 0551234567)</div></div>
@@ -387,10 +387,10 @@
   function drawProf() {
     if (ident) {
       $('psName').textContent = 'أهلاً ' + ident.name + ' 👋'; $('psAv').textContent = ident.name.charAt(0) || '👤';
-      $('psSub').textContent = ident.bld + ' — شقة ' + ident.apt;
+      $('psSub').textContent = (ident.bld ? ident.bld + ' — ' : '') + 'شقة ' + ident.apt;
     } else {
       $('psName').textContent = $('name').value.trim(); $('psAv').textContent = $('name').value.trim().charAt(0) || '👤';
-      $('psSub').textContent = $('bld').value + ' — شقة ' + $('apt').value.trim() + ' · ' + $('phone').value.trim();
+      $('psSub').textContent = 'حي ' + $('bld').value.trim() + ' · شقة ' + $('apt').value.trim() + ' · ' + $('phone').value.trim();
     }
   }
   function setIdent(lk, pick, u, needPhone) {
@@ -415,7 +415,7 @@
     }
     $('lkSt').className = 'lkst ok'; $('lkSt').textContent = '✓ تم التعرّف عليك';
     if (r.units.length === 1) return setIdent(v, 0, r.units[0], r.needPhone);
-    $('unitBtns').innerHTML = r.units.map((u, i) => `<button type="button" class="ubtn" onclick="pickUnit(${i})">${u.bld}<small>شقة ${u.apt}</small></button>`).join('');
+    $('unitBtns').innerHTML = r.units.map((u, i) => `<button type="button" class="ubtn" onclick="pickUnit(${i})">شقة ${u.apt}${u.bld ? '<small>' + u.bld + '</small>' : ''}</button>`).join('');
     window.__units = { v: v, list: r.units, needPhone: r.needPhone }; show1('pick');
   }
   function pickUnit(i) { const w = window.__units; setIdent(w.v, i, w.list[i], w.needPhone); }
@@ -551,9 +551,9 @@
         f.lk = ident.lk; f.pick = ident.pick;
         if (ident.needPhone) { f.phone = toLatin($('phone2').value).trim(); if (!phoneOk(f.phone)) return bad('phone2'); }
       } else if (manualOn || manualValid() || $('name').value.trim() || $('apt').value.trim()) {
-        f.name = $('name').value.trim(); f.bldText = $('bld').value.trim(); f.apt = toLatin($('apt').value).trim(); f.phone = toLatin($('phone').value).trim();
+        f.name = $('name').value.trim(); f.district = $('bld').value.trim(); f.apt = toLatin($('apt').value).trim(); f.phone = toLatin($('phone').value).trim();
         if (f.name.length < 2) return bad('name');
-        if (f.bldText.length < 2) return bad('bld');
+        if (f.district.length < 2) return bad('bld');
         if (!f.apt) return bad('apt');
         if (!phoneOk(f.phone)) return bad('phone');
       } else return bad('lk');
@@ -567,7 +567,7 @@
     try { res = await call(); }
     catch (e) { return endSend('تعذر الإرسال، تأكد من الإنترنت وحاول مرة ثانية'); }
     if (!res || !res.ok) return endSend(res && res.msg ? res.msg : 'تعذر الإرسال');
-    if (!GUARD) lsSet('mr_profile', ident ? { lk: ident.lk, pick: ident.pick, name: ident.name, bld: ident.bld, apt: ident.apt, needPhone: ident.needPhone, phone2: f.phone || '' } : { manual: true, name: f.name, bld: f.bldText, apt: f.apt, phone: f.phone });
+    if (!GUARD) lsSet('mr_profile', ident ? { lk: ident.lk, pick: ident.pick, name: ident.name, bld: ident.bld, apt: ident.apt, needPhone: ident.needPhone, phone2: f.phone || '' } : { manual: true, name: f.name, bld: f.district, apt: f.apt, phone: f.phone });
     else { $('gapt').value = ''; $('gaptv').textContent = '—'; gKind = ''; document.querySelectorAll('#gKinds .type').forEach(x => x.classList.remove('on')); }
 
     // رقم البلاغ يظهر فوراً؛ المرفقات تكمل رفعها بالخلفية وتظهر حالتها بشاشة «تم الاستلام»
