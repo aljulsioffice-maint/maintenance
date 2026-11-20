@@ -2,58 +2,96 @@
 <html lang="ar" dir="rtl">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="robots" content="noindex,nofollow">
+<meta name="theme-color" content="#0f4c81">
 <title>لوحة الصيانة</title>
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🛠️</text></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet">
 <style>
   :root {
-    --bg: #f3f5f9; --card: #ffffff; --tx: #18212e; --mut: #667286; --bd: #e0e5ee; --pri: #1f5fd1; --pri-soft: #e6eefc;
-    --ok: #17794a; --ok-soft: #dff3e8; --warn: #8a5a00; --warn-soft: #fff1cc; --bad: #b3261e; --bad-soft: #fbe3e1;
-    --new: #1f5fd1; --new-soft: #e6eefc; --ask: #5b3fb0; --ask-soft: #ece6fa; --wait: #a14a00; --wait-soft: #ffe9d6; --bar: #7da6ee; --bar2: #c6d6f5;
+    --bg: #eef2f7; --card: #ffffff; --tx: #17202e; --mut: #667489; --bd: #e2e8f0; --soft: #f5f7fb;
+    --brand: #0f4c81; --pri: #1f6fe0; --pri-soft: #e7f0ff;
+    --ok: #138a55; --ok-soft: #dff5ea; --warn: #a15c00; --warn-soft: #fff1d4; --bad: #c62828; --bad-soft: #fde8e8;
+    --new: #1f6fe0; --new-soft: #e7f0ff; --ask: #6b46c1; --ask-soft: #efe9fb; --wait: #c2570c; --wait-soft: #ffeadb;
+    --bar: #5b95ee; --bar2: #c9daf6; --shadow: 0 1px 2px rgba(15,37,64,.05), 0 8px 24px rgba(15,37,64,.06); --r: 16px;
   }
   @media (prefers-color-scheme: dark) {
     :root:not([data-theme="light"]) {
-      --bg: #0f141b; --card: #171e28; --tx: #e8edf4; --mut: #93a0b3; --bd: #263041; --pri: #6ea2ff; --pri-soft: #1c2b47;
-      --ok: #59d391; --ok-soft: #14301f; --warn: #f1c35a; --warn-soft: #382c0e; --bad: #ff8a80; --bad-soft: #3b1a18;
-      --new: #6ea2ff; --new-soft: #1c2b47; --ask: #b9a2ff; --ask-soft: #2a2145; --wait: #ffb27a; --wait-soft: #3a2412; --bar: #3d6fc4; --bar2: #25365a;
+      --bg: #0c121a; --card: #141d29; --tx: #e8eef6; --mut: #90a1b5; --bd: #243246; --soft: #0f1823;
+      --brand: #0b3a63; --pri: #6aa2ff; --pri-soft: #17294a;
+      --ok: #52d396; --ok-soft: #12301f; --warn: #f1c35a; --warn-soft: #382c0e; --bad: #ff8d8d; --bad-soft: #3b1a1a;
+      --new: #6aa2ff; --new-soft: #17294a; --ask: #b9a2ff; --ask-soft: #2a2145; --wait: #ffb27a; --wait-soft: #3a2412;
+      --bar: #3d72c9; --bar2: #25365a; --shadow: 0 1px 2px rgba(0,0,0,.4), 0 8px 24px rgba(0,0,0,.28);
     }
   }
   :root[data-theme="dark"] {
-    --bg: #0f141b; --card: #171e28; --tx: #e8edf4; --mut: #93a0b3; --bd: #263041; --pri: #6ea2ff; --pri-soft: #1c2b47;
-    --ok: #59d391; --ok-soft: #14301f; --warn: #f1c35a; --warn-soft: #382c0e; --bad: #ff8a80; --bad-soft: #3b1a18;
-    --new: #6ea2ff; --new-soft: #1c2b47; --ask: #b9a2ff; --ask-soft: #2a2145; --wait: #ffb27a; --wait-soft: #3a2412; --bar: #3d6fc4; --bar2: #25365a;
+    --bg: #0c121a; --card: #141d29; --tx: #e8eef6; --mut: #90a1b5; --bd: #243246; --soft: #0f1823;
+    --brand: #0b3a63; --pri: #6aa2ff; --pri-soft: #17294a;
+    --ok: #52d396; --ok-soft: #12301f; --warn: #f1c35a; --warn-soft: #382c0e; --bad: #ff8d8d; --bad-soft: #3b1a1a;
+    --new: #6aa2ff; --new-soft: #17294a; --ask: #b9a2ff; --ask-soft: #2a2145; --wait: #ffb27a; --wait-soft: #3a2412;
+    --bar: #3d72c9; --bar2: #25365a; --shadow: 0 1px 2px rgba(0,0,0,.4), 0 8px 24px rgba(0,0,0,.28);
   }
-  * { box-sizing: border-box; }
-  html, body { margin: 0; background: var(--bg); color: var(--tx); font-family: "Segoe UI", Tahoma, system-ui, sans-serif; font-size: 15px; }
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body { margin: 0; background: var(--bg); color: var(--tx); font-family: 'Tajawal', 'Segoe UI', Tahoma, system-ui, sans-serif; font-size: 15.5px; line-height: 1.5; }
   button { font: inherit; cursor: pointer; }
-  header { position: sticky; top: 0; z-index: 5; background: var(--card); border-bottom: 1px solid var(--bd); padding: 8px 16px; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
-  header h1 { font-size: 17px; margin: 0; }
-  header .sp { flex: 1; }
-  header .me { color: var(--mut); font-size: 12.5px; }
-  .tabs { display: flex; gap: 4px; flex-wrap: wrap; }
-  .tab { border: 0; background: transparent; color: var(--mut); padding: 8px 12px; border-radius: 10px; font-weight: 700; }
-  .tab.on { background: var(--pri-soft); color: var(--pri); }
-  .ib { border: 1px solid var(--bd); background: var(--card); color: var(--tx); border-radius: 10px; padding: 6px 10px; }
-  .wrap { display: grid; grid-template-columns: minmax(320px, 440px) 1fr; gap: 14px; padding: 14px 16px; align-items: start; }
-  @media (max-width: 860px) { .wrap { grid-template-columns: 1fr; padding: 10px 16px; } #detail { display: none; } body.showd #list, body.showd .stats { display: none; } body.showd #detail { display: block; } }
-  .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(105px, 1fr)); gap: 8px; padding: 12px 16px 0; }
-  .stat { background: var(--card); border: 1px solid var(--bd); border-radius: 12px; padding: 9px 12px; text-align: start; color: var(--tx); }
-  .stat b { display: block; font-size: 22px; line-height: 1.2; }
-  .stat span { color: var(--mut); font-size: 12.5px; }
-  button.stat { cursor: pointer; }
-  .stat.on { border-color: var(--pri); background: var(--pri-soft); }
-  .stat.red b { color: var(--bad); }
-  .tools { display: flex; gap: 8px; margin-bottom: 10px; }
-  .tools input { flex: 1; border: 1px solid var(--bd); background: var(--card); color: var(--tx); border-radius: 10px; padding: 9px 12px; font: inherit; min-width: 0; }
-  .item { background: var(--card); border: 1px solid var(--bd); border-radius: 12px; padding: 10px 12px; margin-bottom: 8px; cursor: pointer; display: grid; grid-template-columns: auto 1fr auto; gap: 4px 10px; align-items: center; }
-  .item:hover, .item.sel { border-color: var(--pri); }
-  .item.sel { background: var(--pri-soft); }
-  .item .ic { font-size: 24px; grid-row: span 2; }
-  .item .t { font-weight: 700; }
-  .item .s { color: var(--mut); font-size: 13px; }
-  .item .r { text-align: end; font-size: 12px; color: var(--mut); }
-  .badge { display: inline-block; border-radius: 999px; padding: 2px 9px; font-size: 12px; font-weight: 700; }
+  a { color: inherit; }
+  .hidden { display: none !important; }
+
+  /* ===== الإطار: قائمة جانبية (حاسوب) / شريط سفلي (جوال) ===== */
+  .side { position: fixed; inset-block: 0; inset-inline-start: 0; width: 230px; background: linear-gradient(180deg, var(--brand), #0a2f52); color: #fff; display: flex; flex-direction: column; padding: 18px 12px; z-index: 6; }
+  .side .brandrow { display: flex; align-items: center; gap: 10px; padding: 6px 8px 18px; }
+  .side .logo { width: 40px; height: 40px; border-radius: 12px; background: rgba(255,255,255,.16); display: grid; place-items: center; font-size: 22px; }
+  .side .bt { font-weight: 800; line-height: 1.25; font-size: 16px; }
+  .side .bt small { display: block; font-weight: 500; opacity: .75; font-size: 12.5px; }
+  .nav { display: flex; flex-direction: column; gap: 4px; }
+  .tab { display: flex; align-items: center; gap: 11px; border: 0; background: transparent; color: rgba(255,255,255,.78); padding: 12px 14px; border-radius: 12px; font-weight: 700; text-align: start; width: 100%; }
+  .tab .ico { font-size: 19px; width: 24px; text-align: center; }
+  .tab:hover { background: rgba(255,255,255,.08); }
+  .tab.on { background: rgba(255,255,255,.18); color: #fff; }
+  .tab .cnt { margin-inline-start: auto; background: var(--bad); color: #fff; border-radius: 99px; font-size: 12px; padding: 1px 8px; font-weight: 800; }
+  .side .foot { margin-top: auto; display: flex; flex-direction: column; gap: 6px; font-size: 13px; }
+  .side .me { opacity: .85; padding: 0 8px; }
+  .side .row2 { display: flex; gap: 6px; }
+  .ib { flex: 1; border: 1px solid rgba(255,255,255,.25); background: rgba(255,255,255,.08); color: #fff; border-radius: 10px; padding: 8px 6px; font-size: 14px; }
+  main { margin-inline-start: 230px; min-height: 100vh; }
+  .topbar { position: sticky; top: 0; z-index: 5; display: flex; align-items: center; gap: 10px; padding: 12px 22px; background: color-mix(in srgb, var(--bg) 88%, transparent); backdrop-filter: blur(8px); border-bottom: 1px solid var(--bd); }
+  .topbar h1 { font-size: 20px; margin: 0; font-weight: 800; flex: 1; }
+  .topbar .upd { color: var(--mut); font-size: 13px; }
+  .topbar .ib { flex: none; width: 40px; padding: 8px 0; background: var(--card); border-color: var(--bd); color: var(--tx); }
+  .mob { display: none; }
+  @media (max-width: 900px) {
+    .side { inset-block: auto 0; inset-inline: 0; width: auto; flex-direction: row; padding: 6px 6px calc(6px + env(safe-area-inset-bottom)); background: var(--brand); border-top: 1px solid rgba(255,255,255,.15); }
+    .side .brandrow, .side .foot { display: none; }
+    .nav { flex-direction: row; width: 100%; gap: 2px; }
+    .tab { flex-direction: column; gap: 2px; padding: 7px 2px; font-size: 11.5px; text-align: center; justify-content: center; position: relative; }
+    .tab .cnt { position: absolute; top: 2px; inset-inline-start: 50%; margin: 0; transform: translateX(-30%); font-size: 10.5px; padding: 0 6px; }
+    main { margin-inline-start: 0; padding-bottom: 76px; }
+    .topbar { padding: 10px 14px; }
+    .topbar h1 { font-size: 17px; }
+    .mob { display: flex; gap: 6px; }
+  }
+
+  /* ===== عام ===== */
+  .page { padding: 18px 22px 40px; max-width: 1180px; margin: 0 auto; }
+  @media (max-width: 900px) { .page { padding: 14px 14px 30px; } }
+  .card, .panel { background: var(--card); border: 1px solid var(--bd); border-radius: var(--r); box-shadow: var(--shadow); }
+  .panel { padding: 18px; }
+  .btn { border: 1px solid var(--bd); background: var(--card); color: var(--tx); border-radius: 12px; padding: 9px 14px; text-decoration: none; display: inline-flex; align-items: center; gap: 6px; font-weight: 700; font-size: 14.5px; transition: background .15s, border-color .15s; }
+  .btn:hover { border-color: var(--pri); }
+  .btn.pri { background: var(--pri); color: #fff; border-color: var(--pri); }
+  .btn.ok { background: var(--ok-soft); color: var(--ok); border-color: transparent; }
+  .btn.bad { background: var(--bad-soft); color: var(--bad); border-color: transparent; }
+  .btn.sm { padding: 5px 10px; font-size: 13px; border-radius: 10px; }
+  select, .inp { border: 1.5px solid var(--bd); background: var(--soft); color: var(--tx); border-radius: 12px; padding: 9px 11px; font: inherit; outline: none; }
+  select:focus, .inp:focus, textarea:focus { border-color: var(--pri); }
+  .row { display: flex; gap: 8px; flex-wrap: wrap; margin: 10px 0; align-items: center; }
+  h3 { font-size: 13.5px; color: var(--mut); margin: 20px 0 8px; font-weight: 800; letter-spacing: .2px; }
+  .empty { text-align: center; color: var(--mut); padding: 44px 10px; }
+  .skel { height: 66px; border-radius: 14px; margin-bottom: 8px; background: linear-gradient(90deg, var(--soft), var(--bd), var(--soft)); background-size: 200% 100%; animation: sk 1.2s infinite; }
+  @keyframes sk { to { background-position: -200% 0; } }
+  .badge { display: inline-block; border-radius: 999px; padding: 2px 10px; font-size: 12.5px; font-weight: 800; }
   .b-جديد { background: var(--new-soft); color: var(--new); }
   .b-قيد { background: var(--warn-soft); color: var(--warn); }
   .b-أنجزه { background: var(--wait-soft); color: var(--wait); }
@@ -61,101 +99,152 @@
   .b-مرفوض { background: var(--bad-soft); color: var(--bad); }
   .b-بانتظار { background: var(--ask-soft); color: var(--ask); }
   .urg { color: var(--bad); font-weight: 800; }
-  .panel { background: var(--card); border: 1px solid var(--bd); border-radius: 14px; padding: 16px; }
-  #detail { position: sticky; top: 62px; max-height: calc(100vh - 80px); overflow: auto; }
-  #detail h2 { margin: 0 0 4px; font-size: 19px; }
-  .row { display: flex; gap: 8px; flex-wrap: wrap; margin: 10px 0; align-items: center; }
-  .kv { display: grid; grid-template-columns: 90px 1fr; gap: 6px 10px; margin: 10px 0; }
-  .kv div:nth-child(odd) { color: var(--mut); }
-  .desc { background: var(--bg); border-radius: 10px; padding: 10px 12px; white-space: pre-wrap; line-height: 1.6; }
-  .btn { border: 1px solid var(--bd); background: var(--card); color: var(--tx); border-radius: 10px; padding: 8px 12px; text-decoration: none; display: inline-block; }
-  .btn.pri { background: var(--pri); color: #fff; border-color: var(--pri); }
-  .btn.ok { background: var(--ok-soft); color: var(--ok); border-color: transparent; font-weight: 700; }
-  .btn.bad { background: var(--bad-soft); color: var(--bad); border-color: transparent; }
-  .btn.sm { padding: 5px 9px; font-size: 13px; }
-  select, .inp { border: 1px solid var(--bd); background: var(--card); color: var(--tx); border-radius: 10px; padding: 8px; font: inherit; }
-  h3 { font-size: 14px; color: var(--mut); margin: 18px 0 6px; }
-  .log { font-size: 13px; border-inline-start: 2px solid var(--bd); padding-inline-start: 10px; }
-  .log div { margin-bottom: 7px; } .log small { color: var(--mut); display: block; }
-  .empty { text-align: center; color: var(--mut); padding: 40px 10px; }
-  .thumbs { display: grid; grid-template-columns: repeat(auto-fill, minmax(96px, 1fr)); gap: 8px; }
-  .thumbs .th { aspect-ratio: 1; border-radius: 10px; background: var(--bg); border: 1px solid var(--bd); overflow: hidden; display: flex; align-items: center; justify-content: center; font-size: 12px; color: var(--mut); text-align: center; cursor: pointer; }
+
+  /* ===== الطلبات ===== */
+  .sumline { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 14px; }
+  .kpi { flex: 1 1 140px; background: var(--card); border: 1px solid var(--bd); border-radius: var(--r); padding: 14px 16px; box-shadow: var(--shadow); position: relative; overflow: hidden; }
+  .kpi::before { content: ''; position: absolute; inset-inline-start: 0; top: 0; bottom: 0; width: 5px; background: var(--c, var(--pri)); }
+  .kpi b { display: block; font-size: 28px; line-height: 1.1; font-weight: 800; }
+  .kpi span { color: var(--mut); font-size: 13.5px; font-weight: 700; }
+  .kpi.red b { color: var(--bad); }
+  .chipsbar { display: flex; gap: 8px; overflow-x: auto; padding: 2px 0 10px; scrollbar-width: none; }
+  .chipsbar::-webkit-scrollbar { display: none; }
+  .fchip { flex: none; border: 1.5px solid var(--bd); background: var(--card); color: var(--tx); border-radius: 999px; padding: 7px 14px; font-weight: 700; font-size: 14px; display: inline-flex; gap: 7px; align-items: center; }
+  .fchip b { background: var(--soft); border-radius: 99px; padding: 0 8px; font-size: 12.5px; }
+  .fchip.on { background: var(--pri); border-color: var(--pri); color: #fff; }
+  .fchip.on b { background: rgba(255,255,255,.25); }
+  .fchip.red b { background: var(--bad-soft); color: var(--bad); }
+  .wrap { display: grid; grid-template-columns: minmax(340px, 470px) 1fr; gap: 16px; align-items: start; }
+  @media (max-width: 1000px) { .wrap { grid-template-columns: 1fr; } #detail { display: none; } body.showd #list, body.showd .sumline, body.showd .chipsbar { display: none; } body.showd #detail { display: block; } }
+  .tools { display: flex; gap: 8px; margin-bottom: 10px; }
+  .tools input { flex: 1; min-width: 0; border: 1.5px solid var(--bd); background: var(--card); color: var(--tx); border-radius: 14px; padding: 11px 14px; font: inherit; outline: none; box-shadow: var(--shadow); }
+  .tools input:focus { border-color: var(--pri); }
+  .item { position: relative; background: var(--card); border: 1.5px solid var(--bd); border-radius: 16px; padding: 12px 14px 12px 12px; margin-bottom: 10px; cursor: pointer; display: grid; grid-template-columns: 46px 1fr auto; gap: 2px 12px; align-items: center; box-shadow: var(--shadow); transition: transform .12s, border-color .15s; }
+  .item::before { content: ''; position: absolute; inset-inline-start: 0; top: 12px; bottom: 12px; width: 4px; border-radius: 4px; background: var(--sc, var(--bd)); }
+  .item:hover { border-color: var(--pri); transform: translateY(-1px); }
+  .item.sel { border-color: var(--pri); background: var(--pri-soft); }
+  .item .av { grid-row: span 3; width: 46px; height: 46px; border-radius: 14px; background: var(--soft); display: grid; place-items: center; font-size: 24px; }
+  .item .t { font-weight: 800; font-size: 16px; }
+  .item .s { color: var(--mut); font-size: 13.5px; }
+  .item .m { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; margin-top: 2px; }
+  .item .r { grid-row: span 3; text-align: end; font-size: 12.5px; color: var(--mut); align-self: start; white-space: nowrap; }
+  .s-جديد { --sc: var(--new); } .s-قيد { --sc: #e8a317; } .s-أنجزه { --sc: var(--wait); } .s-تمت { --sc: var(--ok); } .s-مرفوض { --sc: var(--bad); } .s-بانتظار { --sc: var(--ask); }
+  #detail { position: sticky; top: 76px; max-height: calc(100vh - 96px); overflow: auto; padding: 0; }
+  #detail .dh { padding: 18px 20px 14px; background: linear-gradient(135deg, var(--pri-soft), transparent); border-bottom: 1px solid var(--bd); border-radius: var(--r) var(--r) 0 0; }
+  #detail .dh h2 { margin: 0 0 6px; font-size: 21px; font-weight: 800; }
+  #detail .db { padding: 6px 20px 22px; }
+  .kv { display: grid; grid-template-columns: 96px 1fr; gap: 8px 12px; margin: 14px 0; background: var(--soft); border-radius: 14px; padding: 14px; }
+  .kv div:nth-child(odd) { color: var(--mut); font-weight: 700; font-size: 14px; }
+  .desc { background: var(--soft); border-radius: 14px; padding: 12px 14px; white-space: pre-wrap; line-height: 1.7; }
+  .log { font-size: 13.5px; border-inline-start: 2px solid var(--bd); padding-inline-start: 14px; margin-inline-start: 4px; }
+  .log > div { margin-bottom: 10px; position: relative; }
+  .log > div::before { content: ''; position: absolute; inset-inline-start: -20px; top: 6px; width: 10px; height: 10px; border-radius: 50%; background: var(--pri); }
+  .log small { color: var(--mut); display: block; }
+  .thumbs { display: grid; grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); gap: 8px; }
+  .thumbs .th { aspect-ratio: 1; border-radius: 12px; background: var(--soft); border: 1px solid var(--bd); overflow: hidden; display: flex; align-items: center; justify-content: center; font-size: 12px; color: var(--mut); text-align: center; cursor: pointer; }
   .thumbs img { width: 100%; height: 100%; object-fit: cover; }
-  .modal { position: fixed; inset: 0; background: #000a; display: none; align-items: center; justify-content: center; z-index: 20; padding: 16px; }
+  .back { display: none; margin: 12px 14px 0; }
+  @media (max-width: 1000px) { .back { display: inline-flex; } #detail { position: static; max-height: none; } }
+
+  /* ===== النوافذ ===== */
+  .modal { position: fixed; inset: 0; background: rgba(8,16,28,.62); backdrop-filter: blur(3px); display: none; align-items: center; justify-content: center; z-index: 30; padding: 16px; }
   .modal.on { display: flex; }
-  .modal .box { background: var(--card); border-radius: 14px; padding: 16px; width: min(460px, 100%); max-height: 92vh; overflow: auto; }
-  .modal label { display: block; color: var(--mut); font-size: 13px; margin: 10px 0 4px; }
+  .modal .box { background: var(--card); border-radius: 20px; padding: 20px; width: min(480px, 100%); max-height: 92vh; overflow: auto; box-shadow: 0 20px 60px rgba(0,0,0,.4); }
+  .modal label { display: block; color: var(--mut); font-size: 13.5px; font-weight: 700; margin: 12px 0 5px; }
   .modal .inp, .modal textarea { width: 100%; }
-  .modal textarea { min-height: 90px; border: 1px solid var(--bd); background: var(--bg); color: var(--tx); border-radius: 10px; padding: 9px; font: inherit; }
-  #lb img { max-width: 96vw; max-height: 90vh; border-radius: 10px; }
-  .toast { position: fixed; bottom: 18px; inset-inline: 0; margin: auto; width: fit-content; max-width: 92vw; background: #222; color: #fff; padding: 9px 16px; border-radius: 10px; display: none; z-index: 30; }
-  .toast.on { display: block; }
-  .back { display: none; }
-  @media (max-width: 860px) { .back { display: inline-block; margin-bottom: 8px; } }
-  #gate { max-width: 420px; margin: 60px auto; padding: 0 16px; text-align: center; }
-  .page { padding: 14px 16px; max-width: 1100px; margin: 0 auto; }
-  .grid2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 14px; margin-top: 14px; }
-  .bars div.b { display: grid; grid-template-columns: 140px 1fr 34px; gap: 8px; align-items: center; margin: 5px 0; font-size: 13.5px; }
-  .bars i { display: block; height: 14px; border-radius: 7px; background: var(--bar); min-width: 3px; }
-  .cols { display: flex; align-items: flex-end; gap: 6px; height: 130px; margin-top: 10px; }
-  .cols > div { flex: 1; text-align: center; font-size: 11px; color: var(--mut); display: flex; flex-direction: column; justify-content: flex-end; height: 100%; }
-  .cols .pair { display: flex; flex-direction: row; align-items: flex-end; gap: 2px; height: 100px; }
+  .modal textarea { min-height: 96px; border: 1.5px solid var(--bd); background: var(--soft); color: var(--tx); border-radius: 12px; padding: 10px; font: inherit; outline: none; }
+  #lb img { max-width: 96vw; max-height: 90vh; border-radius: 14px; }
+  .toast { position: fixed; bottom: 22px; inset-inline: 0; margin: auto; width: fit-content; max-width: 92vw; background: #1b2635; color: #fff; padding: 11px 20px; border-radius: 14px; display: none; z-index: 40; box-shadow: 0 10px 30px rgba(0,0,0,.35); font-weight: 700; }
+  .toast.on { display: block; animation: up .25s; }
+  @keyframes up { from { transform: translateY(12px); opacity: 0; } }
+  @media (max-width: 900px) { .toast { bottom: 84px; } }
+  #gate { max-width: 420px; margin: 70px auto; padding: 0 20px; text-align: center; }
+  #gate .gi { font-size: 56px; }
+
+  /* ===== الإحصاءات والجداول ===== */
+  .grid2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(330px, 1fr)); gap: 16px; margin-top: 16px; }
+  .panel > b:first-child { display: block; font-size: 16px; margin-bottom: 10px; font-weight: 800; }
+  .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 10px; }
+  .stat { background: var(--soft); border-radius: 14px; padding: 12px 14px; }
+  .stat b { display: block; font-size: 24px; line-height: 1.15; font-weight: 800; }
+  .stat span { color: var(--mut); font-size: 13px; font-weight: 700; }
+  .stat.red b { color: var(--bad); }
+  .bars div.b { display: grid; grid-template-columns: 130px 1fr 34px; gap: 10px; align-items: center; margin: 7px 0; font-size: 14px; }
+  .bars i { display: block; height: 14px; border-radius: 7px; background: linear-gradient(90deg, var(--bar), var(--pri)); min-width: 4px; }
+  .cols { display: flex; align-items: flex-end; gap: 7px; height: 140px; margin-top: 12px; }
+  .cols > div { flex: 1; text-align: center; font-size: 11.5px; color: var(--mut); display: flex; flex-direction: column; justify-content: flex-end; height: 100%; font-weight: 700; }
+  .cols .pair { display: flex; flex-direction: row; align-items: flex-end; gap: 3px; height: 104px; }
   .cols .pair i { flex: 1; }
-  .cols i { display: block; background: var(--bar); border-radius: 5px 5px 0 0; min-height: 2px; }
+  .cols i { display: block; background: linear-gradient(180deg, var(--pri), var(--bar)); border-radius: 6px 6px 2px 2px; min-height: 3px; }
   .cols i.prev { background: var(--bar2); }
-  .cols b { color: var(--tx); font-size: 12px; }
-  table { width: 100%; border-collapse: collapse; font-size: 14px; }
-  th, td { text-align: start; padding: 8px 6px; border-bottom: 1px solid var(--bd); vertical-align: top; }
-  th { color: var(--mut); font-weight: 600; font-size: 12.5px; }
-  .off { opacity: .5; }
-  .chip { display: inline-flex; align-items: center; gap: 4px; background: var(--bg); border: 1px solid var(--bd); border-radius: 999px; padding: 2px 8px; margin: 2px; font-size: 13px; direction: ltr; }
-  .chip button { border: 0; background: transparent; color: var(--bad); padding: 0 2px; font-size: 14px; }
-  .legend { font-size: 12px; color: var(--mut); display: flex; gap: 12px; margin-top: 6px; }
-  .legend i { display: inline-block; width: 10px; height: 10px; border-radius: 3px; background: var(--bar); margin-inline-end: 4px; }
+  .cols b { color: var(--tx); font-size: 12.5px; }
+  .legend { font-size: 12.5px; color: var(--mut); display: flex; gap: 14px; margin-top: 8px; }
+  .legend i { display: inline-block; width: 10px; height: 10px; border-radius: 3px; background: var(--pri); margin-inline-end: 5px; }
   .legend i.prev { background: var(--bar2); }
+  table { width: 100%; border-collapse: collapse; font-size: 14.5px; }
+  th, td { text-align: start; padding: 10px 8px; border-bottom: 1px solid var(--bd); vertical-align: top; }
+  th { color: var(--mut); font-weight: 800; font-size: 12.5px; background: var(--soft); }
+  tr:last-child td { border-bottom: 0; }
+  .off { opacity: .5; }
+  .chip { display: inline-flex; align-items: center; gap: 4px; background: var(--soft); border: 1px solid var(--bd); border-radius: 999px; padding: 3px 10px; margin: 2px; font-size: 13.5px; direction: ltr; }
+  .chip button { border: 0; background: transparent; color: var(--bad); padding: 0 2px; font-size: 14px; }
+  .pagehd { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 4px; }
+  .pagehd h2 { margin: 0; font-size: 20px; font-weight: 800; flex: 1; }
 </style>
 </head>
 <body>
 <div id="gate" style="display:none">
-  <h2>🛠️ لوحة الصيانة</h2>
-  <p id="gateMsg">افتح اللوحة من الرابط الشخصي الذي يرسله لك البوت (زر «🖥️ لوحة الويب»).</p>
+  <div class="gi">🛠️</div>
+  <h2>لوحة الصيانة</h2>
+  <p id="gateMsg" style="color:var(--mut)">افتح اللوحة من الرابط الشخصي الذي يرسله لك البوت (زر «🖥️ لوحة الويب»).</p>
 </div>
 
 <div id="app" style="display:none">
-  <header>
-    <h1>🛠️ الصيانة</h1>
-    <div class="tabs">
-      <button class="tab on" id="tab_req" onclick="setTab('req')">📋 الطلبات</button>
-      <button class="tab" id="tab_rep" onclick="setTab('rep')">📊 الإحصاءات</button>
-      <button class="tab" id="tab_team" onclick="setTab('team')">👥 الفريق والحراس</button>
-      <button class="tab" id="tab_dir" onclick="setTab('dir')">🏢 العمائر والمستأجرون</button>
-    </div>
-    <span class="sp"></span>
-    <span class="me" id="me"></span>
-    <span class="me" id="upd"></span>
-    <button class="ib" onclick="load(true)" title="تحديث">🔄</button>
-    <button class="ib" onclick="toggleTheme()" title="الوضع">🌓</button>
-    <button class="ib" onclick="renewKey()" title="تجديد رابطي الشخصي">🔑</button>
-  </header>
-
-  <div id="vreq">
-    <div class="stats" id="stats"></div>
-    <div class="wrap">
-      <div id="list">
-        <div class="tools"><input id="q" placeholder="🔎 بحث: رقم الطلب، اسم، عمارة، شقة، فني…" oninput="draw()"></div>
-        <div id="items"></div>
+  <aside class="side">
+    <div class="brandrow"><div class="logo">🛠️</div><div class="bt">لوحة الصيانة<small>مكتب عبد الله الجلسي</small></div></div>
+    <nav class="nav">
+      <button class="tab on" id="tab_req" onclick="setTab('req')"><span class="ico">📋</span><span>الطلبات</span><span class="cnt hidden" id="cntOpen"></span></button>
+      <button class="tab" id="tab_rep" onclick="setTab('rep')"><span class="ico">📊</span><span>الإحصاءات</span></button>
+      <button class="tab" id="tab_team" onclick="setTab('team')"><span class="ico">👥</span><span>الفريق</span></button>
+      <button class="tab" id="tab_dir" onclick="setTab('dir')"><span class="ico">🏢</span><span>العمائر</span></button>
+    </nav>
+    <div class="foot">
+      <div class="me" id="me"></div>
+      <div class="row2">
+        <button class="ib" onclick="load(true)" title="تحديث">🔄</button>
+        <button class="ib" onclick="toggleTheme()" title="الوضع">🌓</button>
+        <button class="ib" onclick="renewKey()" title="تجديد رابطي الشخصي">🔑</button>
       </div>
-      <div id="detail" class="panel"><div class="empty">اختر طلباً من القائمة</div></div>
     </div>
-  </div>
+  </aside>
 
-  <div id="vrep" class="page" style="display:none"></div>
-  <div id="vteam" class="page" style="display:none"></div>
-  <div id="vdir" class="page" style="display:none"></div>
+  <main>
+    <div class="topbar">
+      <h1 id="ttl">الطلبات</h1>
+      <span class="upd" id="upd"></span>
+      <div class="mob"><button class="ib" onclick="load(true)">🔄</button><button class="ib" onclick="toggleTheme()">🌓</button><button class="ib" onclick="renewKey()">🔑</button></div>
+    </div>
+
+    <div id="vreq" class="page">
+      <div class="sumline" id="sumline"></div>
+      <div class="chipsbar" id="stats"></div>
+      <div class="wrap">
+        <div id="list">
+          <div class="tools"><input id="q" placeholder="🔎 ابحث: رقم الطلب، اسم، عمارة، شقة، فني…" oninput="draw()"></div>
+          <div id="items"></div>
+        </div>
+        <div id="detail" class="panel"><div class="empty">👈 اختر طلباً من القائمة لعرض تفاصيله</div></div>
+      </div>
+    </div>
+
+    <div id="vrep" class="page" style="display:none"></div>
+    <div id="vteam" class="page" style="display:none"></div>
+    <div id="vdir" class="page" style="display:none"></div>
+  </main>
 </div>
 
 <div class="modal" id="modal"><div class="box">
-  <h3 id="mTitle" style="margin-top:0;color:var(--tx);font-size:16px"></h3>
+  <h3 id="mTitle" style="margin-top:0;color:var(--tx);font-size:17px"></h3>
   <div id="mBody"></div>
   <div class="row"><button class="btn pri" id="mOk">تأكيد</button><button class="btn" onclick="closeModal()">إلغاء</button></div>
 </div></div>
@@ -167,6 +256,7 @@
   const $ = id => document.getElementById(id);
   const esc = s => String(s == null ? '' : s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
   const TYPE_LIST = ['سباكة', 'كهرباء', 'مصعد', 'أخرى', 'وايت ماء', 'وايت صرف صحي'];
+  const TITLES = { req: 'الطلبات', rep: 'الإحصاءات', team: 'الفريق والحراس', dir: 'العمائر والمستأجرون' };
   let KEY = '', DATA = null, FILTER = 'open', SEL = '', DETAIL = null, busy = false, TAB = 'req', BLDS = null;
   let TEAM = null, GUARDS = null, TENROWS = [];
   const IMG = {};
@@ -195,6 +285,7 @@
     try { const r = await api(op, id, arg); if (!r.ok) { toast(r.msg || 'تعذّر'); return false; } if (okMsg !== '') toast(okMsg || '✅ تم'); return r; }
     catch (e) { toast('تعذّر: ' + e.message); return false; }
   }
+  const skel = n => Array.from({ length: n }, () => '<div class="skel"></div>').join('');
 
   async function renewKey() {
     if (!confirm('تجديد رابطك الشخصي؟ الرابط القديم (وأي جهاز آخر فاتحه) يتوقف فوراً، وهذا الجهاز يستمر.')) return;
@@ -218,15 +309,16 @@
   }
   function closeModal() { $('modal').classList.remove('on'); }
   function confirmBox(title, text, onOk, label) {
-    $('mTitle').textContent = title; $('mBody').innerHTML = `<div style="padding:6px 0;line-height:1.7">${esc(text)}</div>`;
+    $('mTitle').textContent = title; $('mBody').innerHTML = `<div style="padding:6px 0;line-height:1.8">${esc(text)}</div>`;
     $('mOk').textContent = label || 'تأكيد'; $('mOk').onclick = async () => { closeModal(); await onOk(); }; $('modal').classList.add('on');
   }
   async function getBlds() { if (!BLDS) { const r = await call('blds', '', '', ''); if (r) BLDS = r.blds; } return BLDS || []; }
 
   // ---------- التبويبات ----------
   function setTab(t) {
-    TAB = t;
+    TAB = t; $('ttl').textContent = TITLES[t];
     ['req', 'rep', 'team', 'dir'].forEach(k => { $('tab_' + k).classList.toggle('on', k === t); $('v' + k).style.display = k === t ? '' : 'none'; });
+    window.scrollTo({ top: 0 });
     if (t === 'rep') loadReport(); if (t === 'team') loadTeam(); if (t === 'dir') loadDir();
   }
 
@@ -248,6 +340,7 @@
 
   const isDone = s => s === 'تمت المعالجة' || s === 'مرفوض';
   const bcls = s => 'b-' + String(s).split(' ')[0];
+  const scls = s => 's-' + String(s).split(' ')[0];
   function age(ts) {
     const d = new Date(String(ts).replace(' ', 'T') + ':00+03:00'); if (isNaN(d)) return '';
     const m = Math.floor((Date.now() - d) / 60000);
@@ -261,30 +354,38 @@
     ['wait', 'بانتظار تأكيدك', r => r.st === 'أنجزه الفني'], ['ask', 'بانتظار المستأجر', r => r.st === 'بانتظار المستأجر'],
     ['urg', '🔴 عاجلة', r => r.urg && !isDone(r.st)], ['closed', 'مغلقة', r => isDone(r.st)], ['all', 'الكل', () => true],
   ];
+  const cnt = k => DATA.reqs.filter(FILTERS.find(f => f[0] === k)[2]).length;
   function draw() {
     if (!DATA) return;
+    const nOpen = cnt('open'), nNew = cnt('new'), nWait = cnt('wait'), nUrg = cnt('urg');
+    $('sumline').innerHTML = `
+      <div class="kpi" style="--c:var(--pri)"><b>${nOpen}</b><span>طلب مفتوح</span></div>
+      <div class="kpi" style="--c:var(--new)"><b>${nNew}</b><span>جديد بلا معالجة</span></div>
+      <div class="kpi" style="--c:var(--wait)"><b>${nWait}</b><span>بانتظار تأكيدك</span></div>
+      <div class="kpi ${nUrg ? 'red' : ''}" style="--c:var(--bad)"><b>${nUrg}</b><span>عاجل</span></div>`;
+    const c = $('cntOpen'); c.textContent = nOpen; c.classList.toggle('hidden', !nOpen);
     $('stats').innerHTML = FILTERS.map(f => {
-      const n = DATA.reqs.filter(f[2]).length;
-      return `<button class="stat ${FILTER === f[0] ? 'on' : ''} ${f[0] === 'urg' && n ? 'red' : ''}" onclick="setFilter('${f[0]}')"><b>${n}</b><span>${f[1]}</span></button>`;
+      const n = cnt(f[0]);
+      return `<button class="fchip ${FILTER === f[0] ? 'on' : ''} ${f[0] === 'urg' && n ? 'red' : ''}" onclick="setFilter('${f[0]}')">${f[1]} <b>${n}</b></button>`;
     }).join('');
     const q = $('q').value.trim().toLowerCase(), f = FILTERS.find(x => x[0] === FILTER)[2];
     let list = DATA.reqs.filter(f);
     if (q) list = list.filter(r => [r.id, r.name, r.bld, r.apt, r.tenant, r.tech, r.type, r.phone, r.desc].join(' ').toLowerCase().includes(q));
     if (FILTER !== 'closed' && FILTER !== 'all') list = list.slice().sort((a, b) => (b.urg - a.urg) || (Number(a.id) - Number(b.id)));
     $('items').innerHTML = list.length ? list.map(r => `
-      <div class="item ${SEL === r.id ? 'sel' : ''}" onclick="openReq('${esc(r.id)}')">
-        <div class="ic">${esc(r.icon)}</div>
+      <div class="item ${scls(r.st)} ${SEL === r.id ? 'sel' : ''}" onclick="openReq('${esc(r.id)}')">
+        <div class="av">${esc(r.icon)}</div>
         <div class="t">#${esc(r.id)} · ${esc(place(r))} ${r.urg ? '<span class="urg">🔴</span>' : ''}</div>
-        <div class="r"><span class="badge ${bcls(r.st)}">${esc(r.st)}</span></div>
-        <div class="s">${esc(r.type)} · ${esc(r.tenant || r.name)}${r.tech ? ' · 👷 ' + esc(r.tech) : ''}${r.media ? ' · 📎' + r.media : ''}</div>
+        <div class="s">${esc(r.type)} · ${esc(r.tenant || r.name)}</div>
+        <div class="m"><span class="badge ${bcls(r.st)}">${esc(r.st)}</span>${r.tech ? '<span class="s">👷 ' + esc(r.tech) + '</span>' : ''}${r.media ? '<span class="s">📎 ' + r.media + '</span>' : ''}</div>
         <div class="r">${esc(age(r.ts))}</div>
-      </div>`).join('') : '<div class="empty">لا توجد طلبات</div>';
+      </div>`).join('') : '<div class="empty">🎉 لا توجد طلبات هنا</div>';
   }
   function setFilter(f) { FILTER = f; draw(); }
 
   async function openReq(id, quiet) {
     SEL = id; draw(); document.body.classList.add('showd');
-    if (!quiet) $('detail').innerHTML = '<div class="empty">جاري التحميل…</div>';
+    if (!quiet) $('detail').innerHTML = '<div style="padding:18px">' + skel(4) + '</div>';
     try {
       const r = await api('detail', id);
       if (!r.ok) { $('detail').innerHTML = '<div class="empty">' + esc(r.msg) + '</div>'; return; }
@@ -312,13 +413,16 @@
 
   function drawDetail() {
     const r = DETAIL.req, done = isDone(r.st);
-    const wa = r.waPhone ? `<a class="btn" target="_blank" rel="noopener" href="https://wa.me/${esc(r.waPhone)}">💬 واتساب</a><a class="btn" href="tel:+${esc(r.waPhone)}">📞 اتصال</a>` : '';
+    const wa = r.waPhone ? `<a class="btn ok" target="_blank" rel="noopener" href="https://wa.me/${esc(r.waPhone)}">💬 واتساب</a><a class="btn" href="tel:+${esc(r.waPhone)}">📞 اتصال</a>` : '';
     const techOpts = '<option value="">— اختر الفني —</option>' + DATA.techs.map(t => `<option value="${esc(t.row)}">${esc(t.name)}${t.spec ? ' — ' + esc(t.spec) : ''}</option>`).join('');
     const files = r.files || [];
     $('detail').innerHTML = `
-      <button class="btn back" onclick="closeDetail()">→ رجوع</button>
-      <h2>${esc(r.icon)} طلب #${esc(r.id)} ${r.urg ? '<span class="urg">🔴 عاجل</span>' : ''}</h2>
-      <div><span class="badge ${bcls(r.st)}">${esc(r.st)}</span> ${r.ts2 ? '<span class="badge b-قيد">' + esc(r.ts2) + '</span>' : ''} <span style="color:var(--mut)">${esc(r.ts)}</span></div>
+      <button class="btn back" onclick="closeDetail()">→ رجوع للقائمة</button>
+      <div class="dh">
+        <h2>${esc(r.icon)} طلب #${esc(r.id)} ${r.urg ? '<span class="urg">🔴 عاجل</span>' : ''}</h2>
+        <span class="badge ${bcls(r.st)}">${esc(r.st)}</span> ${r.ts2 ? '<span class="badge b-قيد">' + esc(r.ts2) + '</span>' : ''} <span style="color:var(--mut);font-size:13.5px;margin-inline-start:6px">${esc(r.ts)}</span>
+      </div>
+      <div class="db">
       <div class="kv">
         <div>النوع</div><div>${esc(r.type)}</div>
         <div>المكان</div><div><b>${esc(place(r))}</b></div>
@@ -328,7 +432,7 @@
         <div>الفني</div><div>${r.tech ? '👷 ' + esc(r.tech) : '—'}</div>
       </div>
       <div class="desc">${esc(r.fullDesc) || '—'}</div>
-      ${r.question ? `<h3>❓ سؤال الإدارة</h3><div class="desc">${esc(r.question)}${r.reply ? '<hr>💬 ' + esc(r.reply) : ''}</div>` : ''}
+      ${r.question ? `<h3>❓ سؤال الإدارة</h3><div class="desc">${esc(r.question)}${r.reply ? '<hr style="border:0;border-top:1px solid var(--bd)">💬 ' + esc(r.reply) : ''}</div>` : ''}
       ${r.note ? `<h3>🗒 ملاحظة الإغلاق</h3><div class="desc">${esc(r.note)}</div>` : ''}${r.reason ? `<h3>🚫 سبب الرفض</h3><div class="desc">${esc(r.reason)}</div>` : ''}
       ${r.links.length || r.after ? `<h3>📎 المرفقات</h3>
         <div class="thumbs">${files.map((f, i) => `<div class="th" data-fid="${esc(f)}" onclick="openThumb(${i})">⏳</div>`).join('')}</div>
@@ -337,7 +441,7 @@
       <h3>إجراءات</h3>
       ${done ? `<div class="row"><button class="btn pri" onclick="act('reopen')">♻️ إعادة فتح</button></div>` : `
         <div class="row">
-          <select id="techSel">${techOpts}</select>
+          <select id="techSel" style="flex:1;min-width:150px">${techOpts}</select>
           <button class="btn pri" onclick="assign()">👷 ${r.tech ? 'تغيير الفني' : 'تعيين'}</button>
         </div>
         <div class="row">
@@ -353,7 +457,8 @@
       <h3>تحكم</h3>
       <div class="row"><button class="btn" onclick="editReq()">✏️ تعديل البيانات</button><button class="btn bad" onclick="delReq()">🗑️ حذف الطلب</button></div>
       <h3>🕓 السجل</h3>
-      <div class="log">${DETAIL.logs.map(l => `<div><b>${esc(l.e)}</b> ${l.d ? '— ' + esc(l.d) : ''}<small>${esc(l.t)} · ${esc(l.by)}</small></div>`).reverse().join('') || '—'}</div>`;
+      <div class="log">${DETAIL.logs.map(l => `<div><b>${esc(l.e)}</b> ${l.d ? '— ' + esc(l.d) : ''}<small>${esc(l.t)} · ${esc(l.by)}</small></div>`).reverse().join('') || '—'}</div>
+      </div>`;
   }
 
   async function act(op, arg) {
@@ -378,7 +483,7 @@
   function delReq() {
     confirmBox('🗑️ حذف الطلب #' + SEL, 'سيُحذف الطلب نهائياً من الجدول ومن تليجرام ولا يمكن التراجع. (لإنهائه فقط استخدم «إغلاق» أو «رفض».)', async () => {
       const ok = await call('delreq', SEL, '', '🗑️ حُذف الطلب');
-      if (ok) { SEL = ''; DETAIL = null; closeDetail(); $('detail').innerHTML = '<div class="empty">اختر طلباً من القائمة</div>'; await load(false); }
+      if (ok) { SEL = ''; DETAIL = null; closeDetail(); $('detail').innerHTML = '<div class="empty">👈 اختر طلباً من القائمة لعرض تفاصيله</div>'; await load(false); }
     }, 'حذف نهائي');
   }
 
@@ -386,7 +491,7 @@
   let REP_DAYS = 30, REP = null;
   async function loadReport(days) {
     if (days != null) REP_DAYS = days;
-    const v = $('vrep'); v.innerHTML = '<div class="empty">جاري التحميل…</div>';
+    const v = $('vrep'); v.innerHTML = skel(5);
     try {
       const s = await api('stats', REP_DAYS);
       if (!s.ok) { v.innerHTML = '<div class="empty">' + esc(s.msg || 'تعذّر') + '</div>'; return; }
@@ -401,9 +506,9 @@
     const dmax = Math.max(1, ...s.daily.map(x => x.n)), wk = Math.max(1, ...s.weeks.map(x => x.n)), dw = Math.max(1, ...s.dow.map(x => x.n));
     const diff = w.total - w.last, arrow = diff > 0 ? '▲ ' + diff : diff < 0 ? '▼ ' + Math.abs(diff) : '＝';
     v.innerHTML = `
-      <div class="panel" style="border-color:var(--pri)">
-        <b>📅 هذا الأسبوع (الأحد ← السبت): ${esc(w.start)} إلى ${esc(w.end)}</b>
-        <div class="stats" style="padding:10px 0 0">
+      <div class="panel" style="border:2px solid var(--pri)">
+        <b>📅 هذا الأسبوع (الأحد ← السبت) · ${esc(w.start)} إلى ${esc(w.end)}</b>
+        <div class="stats">
           <div class="stat"><b>${w.total}</b><span>طلبات هذا الأسبوع</span></div>
           <div class="stat"><b>${w.last}</b><span>الأسبوع الماضي (${arrow})</span></div>
           <div class="stat"><b>${w.closed}</b><span>أُنجز هذا الأسبوع</span></div>
@@ -412,9 +517,9 @@
         <div class="cols">${w.byDay.map((d, i) => `<div><div class="pair"><i style="height:${Math.round(100 * d.n / wmax)}px"></i><i class="prev" style="height:${Math.round(100 * w.prevByDay[i].n / wmax)}px"></i></div><b>${d.n}</b>${esc(d.d)}</div>`).join('')}</div>
         <div class="legend"><span><i></i>هذا الأسبوع</span><span><i class="prev"></i>الأسبوع الماضي</span></div>
       </div>
-      <div class="row" style="margin-top:14px"><b>الفترة لباقي الإحصاءات:</b>
-        ${[[7, '٧ أيام'], [30, '٣٠ يوماً'], [90, '٩٠ يوماً'], [0, 'الكل']].map(p => `<button class="btn sm ${REP_DAYS === p[0] ? 'pri' : ''}" onclick="loadReport(${p[0]})">${p[1]}</button>`).join('')}</div>
-      <div class="stats" style="padding:0">
+      <div class="chipsbar" style="margin-top:16px;align-items:center"><b style="flex:none">الفترة:</b>
+        ${[[7, '٧ أيام'], [30, '٣٠ يوماً'], [90, '٩٠ يوماً'], [0, 'الكل']].map(p => `<button class="fchip ${REP_DAYS === p[0] ? 'on' : ''}" onclick="loadReport(${p[0]})">${p[1]}</button>`).join('')}</div>
+      <div class="stats">
         <div class="stat"><b>${s.total}</b><span>إجمالي البلاغات</span></div>
         <div class="stat"><b>${s.openAll}</b><span>مفتوحة الآن</span></div>
         <div class="stat ${s.overdue3 ? 'red' : ''}"><b>${s.overdue3}</b><span>متأخرة ٣ أيام فأكثر</span></div>
@@ -429,7 +534,7 @@
           <table><tr><th>الطلب</th><th>المكان</th><th>الحالة</th><th>منذ</th></tr>
           ${s.delayed.map(d => `<tr style="cursor:pointer" onclick="goReq('${esc(d.id)}')"><td>#${esc(d.id)} ${d.urg ? '🔴' : ''}</td><td>${esc(d.place)}<br><small style="color:var(--mut)">${esc(d.type)}${d.tech ? ' · 👷 ' + esc(d.tech) : ''}</small></td><td><span class="badge ${bcls(d.st)}">${esc(d.st)}</span></td><td><b>${hfmt(d.h)}</b></td></tr>`).join('') || '<tr><td colspan="4">لا توجد طلبات مفتوحة 🎉</td></tr>'}</table></div>
         <div class="panel"><b>🏠 عدد الطلبات لكل شقة</b>
-          <input class="inp" id="aptQ" placeholder="🔎 ابحث بعمارة أو رقم شقة…" oninput="drawApts()" style="width:100%;margin:8px 0">
+          <input class="inp" id="aptQ" placeholder="🔎 ابحث بعمارة أو رقم شقة…" oninput="drawApts()" style="width:100%;margin:0 0 8px">
           <div id="aptBox" style="max-height:340px;overflow:auto"></div></div>
         <div class="panel"><b>آخر ٨ أسابيع</b><div class="cols">${s.weeks.map(d => `<div><i style="height:${Math.round(100 * d.n / wk)}px"></i><b>${d.n}</b>${esc(d.w)}</div>`).join('')}</div></div>
         <div class="panel"><b>آخر ١٤ يوماً</b><div class="cols">${s.daily.map(d => `<div><i style="height:${Math.round(100 * d.n / dmax)}px"></i><b>${d.n}</b>${esc(d.d.slice(3))}</div>`).join('')}</div></div>
@@ -439,7 +544,7 @@
         <div class="panel"><b>حسب الحالة</b>${bars(s.byStatus)}</div>
         <div class="panel"><b>مصدر البلاغ</b>${bars(s.bySource)}</div>
       </div>
-      <div class="panel" style="margin-top:14px"><b>👷 أداء الفنيين</b>
+      <div class="panel" style="margin-top:16px"><b>👷 أداء الفنيين</b>
         <table><tr><th>الفني</th><th>الطلبات</th><th>المنجز</th><th>متوسط الإنجاز</th></tr>
         ${s.techs.map(t => `<tr><td>${esc(t.name)}</td><td>${t.total}</td><td>${t.done}</td><td>${t.avgH ? hfmt(t.avgH) : '—'}</td></tr>`).join('') || '<tr><td colspan="4">—</td></tr>'}</table></div>`;
     drawApts();
@@ -453,7 +558,7 @@
 
   // ---------- الفريق والحراس ----------
   async function loadTeam() {
-    const v = $('vteam'); v.innerHTML = '<div class="empty">جاري التحميل…</div>';
+    const v = $('vteam'); v.innerHTML = skel(4);
     try {
       const [t, g] = await Promise.all([api('team'), api('guards')]); TEAM = t; GUARDS = g; BLDS = null; drawTeam();
     } catch (e) { v.innerHTML = '<div class="empty">تعذّر التحميل</div>'; }
@@ -471,15 +576,15 @@
             <a class="btn sm" target="_blank" rel="noopener" href="https://wa.me/${x.phone ? '966' + esc(x.phone.slice(1)) : ''}?text=${encodeURIComponent('رابط رفع بلاغات الصيانة لعمارة ' + x.bld + ' (احفظه): ' + x.link)}">💬</a></td>
         <td style="white-space:nowrap"><button class="btn sm ${x.active ? '' : 'pri'}" onclick="setGuard(${x.row}, '${x.active ? 'لا' : 'نعم'}')">${x.active ? '⏸' : '▶'}</button>
           <button class="btn sm" onclick="editGuard(${i})" title="تعديل">✏️</button><button class="btn sm bad" onclick="delGuard(${i})" title="حذف">🗑️</button></td></tr>`).join('');
-    v.innerHTML = `<div class="grid2">
+    v.innerHTML = `<div class="grid2" style="margin-top:0">
       <div class="panel"><b>👥 الفريق</b>
         <table><tr><th>الاسم</th><th>الدور</th><th></th></tr>${rows}</table>
-        <div style="color:var(--mut);font-size:12.5px;margin-top:8px">عضو جديد: يرسل /start للبوت وتوافق عليه من تليجرام.</div></div>
+        <div style="color:var(--mut);font-size:13px;margin-top:10px">عضو جديد: يرسل /start للبوت وتوافق عليه من تليجرام.</div></div>
       <div class="panel"><b>🛡️ حراس العمائر</b>
         <table><tr><th>الحارس</th><th>رابطه</th><th></th></tr>${grows || '<tr><td colspan="3">لا يوجد</td></tr>'}</table>
         <h3>➕ حارس جديد</h3>
         <div class="row"><input class="inp" id="gName" placeholder="الاسم" style="flex:1;min-width:120px">
-          <input class="inp" id="gPhone" placeholder="الجوال (اختياري)" inputmode="tel" dir="ltr" style="width:140px"></div>
+          <input class="inp" id="gPhone" placeholder="الجوال (اختياري)" inputmode="tel" dir="ltr" style="width:150px"></div>
         <div class="row"><select id="gBld" style="flex:1">${g.blds.map(b => `<option>${esc(b)}</option>`).join('')}</select>
           <button class="btn pri" onclick="addGuard()">إضافة</button></div>
       </div></div>`;
@@ -514,17 +619,17 @@
 
   // ---------- العمائر والمستأجرون ----------
   async function loadDir() {
-    const v = $('vdir'); v.innerHTML = '<div class="empty">جاري التحميل…</div>';
+    const v = $('vdir'); v.innerHTML = skel(4);
     BLDS = null; const blds = await getBlds();
-    v.innerHTML = `<div class="grid2">
+    v.innerHTML = `<div class="grid2" style="margin-top:0">
       <div class="panel"><b>🏢 العمائر (من «التواصل العام»)</b>
-        <div style="color:var(--mut);font-size:12.5px;margin:4px 0 8px">رابط الموقع (خرائط جوجل) يظهر للفني بزر 📍 على بطاقة الطلب.</div>
+        <div style="color:var(--mut);font-size:13px;margin:0 0 10px">رابط الموقع (خرائط جوجل) يظهر للفني بزر 📍 على بطاقة الطلب.</div>
         <table><tr><th>العمارة</th><th>الوحدات</th><th>رابط الموقع</th></tr>
-        ${blds.map((b, i) => `<tr><td><b>${esc(b.name)}</b></td><td>${b.units}</td><td><input class="inp" style="width:100%;min-width:150px;padding:5px 7px" dir="ltr" placeholder="https://maps.app.goo.gl/…" value="${esc(b.url)}" onchange="saveMap(${i}, this.value)"></td></tr>`).join('')}</table></div>
+        ${blds.map((b, i) => `<tr><td><b>${esc(b.name)}</b></td><td>${b.units}</td><td><input class="inp" style="width:100%;min-width:150px;padding:6px 8px" dir="ltr" placeholder="https://maps.app.goo.gl/…" value="${esc(b.url)}" onchange="saveMap(${i}, this.value)"></td></tr>`).join('')}</table></div>
       <div class="panel"><b>🔎 المستأجرون وأرقامهم</b>
-        <div class="row"><input class="inp" id="tq" placeholder="اسم، عمارة، شقة أو جوال…" style="flex:1" onkeydown="if(event.key==='Enter')searchTen()"><button class="btn pri" onclick="searchTen()">بحث</button></div>
-        <div style="color:var(--mut);font-size:12.5px">الأرقام المضافة هنا تبقى بعد كل مزامنة. الرقم الأساسي من مصدر البيانات (التواصل العام/إيجار) لا يُحذف من هنا.</div>
-        <div id="tenBox" style="margin-top:8px"></div></div></div>`;
+        <div class="row" style="margin-top:0"><input class="inp" id="tq" placeholder="اسم، عمارة، شقة أو جوال…" style="flex:1" onkeydown="if(event.key==='Enter')searchTen()"><button class="btn pri" onclick="searchTen()">بحث</button></div>
+        <div style="color:var(--mut);font-size:13px">الأرقام المضافة هنا تبقى بعد كل مزامنة. الرقم الأساسي من مصدر البيانات لا يُحذف من هنا.</div>
+        <div id="tenBox" style="margin-top:10px"></div></div></div>`;
   }
   async function saveMap(i, url) { const b = BLDS[i]; if (await call('setmap', b.name, url.trim(), '✅ حُفظ رابط الموقع')) b.url = url.trim(); }
   async function searchTen() {
@@ -533,7 +638,7 @@
     TENROWS = r.rows; drawTen(r.total);
   }
   function drawTen(total) {
-    $('tenBox').innerHTML = `<div style="color:var(--mut);font-size:12.5px">${total} نتيجة${total > TENROWS.length ? ' (أول ' + TENROWS.length + ')' : ''}</div>
+    $('tenBox').innerHTML = `<div style="color:var(--mut);font-size:13px">${total} نتيجة${total > TENROWS.length ? ' (أول ' + TENROWS.length + ')' : ''}</div>
       <table>${TENROWS.map((t, i) => `<tr><td><b>${esc(t.name)}</b><br><small style="color:var(--mut)">${esc(t.bld)} — شقة ${esc(t.apt)} · ${esc(t.src)}</small></td>
         <td><span class="chip">${esc(t.phone || '—')}</span>${String(t.more).split(/\s+/).filter(Boolean).map(p => `<span class="chip">${esc(p)}<button title="حذف" onclick="delPhone(${i}, '${esc(p)}')">✕</button></span>`).join('')}
           <button class="btn sm" onclick="addPhone(${i})">➕ رقم</button></td></tr>`).join('') || '<tr><td>لا نتائج</td></tr>'}</table>`;
@@ -547,6 +652,7 @@
     confirmBox('🗑️ حذف رقم', 'حذف ' + p + ' من ' + t.name + '؟', async () => { if (await call('delphone', t.row, p, '🗑️ حُذف الرقم')) searchTen(); }, 'حذف');
   }
 
+  $('items').innerHTML = skel(5);
   load(true); setInterval(() => { if (!document.hidden && TAB === 'req' && !$('modal').classList.contains('on')) load(false); }, 30000);
 </script>
 </body>
