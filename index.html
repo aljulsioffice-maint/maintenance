@@ -238,8 +238,8 @@
         <div class="nf" id="nfMsg">ما لقينا هذا الرقم عندنا — سجّل بياناتك وبنكمل 👇</div>
         <div class="fld" id="f_name" style="margin-top:12px"><label for="name">الاسم (الأول والأخير)</label>
           <input type="text" id="name" autocomplete="name" placeholder="مثال: فهد العتيبي"><div class="em">اكتب اسمك</div></div>
-        <div class="fld" id="f_bld"><label for="bld">العمارة</label>
-          <select class="sel" id="bld"><option value="">اختر العمارة…</option></select><div class="em">اختر عمارتك</div></div>
+        <div class="fld" id="f_bld"><label for="bld">اسم العمارة أو الحي</label>
+          <input type="text" id="bld" autocomplete="off" placeholder="مثال: التيسير"><div class="em">اكتب اسم عمارتك</div></div>
         <div class="fld" id="f_apt"><label for="apt">رقم الشقة</label><input type="text" id="apt" inputmode="numeric" placeholder="12"><div class="em">اكتب رقم الشقة</div></div>
         <div class="fld" id="f_phone"><label for="phone">جوال للتواصل</label>
           <input type="tel" id="phone" inputmode="tel" autocomplete="tel" placeholder="05xxxxxxxx" dir="ltr" style="text-align:right"><div class="em">رقم الجوال غير صحيح (مثال: 0551234567)</div></div>
@@ -425,18 +425,16 @@
     if (plausible(v)) doLookup(v); else { $('lkSt').className = 'lkst'; $('lkSt').textContent = v.length ? 'أكمل الرقم…' : 'نجيب بياناتك تلقائياً — بدون تعبئة 👌'; }
   });
   $('waBtn').href = 'https://wa.me/' + OFFICE_WA;
-  // العمائر للتسجيل اليدوي
-  if (!GUARD) run('publicBuildings').then(l => { if (Array.isArray(l)) { $('bld').innerHTML = '<option value="">اختر العمارة…</option>' + l.map(x => `<option>${x.replace(/[<>&]/g, '')}</option>`).join(''); applySavedManual(); } }).catch(() => {});
   const prof = lsGet('mr_profile', {});
-  function applySavedManual() { if (prof.manual && prof.bld) { $('bld').value = prof.bld; if (manualValid()) { show1('prof'); drawProf(); refreshSteps(); } } }
   if (prof.lk && prof.name) { ident = { lk: prof.lk, pick: prof.pick || 0, name: prof.name, bld: prof.bld, apt: prof.apt, needPhone: !!prof.needPhone }; if (prof.phone2) $('phone2').value = prof.phone2; }
-  else if (prof.manual) { ['name', 'apt', 'phone'].forEach(k => { if (prof[k]) $(k).value = prof[k]; }); }
+  else if (prof.manual) { ['name', 'bld', 'apt', 'phone'].forEach(k => { if (prof[k]) $(k).value = prof[k]; }); }
   $('phone').addEventListener('input', () => { const v = toLatin($('phone').value).replace(/[^\d+\s-]/g, ''); if (v !== $('phone').value) $('phone').value = v; });
   $('phone2').addEventListener('input', () => { const v = toLatin($('phone2').value).replace(/[^\d+\s-]/g, ''); if (v !== $('phone2').value) $('phone2').value = v; });
   $('apt').addEventListener('input', () => { $('apt').value = toLatin($('apt').value); });
   if (!GUARD && ident) { show1('prof'); drawProf(); }
+  else if (!GUARD && prof.manual && manualValid()) { show1('prof'); drawProf(); }
   ['name', 'apt', 'phone', 'phone2', 'desc'].forEach(id => $(id).addEventListener('input', () => { const f = $('f_' + id); if (f) f.classList.remove('bad'); refreshSteps(); }));
-  $('bld').addEventListener('change', () => { $('f_bld').classList.remove('bad'); refreshSteps(); });
+  $('bld').addEventListener('input', () => { $('f_bld').classList.remove('bad'); refreshSteps(); });
 
   // ---------- مؤشر التقدّم ----------
   function refreshSteps() {
@@ -553,9 +551,9 @@
         f.lk = ident.lk; f.pick = ident.pick;
         if (ident.needPhone) { f.phone = toLatin($('phone2').value).trim(); if (!phoneOk(f.phone)) return bad('phone2'); }
       } else if (manualOn || manualValid() || $('name').value.trim() || $('apt').value.trim()) {
-        f.name = $('name').value.trim(); f.bld = $('bld').value; f.apt = toLatin($('apt').value).trim(); f.phone = toLatin($('phone').value).trim();
+        f.name = $('name').value.trim(); f.bldText = $('bld').value.trim(); f.apt = toLatin($('apt').value).trim(); f.phone = toLatin($('phone').value).trim();
         if (f.name.length < 2) return bad('name');
-        if (!f.bld) return bad('bld');
+        if (f.bldText.length < 2) return bad('bld');
         if (!f.apt) return bad('apt');
         if (!phoneOk(f.phone)) return bad('phone');
       } else return bad('lk');
@@ -569,7 +567,7 @@
     try { res = await call(); }
     catch (e) { return endSend('تعذر الإرسال، تأكد من الإنترنت وحاول مرة ثانية'); }
     if (!res || !res.ok) return endSend(res && res.msg ? res.msg : 'تعذر الإرسال');
-    if (!GUARD) lsSet('mr_profile', ident ? { lk: ident.lk, pick: ident.pick, name: ident.name, bld: ident.bld, apt: ident.apt, needPhone: ident.needPhone, phone2: f.phone || '' } : { manual: true, name: f.name, bld: f.bld, apt: f.apt, phone: f.phone });
+    if (!GUARD) lsSet('mr_profile', ident ? { lk: ident.lk, pick: ident.pick, name: ident.name, bld: ident.bld, apt: ident.apt, needPhone: ident.needPhone, phone2: f.phone || '' } : { manual: true, name: f.name, bld: f.bldText, apt: f.apt, phone: f.phone });
     else { $('gapt').value = ''; $('gaptv').textContent = '—'; gKind = ''; document.querySelectorAll('#gKinds .type').forEach(x => x.classList.remove('on')); }
 
     // رقم البلاغ يظهر فوراً؛ المرفقات تكمل رفعها بالخلفية وتظهر حالتها بشاشة «تم الاستلام»
