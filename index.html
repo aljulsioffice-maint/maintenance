@@ -100,7 +100,18 @@
   <div id="formView">
     <div class="err" id="err"></div>
 
-    <div class="card">
+    <div class="card hidden" id="guardCard">
+      <h2 id="guardH">🛡️ بلاغ من الحارس</h2>
+      <div class="types" id="gKinds">
+        <button type="button" class="type" data-k="water"><span class="ic">💧🚚</span>وايت ماء</button>
+        <button type="button" class="type" data-k="sewage"><span class="ic">🚽🚛</span>وايت صرف</button>
+        <button type="button" class="type" data-k="maint" style="grid-column:1/-1"><span class="ic">🔧🪛</span>صيانة (صوّر المشكلة)</button>
+      </div>
+      <label for="gapt">رقم الشقة</label>
+      <input type="text" id="gapt" inputmode="numeric" placeholder="12" style="font-size:30px;text-align:center">
+    </div>
+
+    <div class="card" id="tenCard">
       <h2>بيانات المستأجر</h2>
       <label for="name">اسم المستأجر (الاسم الأول والأخير)</label>
       <input type="text" id="name" autocomplete="name" placeholder="مثال: فهد العتيبي">
@@ -112,7 +123,7 @@
       <input type="tel" id="phone" inputmode="tel" autocomplete="tel" placeholder="05xxxxxxxx" dir="ltr" style="text-align:right">
     </div>
 
-    <div class="card">
+    <div class="card" id="probCard">
       <h2>المشكلة</h2>
       <div class="types" id="types"></div>
       <label class="urgent" id="urgentBox">
@@ -124,7 +135,7 @@
     </div>
 
     <div class="card">
-      <h2>صور أو فيديو (اختياري)</h2>
+      <h2 id="mediaH">صور أو فيديو (اختياري)</h2>
       <div class="media-btns">
         <button class="mbtn" type="button" onclick="document.getElementById('photoCam').click()"><span class="ic">📷</span>تصوير صورة الآن</button>
         <button class="mbtn" type="button" onclick="document.getElementById('photoIn').click()"><span class="ic">🖼️</span>صورة من الاستوديو</button>
@@ -153,8 +164,8 @@
       <div class="hint" id="doneWarn" style="color:var(--warn)"></div>
     </div>
     <a class="btn2" id="tgBtn" target="_blank" rel="noopener" style="text-decoration:none;text-align:center;background:#e8f4fd;border-color:#9ccaf0;color:#0b5a8c">🔔 وصّل لي التحديثات على تليجرام (تلقائي)</a>
-    <button class="btn2" onclick="showTrack()">📋 متابعة حالة طلباتي</button>
-    <button class="btn2" onclick="shareLink()">🔗 احفظ رابط المتابعة (واتساب)</button>
+    <button class="btn2" id="trkBtn" onclick="showTrack()">📋 متابعة حالة طلباتي</button>
+    <button class="btn2" id="shBtn" onclick="shareLink()">🔗 احفظ رابط المتابعة (واتساب)</button>
     <button class="btn2" onclick="newRequest()">➕ بلاغ جديد</button>
   </div>
 
@@ -182,7 +193,9 @@
   const BOT_USER = 'Aljulsi_maint_bot';   // بوت تليجرام: ربط المستأجر بتحديثات طلبه
   const OFFICE_WA = '966572294942';   // رقم واتساب المكتب (يظهر في زر «واتساب المكتب»)
   const MAX_PHOTOS = 4, MAX_VIDEO_SEC = 30, MAX_VIDEO_MB = 45, CHUNK = 4 * 1024 * 1024; // مضاعف 256KB (شرط Drive)
-  let selType = '', photos = [], video = null, lastToken = '';
+  let selType = '', photos = [], video = null, lastToken = '', gKind = '';
+  // رابط الحارس: ?g=رمز — يعرض نموذجاً مبسطاً (رقم شقة + صورة) بلا تسجيل
+  const GUARD = (new URLSearchParams(location.search).get('g') || '').replace(/[^a-f0-9]/g, '').slice(0, 12);
 
   // ---------- تخزين محلي (قد يكون محظوراً بالمتصفح: كل شيء داخل try) ----------
   function lsGet(k, d) { try { const v = localStorage.getItem(k); return v ? JSON.parse(v) : d; } catch (e) { return d; } }
@@ -214,7 +227,23 @@
   const prof = lsGet('mr_profile', {});
   ['name', 'district', 'apt', 'phone'].forEach(k => { if (prof[k]) $(k).value = prof[k]; });
   refreshMyBtn();
-  if (TRACK) { const t = lsGet('mr_tokens', []); if (t.indexOf(TRACK) < 0) { t.push(TRACK); lsSet('mr_tokens', t); } showTrack(); }
+  if (GUARD) {
+    ['tenCard', 'probCard', 'myBtn', 'tgBtn', 'trkBtn', 'shBtn'].forEach(k => { const e = $(k); if (e) e.classList.add('hidden'); });
+    $('guardCard').classList.remove('hidden'); $('mediaH').textContent = 'الصورة';
+    document.querySelectorAll('.media-btns .mbtn').forEach((b, i) => { if (i > 1) b.classList.add('hidden'); });   // الحارس: صورة فقط بلا فيديو
+    $('gKinds').addEventListener('click', e => {
+      const b = e.target.closest('.type'); if (!b) return;
+      gKind = b.dataset.k;
+      document.querySelectorAll('#gKinds .type').forEach(x => x.classList.toggle('on', x === b));
+      $('mediaH').textContent = gKind === 'maint' ? 'صورة المشكلة (مطلوبة)' : 'صورة (اختيارية)';
+    });
+    $('sendBtn').textContent = 'إرسال';
+    run('guardInfo', GUARD).then(r => {
+      if (r && r.ok) $('guardH').textContent = '🛡️ حارس عمارة ' + r.building;
+      else { $('formView').innerHTML = '<div class="card"><h2>⚠️</h2>' + ((r && r.msg) || 'الرابط غير صالح') + '</div>'; }
+    }).catch(() => {});
+  }
+  if (TRACK && !GUARD) { const t = lsGet('mr_tokens', []); if (t.indexOf(TRACK) < 0) { t.push(TRACK); lsSet('mr_tokens', t); } showTrack(); }
 
   function refreshMyBtn() { $('myBtn').classList.toggle('hidden', !lsGet('mr_tokens', []).length && !TRACK); }
 
@@ -270,28 +299,39 @@
 
   async function send() {
     showErr('');
-    const f = {
-      name: $('name').value.trim(), district: $('district').value.trim(), apt: $('apt').value.trim(),
-      phone: $('phone').value.trim(), desc: $('desc').value.trim(), type: selType, urgent: $('urgent').checked,
-      website: $('website').value, mediaCount: photos.length + (video ? 1 : 0),
-    };
-    if (f.name.length < 2) return showErr('اكتب اسم المستأجر');
-    if (!f.district) return showErr('اكتب الحي');
-    if (!f.apt) return showErr('اكتب رقم الشقة');
-    if (!/^(05|5|\+9665|9665|009665)\d{8}$/.test(f.phone.replace(/[\s-]/g, '').replace(/[٠-٩]/g, d => d.charCodeAt(0) - 1632))) return showErr('رقم الجوال غير صحيح (مثال: 0551234567)');
-    if (!f.type) return showErr('اختر نوع المشكلة');
-    if (f.desc.length < 3 && !f.mediaCount) return showErr('اكتب وصف المشكلة أو أرفق صورة');
+    let f, call;
+    if (GUARD) {
+      const gapt = $('gapt').value.trim();
+      if (!gKind) return showErr('اختر: وايت ماء أو وايت صرف أو صيانة');
+      if (!gapt) return showErr('اكتب رقم الشقة');
+      if (gKind === 'maint' && !photos.length && !video) return showErr('صوّر المشكلة');
+      call = () => run('submitGuard', GUARD, gapt, gKind, photos.length + (video ? 1 : 0));
+    } else {
+      f = {
+        name: $('name').value.trim(), district: $('district').value.trim(), apt: $('apt').value.trim(),
+        phone: $('phone').value.trim(), desc: $('desc').value.trim(), type: selType, urgent: $('urgent').checked,
+        website: $('website').value, mediaCount: photos.length + (video ? 1 : 0),
+      };
+      if (f.name.length < 2) return showErr('اكتب اسم المستأجر');
+      if (!f.district) return showErr('اكتب الحي');
+      if (!f.apt) return showErr('اكتب رقم الشقة');
+      if (!/^(05|5|\+9665|9665|009665)\d{8}$/.test(f.phone.replace(/[\s-]/g, '').replace(/[٠-٩]/g, d => d.charCodeAt(0) - 1632))) return showErr('رقم الجوال غير صحيح (مثال: 0551234567)');
+      if (!f.type) return showErr('اختر نوع المشكلة');
+      if (f.desc.length < 3 && !f.mediaCount) return showErr('اكتب وصف المشكلة أو أرفق صورة');
+      call = () => run('submitRequest', f);
+    }
 
     $('sendBtn').disabled = true; $('overlay').style.display = 'flex'; progress('جاري الإرسال…', 5);
     let res;
-    try { res = await run('submitRequest', f); }
+    try { res = await call(); }
     catch (e) { return endSend('تعذر الإرسال، تأكد من الإنترنت وحاول مرة ثانية'); }
     if (!res || !res.ok) return endSend(res && res.msg ? res.msg : 'تعذر الإرسال');
-    lsSet('mr_profile', { name: f.name, district: f.district, apt: f.apt, phone: f.phone });
+    if (!GUARD) lsSet('mr_profile', { name: f.name, district: f.district, apt: f.apt, phone: f.phone });
+    else { $('gapt').value = ''; gKind = ''; document.querySelectorAll('#gKinds .type').forEach(x => x.classList.remove('on')); }
 
     // رقم البلاغ يظهر فوراً؛ المرفقات تكمل رفعها بالخلفية وتظهر حالتها بشاشة «تم الاستلام»
     const ph = photos.slice(), vd = video;
-    if (res.id) { const t = lsGet('mr_tokens', []); t.push(res.token); lsSet('mr_tokens', t); }
+    if (res.id && !GUARD) { const t = lsGet('mr_tokens', []); t.push(res.token); lsSet('mr_tokens', t); }
     lastToken = res.token;
     $('tgBtn').href = 'https://t.me/' + BOT_USER + '?start=t_' + res.token;
     $('overlay').style.display = 'none'; $('sendBtn').disabled = false;
