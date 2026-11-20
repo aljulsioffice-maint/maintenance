@@ -18,7 +18,10 @@
   body { font-family: 'Tajawal', 'Segoe UI', Tahoma, sans-serif; font-size: 17px; line-height: 1.5; }
   .wrap { max-width: 520px; margin: 0 auto; padding: 16px 16px 40px; }
   header { display: flex; align-items: center; justify-content: space-between; margin: 4px 0 14px; }
-  header h1 { font-size: 22px; margin: 0; font-weight: 800; }
+  header h1 { font-size: 20px; margin: 2px 0 0; font-weight: 800; }
+  .office { font-size: 18px; font-weight: 800; color: var(--accent); line-height: 1.3; }
+  header { flex-wrap: wrap; gap: 8px; }
+  .brand { flex: 1 1 100%; }
   .link-btn { background: none; border: 1.5px solid var(--line); border-radius: 999px; padding: 6px 14px;
     font: inherit; font-size: 15px; color: var(--accent); font-weight: 700; cursor: pointer; }
   .card { background: var(--card); border: 1px solid var(--line); border-radius: var(--r); padding: 16px; margin-bottom: 14px; }
@@ -75,6 +78,10 @@
   .steps span { flex: 1; text-align: center; font-size: 12px; padding: 6px 2px; border-radius: 8px; background: #eef1f6; color: var(--muted); font-weight: 700; }
   .steps span.on { background: var(--accent-soft); color: var(--accent); }
   .steps span.ok { background: var(--ok-soft); color: var(--ok); }
+  .box { border-radius: 12px; padding: 10px 12px; margin-top: 10px; font-size: 15px; }
+  .box.rej { background: var(--danger-soft); color: var(--danger); }
+  .box.ask { background: #efe9fb; color: #3b2a73; }
+  .box.ask textarea { margin-top: 8px; min-height: 70px; }
   .hidden { display: none !important; }
 </style>
 </head>
@@ -82,7 +89,7 @@
 <div class="wrap">
 
   <header>
-    <h1>🔧 بلاغ صيانة</h1>
+    <div class="brand"><div class="office">مكتب عبد الله الجلسي للعقارات</div><h1>🔧 بلاغ صيانة</h1></div>
     <button class="link-btn hidden" id="myBtn" onclick="showTrack()">📋 طلباتي</button>
   </header>
 
@@ -116,10 +123,14 @@
     <div class="card">
       <h2>صور أو فيديو (اختياري)</h2>
       <div class="media-btns">
-        <button class="mbtn" type="button" onclick="document.getElementById('photoIn').click()"><span class="ic">📷</span>أضف صورة</button>
-        <button class="mbtn" type="button" onclick="document.getElementById('videoIn').click()"><span class="ic">🎥</span>فيديو قصير</button>
+        <button class="mbtn" type="button" onclick="document.getElementById('photoCam').click()"><span class="ic">📷</span>تصوير صورة الآن</button>
+        <button class="mbtn" type="button" onclick="document.getElementById('photoIn').click()"><span class="ic">🖼️</span>صورة من الاستوديو</button>
+        <button class="mbtn" type="button" onclick="document.getElementById('videoCam').click()"><span class="ic">🎥</span>تصوير فيديو الآن</button>
+        <button class="mbtn" type="button" onclick="document.getElementById('videoIn').click()"><span class="ic">🎞️</span>فيديو من الاستوديو</button>
       </div>
+      <input type="file" id="photoCam" accept="image/*" capture="environment" class="hidden">
       <input type="file" id="photoIn" accept="image/*" multiple class="hidden">
+      <input type="file" id="videoCam" accept="video/*" capture="environment" class="hidden">
       <input type="file" id="videoIn" accept="video/*" class="hidden">
       <div class="thumbs" id="thumbs"></div>
       <div class="hint">حتى 4 صور، وفيديو واحد لا يزيد عن 30 ثانية.</div>
@@ -201,22 +212,22 @@
   function refreshMyBtn() { $('myBtn').classList.toggle('hidden', !lsGet('mr_tokens', []).length && !TRACK); }
 
   // ---------- الوسائط ----------
-  $('photoIn').addEventListener('change', e => {
+  ['photoIn', 'photoCam'].forEach(id => $(id).addEventListener('change', e => {
     const files = Array.from(e.target.files || []);
     for (const f of files) {
       if (photos.length >= MAX_PHOTOS) { showErr('الحد ' + MAX_PHOTOS + ' صور'); break; }
       photos.push({ file: f, url: URL.createObjectURL(f) });
     }
     e.target.value = ''; drawThumbs();
-  });
-  $('videoIn').addEventListener('change', async e => {
+  }));
+  ['videoIn', 'videoCam'].forEach(id => $(id).addEventListener('change', async e => {
     const f = e.target.files && e.target.files[0]; e.target.value = '';
     if (!f) return;
     const dur = await videoDuration(f);
     if (dur > MAX_VIDEO_SEC + 1) return showErr('الفيديو أطول من ' + MAX_VIDEO_SEC + ' ثانية — صوّر مقطعاً أقصر');
     if (f.size > MAX_VIDEO_MB * 1024 * 1024) return showErr('حجم الفيديو كبير — صوّر مقطعاً أقصر');
     video = { file: f, url: URL.createObjectURL(f) }; drawThumbs();
-  });
+  }));
   function videoDuration(file) {
     return new Promise(res => {
       const v = document.createElement('video'); v.preload = 'metadata';
@@ -329,12 +340,27 @@
     if (!list.length) { $('trackList').innerHTML = '<div class="card">لا توجد طلبات.</div>'; return; }
     const esc = s => String(s == null ? '' : s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
     $('trackList').innerHTML = list.map(r => {
-      const st = ['جديد', 'قيد المعالجة', 'تمت المعالجة'].map((s, i) =>
-        `<span class="${r.step > i + 1 || r.step === 3 ? 'ok' : r.step === i + 1 ? 'on' : ''}">${s}</span>`).join('');
+      const labels = ['جديد', 'قيد المعالجة', 'تمت المعالجة'];
+      const steps = r.status === 'مرفوض' ? '' : '<div class="steps">' + labels.map((s, i) =>
+        `<span class="${r.step > i + 1 || r.step === 3 ? 'ok' : r.step === i + 1 ? 'on' : ''}">${s}</span>`).join('') + '</div>';
+      const rej = r.status === 'مرفوض' ? `<div class="box rej"><b>🚫 تعذّر تنفيذ الطلب</b>${r.reason ? '<div>السبب: ' + esc(r.reason) + '</div>' : ''}</div>` : '';
+      const ask = r.status === 'بانتظار ردك' ? `<div class="box ask"><b>❓ الإدارة تسأل:</b><div>${esc(r.question)}</div>
+        <textarea id="rp${esc(r.id)}" placeholder="اكتب ردك هنا…"></textarea>
+        <button class="submit" style="font-size:17px;padding:12px;margin-top:8px" onclick="sendReply('${esc(r.id)}','${esc(r.token)}')">إرسال الرد</button></div>` : '';
+      const note = r.status === 'تمت المعالجة' && r.note ? `<div class="hint">ملاحظة: ${esc(r.note)}</div>` : '';
+      const when = r.closed ? (r.status === 'مرفوض' ? ' · ' : ' · أُنجز ') + esc(r.closed) : '';
       return `<div class="card"><div class="treq"><div class="ic">${esc(r.icon)}</div><div style="flex:1">
-        <div class="t">طلب #${esc(r.id)} — ${esc(r.type)}</div><div class="d">${esc(r.date)}${r.closed ? ' · أُنجز ' + esc(r.closed) : ''}</div>
-        <div class="steps">${st}</div></div></div></div>`;
+        <div class="t">طلب #${esc(r.id)} — ${esc(r.type)}</div><div class="d">${esc(r.date)}${when}</div>
+        ${steps}${rej}${ask}${note}</div></div></div>`;
     }).join('');
+  }
+  async function sendReply(id, token) {
+    const ta = $('rp' + id), text = (ta.value || '').trim();
+    if (text.length < 2) { ta.focus(); return; }
+    ta.disabled = true;
+    try { const r = await run('replyInfo', id, token, text); if (!r || !r.ok) { alert(r && r.msg ? r.msg : 'تعذر الإرسال'); ta.disabled = false; return; } }
+    catch (e) { alert('تعذر الإرسال، حاول مرة ثانية'); ta.disabled = false; return; }
+    showTrack();
   }
 </script>
 </body>
