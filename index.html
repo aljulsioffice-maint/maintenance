@@ -73,6 +73,13 @@
   .prof .tx small { color: var(--muted); font-size: 14px; }
   .link { background: none; border: 0; color: var(--accent); font: inherit; font-weight: 800; font-size: 15px; cursor: pointer; padding: 6px; }
 
+  .lkst { font-size: 14px; font-weight: 700; margin-top: 6px; min-height: 20px; color: var(--muted); }
+  .lkst.ok { color: var(--ok); } .lkst.no { color: var(--warn); }
+  .nf { background: var(--warn-soft); color: var(--warn); border-radius: 14px; padding: 10px 13px; font-weight: 700; font-size: 15px; margin: 14px 0 4px; }
+  .ubtn { display: block; width: 100%; text-align: start; border: 2px solid var(--line); background: var(--field); color: var(--text); border-radius: 14px; padding: 12px 14px; margin-top: 8px; font: inherit; font-weight: 800; font-size: 16px; cursor: pointer; }
+  .ubtn small { display: block; color: var(--muted); font-weight: 500; }
+  select.sel { width: 100%; font: inherit; font-size: 18px; padding: 13px 14px; border: 2px solid var(--line); border-radius: 14px; background: var(--field); color: var(--text); outline: none; }
+  .fld.bad select.sel { border-color: var(--danger); background: var(--danger-soft); }
   /* أنواع المشكلة */
   .types { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
   .type { --c: var(--accent); position: relative; border: 2px solid var(--line); border-radius: 16px; background: var(--field); padding: 14px 6px 12px;
@@ -215,15 +222,25 @@
     </div>
 
     <div class="card" id="tenCard">
-      <div class="sec" id="sec1"><div class="num">1</div><h2>بياناتك</h2></div>
-      <div class="prof hidden" id="profSum"><div class="av" id="psAv">👤</div><div class="tx"><b id="psName"></b><small id="psSub"></small></div><button class="link" type="button" onclick="editProf()">تعديل</button></div>
-      <div id="tenFields">
-        <div class="fld" id="f_name"><label for="name">الاسم (الأول والأخير)</label>
+      <div class="sec" id="sec1"><div class="num">1</div><h2>من أنت؟</h2></div>
+      <div id="idBox">
+        <div class="fld" id="f_lk"><label for="lk">رقم هويتك أو جوالك المسجّل عندنا</label>
+          <input type="tel" id="lk" inputmode="numeric" autocomplete="off" placeholder="اكتب الرقم هنا" style="text-align:center;font-size:22px;letter-spacing:2px">
+          <div class="em">اكتب رقم الهوية أو الجوال (10 أرقام)</div>
+          <div class="lkst" id="lkSt">نجيب بياناتك تلقائياً — بدون تعبئة 👌</div></div>
+        <button class="link" type="button" onclick="manualMode()">ما لقيت رقمي؟ سجّل بياناتك يدوياً</button>
+      </div>
+      <div class="prof hidden" id="profSum"><div class="av" id="psAv">👤</div><div class="tx"><b id="psName"></b><small id="psSub"></small></div><button class="link" type="button" onclick="editProf()">ليس أنا</button></div>
+      <div id="unitPick" class="hidden"><div class="hint" style="margin-top:12px">وجدنا أكثر من وحدة باسمك — اختر وحدتك:</div><div id="unitBtns"></div></div>
+      <div class="fld hidden" id="f_phone2" style="margin-top:14px"><label for="phone2">جوال للتواصل</label>
+        <input type="tel" id="phone2" inputmode="tel" placeholder="05xxxxxxxx" dir="ltr" style="text-align:right"><div class="em">رقم الجوال غير صحيح (مثال: 0551234567)</div></div>
+      <div id="tenFields" class="hidden">
+        <div class="nf" id="nfMsg">ما لقينا هذا الرقم عندنا — سجّل بياناتك وبنكمل 👇</div>
+        <div class="fld" id="f_name" style="margin-top:12px"><label for="name">الاسم (الأول والأخير)</label>
           <input type="text" id="name" autocomplete="name" placeholder="مثال: فهد العتيبي"><div class="em">اكتب اسمك</div></div>
-        <div class="row2">
-          <div class="fld" id="f_district"><label for="district">الحي</label><input type="text" id="district" placeholder="النسيم"><div class="em">اكتب الحي</div></div>
-          <div class="fld" id="f_apt"><label for="apt">رقم الشقة</label><input type="text" id="apt" inputmode="numeric" placeholder="12"><div class="em">اكتب رقم الشقة</div></div>
-        </div>
+        <div class="fld" id="f_bld"><label for="bld">العمارة</label>
+          <select class="sel" id="bld"><option value="">اختر العمارة…</option></select><div class="em">اختر عمارتك</div></div>
+        <div class="fld" id="f_apt"><label for="apt">رقم الشقة</label><input type="text" id="apt" inputmode="numeric" placeholder="12"><div class="em">اكتب رقم الشقة</div></div>
         <div class="fld" id="f_phone"><label for="phone">جوال للتواصل</label>
           <input type="tel" id="phone" inputmode="tel" autocomplete="tel" placeholder="05xxxxxxxx" dir="ltr" style="text-align:right"><div class="em">رقم الجوال غير صحيح (مثال: 0551234567)</div></div>
       </div>
@@ -354,21 +371,72 @@
     $('f_desc').classList.remove('bad'); refreshSteps();
   }
   $('waBtn').href = 'https://wa.me/' + OFFICE_WA;
-  const prof = lsGet('mr_profile', {});
-  ['name', 'district', 'apt', 'phone'].forEach(k => { if (prof[k]) $(k).value = prof[k]; });
-  // الجوال: يقبل الأرقام العربية وينظّف المسافات
-  $('phone').addEventListener('input', () => { const v = toLatin($('phone').value).replace(/[^\d+\s-]/g, ''); if (v !== $('phone').value) $('phone').value = v; });
-  $('apt').addEventListener('input', () => { $('apt').value = toLatin($('apt').value); });
-  // ملف محفوظ كامل ⇒ نعرضه كملخص بدل الحقول (تعديل بضغطة)
-  function profComplete() { return $('name').value.trim().length >= 2 && $('district').value.trim() && $('apt').value.trim() && phoneOk($('phone').value); }
-  function drawProf() {
-    $('psName').textContent = $('name').value.trim();
-    $('psAv').textContent = $('name').value.trim().charAt(0) || '👤';
-    $('psSub').textContent = 'حي ' + $('district').value.trim() + ' · شقة ' + $('apt').value.trim() + ' · ' + $('phone').value.trim();
+  // ---------- «من أنت؟»: هوية أو جوال مسجّل ⇒ استيراد البيانات؛ وإلا تسجيل يدوي ----------
+  let ident = null, lkSeq = 0, manualOn = false;
+  const plausible = v => /^[12]\d{9}$/.test(v) || /^05\d{8}$/.test(v) || /^5\d{8}$/.test(v) || /^9665\d{8}$/.test(v);
+  function manualValid() { return $('name').value.trim().length >= 2 && $('bld').value && $('apt').value.trim() && phoneOk($('phone').value); }
+  function identReady() { return !!ident && (!ident.needPhone || phoneOk($('phone2').value)); }
+  function profComplete() { return identReady() || (!ident && manualValid() && !manualOn); }
+  function show1(which) {   // idBox | prof | pick | manual
+    $('idBox').classList.toggle('hidden', which === 'prof' || which === 'pick');
+    $('profSum').classList.toggle('hidden', which !== 'prof');
+    $('unitPick').classList.toggle('hidden', which !== 'pick');
+    $('tenFields').classList.toggle('hidden', which !== 'manual');
+    $('f_phone2').classList.toggle('hidden', !(which === 'prof' && ident && ident.needPhone));
   }
-  function editProf() { $('profSum').classList.add('hidden'); $('tenFields').classList.remove('hidden'); $('name').focus(); }
-  if (!GUARD && profComplete()) { drawProf(); $('profSum').classList.remove('hidden'); $('tenFields').classList.add('hidden'); }
-  ['name', 'district', 'apt', 'phone', 'desc'].forEach(id => $(id).addEventListener('input', () => { const f = $('f_' + id); if (f) f.classList.remove('bad'); refreshSteps(); }));
+  function drawProf() {
+    if (ident) {
+      $('psName').textContent = 'أهلاً ' + ident.name + ' 👋'; $('psAv').textContent = ident.name.charAt(0) || '👤';
+      $('psSub').textContent = ident.bld + ' — شقة ' + ident.apt;
+    } else {
+      $('psName').textContent = $('name').value.trim(); $('psAv').textContent = $('name').value.trim().charAt(0) || '👤';
+      $('psSub').textContent = $('bld').value + ' — شقة ' + $('apt').value.trim() + ' · ' + $('phone').value.trim();
+    }
+  }
+  function setIdent(lk, pick, u, needPhone) {
+    ident = { lk: lk, pick: pick, name: u.name, bld: u.bld, apt: u.apt, needPhone: !!needPhone };
+    manualOn = false; show1('prof'); drawProf(); refreshSteps();
+  }
+  function editProf() { ident = null; manualOn = false; $('lk').value = ''; $('lkSt').textContent = 'اكتب رقم هويتك أو جوالك'; $('lkSt').className = 'lkst'; show1('id'); $('lk').focus(); refreshSteps(); }
+  function manualMode(msg) {
+    manualOn = true; ident = null; show1('manual');
+    $('nfMsg').textContent = typeof msg === 'string' ? msg : 'سجّل بياناتك وبنكمل 👇'; $('nfMsg').classList.remove('hidden');
+    $('name').focus(); refreshSteps();
+  }
+  async function doLookup(v) {
+    const my = ++lkSeq; $('lkSt').className = 'lkst'; $('lkSt').textContent = '⏳ جاري البحث…';
+    let r; try { r = await run('lookupTenant', v); } catch (e) { r = null; }
+    if (my !== lkSeq) return;
+    if (!r || !r.ok) { $('lkSt').className = 'lkst no'; $('lkSt').textContent = (r && r.msg) || 'تعذّر التحقق الآن'; return manualMode('تعذّر التعرّف تلقائياً — سجّل بياناتك 👇'); }
+    if (!r.found) {
+      $('lkSt').className = 'lkst no'; $('lkSt').textContent = 'ما لقينا هذا الرقم';
+      if (r.kind === 'phone') $('phone').value = toLatin(v).replace(/^966/, '0').replace(/^5/, '05');
+      return manualMode('ما لقينا هذا الرقم عندنا — سجّل بياناتك وبنكمل 👇');
+    }
+    $('lkSt').className = 'lkst ok'; $('lkSt').textContent = '✓ تم التعرّف عليك';
+    if (r.units.length === 1) return setIdent(v, 0, r.units[0], r.needPhone);
+    $('unitBtns').innerHTML = r.units.map((u, i) => `<button type="button" class="ubtn" onclick="pickUnit(${i})">${u.bld}<small>شقة ${u.apt}</small></button>`).join('');
+    window.__units = { v: v, list: r.units, needPhone: r.needPhone }; show1('pick');
+  }
+  function pickUnit(i) { const w = window.__units; setIdent(w.v, i, w.list[i], w.needPhone); }
+  $('lk').addEventListener('input', () => {
+    const v = toLatin($('lk').value).replace(/[^\d]/g, ''); if (v !== $('lk').value) $('lk').value = v;
+    $('f_lk').classList.remove('bad'); lkSeq++;
+    if (plausible(v)) doLookup(v); else { $('lkSt').className = 'lkst'; $('lkSt').textContent = v.length ? 'أكمل الرقم…' : 'نجيب بياناتك تلقائياً — بدون تعبئة 👌'; }
+  });
+  $('waBtn').href = 'https://wa.me/' + OFFICE_WA;
+  // العمائر للتسجيل اليدوي
+  if (!GUARD) run('publicBuildings').then(l => { if (Array.isArray(l)) { $('bld').innerHTML = '<option value="">اختر العمارة…</option>' + l.map(x => `<option>${x.replace(/[<>&]/g, '')}</option>`).join(''); applySavedManual(); } }).catch(() => {});
+  const prof = lsGet('mr_profile', {});
+  function applySavedManual() { if (prof.manual && prof.bld) { $('bld').value = prof.bld; if (manualValid()) { show1('prof'); drawProf(); refreshSteps(); } } }
+  if (prof.lk && prof.name) { ident = { lk: prof.lk, pick: prof.pick || 0, name: prof.name, bld: prof.bld, apt: prof.apt, needPhone: !!prof.needPhone }; if (prof.phone2) $('phone2').value = prof.phone2; }
+  else if (prof.manual) { ['name', 'apt', 'phone'].forEach(k => { if (prof[k]) $(k).value = prof[k]; }); }
+  $('phone').addEventListener('input', () => { const v = toLatin($('phone').value).replace(/[^\d+\s-]/g, ''); if (v !== $('phone').value) $('phone').value = v; });
+  $('phone2').addEventListener('input', () => { const v = toLatin($('phone2').value).replace(/[^\d+\s-]/g, ''); if (v !== $('phone2').value) $('phone2').value = v; });
+  $('apt').addEventListener('input', () => { $('apt').value = toLatin($('apt').value); });
+  if (!GUARD && ident) { show1('prof'); drawProf(); }
+  ['name', 'apt', 'phone', 'phone2', 'desc'].forEach(id => $(id).addEventListener('input', () => { const f = $('f_' + id); if (f) f.classList.remove('bad'); refreshSteps(); }));
+  $('bld').addEventListener('change', () => { $('f_bld').classList.remove('bad'); refreshSteps(); });
 
   // ---------- مؤشر التقدّم ----------
   function refreshSteps() {
@@ -378,7 +446,7 @@
     ['sec1', 'sec2', 'sec3'].forEach((id, i) => $(id).classList.toggle('ok', !![s1, s2, s3][i]));
     const n = [s1, s2].filter(Boolean).length;
     $('stLbl').textContent = n === 2 ? 'جاهز للإرسال ✓' : (n + ' من 2');
-    $('subHint').textContent = n === 2 ? 'ضغطة وحدة وتوصل للمكتب 👇' : (!s1 ? 'أكمل بياناتك' : 'اختر نوع المشكلة واشرحها');
+    $('subHint').textContent = n === 2 ? 'ضغطة وحدة وتوصل للمكتب 👇' : (!s1 ? 'اكتب هويتك أو جوالك أول' : 'اختر نوع المشكلة واشرحها');
   }
   if (GUARD) { $('stepper').classList.add('hidden'); }
 
@@ -463,7 +531,7 @@
   function bad(field, msg) {
     showErr('');
     const f = $('f_' + field); if (!f) return showErr(msg);
-    if (field === 'name' || field === 'district' || field === 'apt' || field === 'phone') { $('profSum').classList.add('hidden'); $('tenFields').classList.remove('hidden'); }
+    if (field === 'name' || field === 'bld' || field === 'apt' || field === 'phone') manualMode();
     f.classList.add('bad'); const em = f.querySelector('.em'); if (em && msg) em.textContent = msg;
     f.scrollIntoView({ behavior: 'smooth', block: 'center' });
     const inp = f.querySelector('input,textarea'); if (inp) setTimeout(() => inp.focus({ preventScroll: true }), 350);
@@ -480,15 +548,17 @@
       if (gKind === 'maint' && !photos.length && !video) return showErr('صوّر المشكلة');
       call = () => run('submitGuard', GUARD, gapt, gKind, photos.length + (video ? 1 : 0));
     } else {
-      f = {
-        name: $('name').value.trim(), district: $('district').value.trim(), apt: toLatin($('apt').value).trim(),
-        phone: toLatin($('phone').value).trim(), desc: $('desc').value.trim(), type: selType, urgent: $('urgent').checked,
-        website: $('website').value, mediaCount: photos.length + (video ? 1 : 0),
-      };
-      if (f.name.length < 2) return bad('name');
-      if (!f.district) return bad('district');
-      if (!f.apt) return bad('apt');
-      if (!phoneOk(f.phone)) return bad('phone');
+      f = { desc: $('desc').value.trim(), type: selType, urgent: $('urgent').checked, website: $('website').value, mediaCount: photos.length + (video ? 1 : 0) };
+      if (ident) {
+        f.lk = ident.lk; f.pick = ident.pick;
+        if (ident.needPhone) { f.phone = toLatin($('phone2').value).trim(); if (!phoneOk(f.phone)) return bad('phone2'); }
+      } else if (manualOn || manualValid() || $('name').value.trim() || $('apt').value.trim()) {
+        f.name = $('name').value.trim(); f.bld = $('bld').value; f.apt = toLatin($('apt').value).trim(); f.phone = toLatin($('phone').value).trim();
+        if (f.name.length < 2) return bad('name');
+        if (!f.bld) return bad('bld');
+        if (!f.apt) return bad('apt');
+        if (!phoneOk(f.phone)) return bad('phone');
+      } else return bad('lk');
       if (!f.type) return bad('type');
       if (f.desc.length < 3 && !f.mediaCount) return bad('desc');
       call = () => run('submitRequest', f);
@@ -499,7 +569,7 @@
     try { res = await call(); }
     catch (e) { return endSend('تعذر الإرسال، تأكد من الإنترنت وحاول مرة ثانية'); }
     if (!res || !res.ok) return endSend(res && res.msg ? res.msg : 'تعذر الإرسال');
-    if (!GUARD) lsSet('mr_profile', { name: f.name, district: f.district, apt: f.apt, phone: f.phone });
+    if (!GUARD) lsSet('mr_profile', ident ? { lk: ident.lk, pick: ident.pick, name: ident.name, bld: ident.bld, apt: ident.apt, needPhone: ident.needPhone, phone2: f.phone || '' } : { manual: true, name: f.name, bld: f.bld, apt: f.apt, phone: f.phone });
     else { $('gapt').value = ''; $('gaptv').textContent = '—'; gKind = ''; document.querySelectorAll('#gKinds .type').forEach(x => x.classList.remove('on')); }
 
     // رقم البلاغ يظهر فوراً؛ المرفقات تكمل رفعها بالخلفية وتظهر حالتها بشاشة «تم الاستلام»
@@ -513,7 +583,7 @@
     $('doneWarn').textContent = hasMedia ? '⏳ جاري رفع المرفقات… لا تغلق الصفحة حتى تظهر «تم رفع المرفقات»' : '';
     photos = []; video = null; drawThumbs(); $('desc').value = ''; $('urgent').checked = false;
     $('urgentBox').classList.remove('on'); selType = ''; document.querySelectorAll('.type').forEach(x => x.classList.remove('on')); drawChips();
-    if (!GUARD) { drawProf(); $('profSum').classList.remove('hidden'); $('tenFields').classList.add('hidden'); refreshSteps(); }
+    if (!GUARD) { if (!ident) { manualOn = false; } show1('prof'); drawProf(); refreshSteps(); }
     show('doneView'); refreshMyBtn();
     if (!hasMedia) return;
 
