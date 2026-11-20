@@ -410,6 +410,7 @@
         <button class="submit" style="font-size:17px;padding:12px;margin-top:8px" onclick="sendReply('${esc(r.id)}','${esc(r.token)}')">إرسال الرد</button></div>` : '');
       const live = r.ts === 'way' ? `<div class="box live way">🚗 الفني ${esc(r.tech)} <b>في الطريق إليك الآن</b></div>`
         : r.ts === 'work' ? `<div class="box live">🔧 الفني ${esc(r.tech)} <b>يعمل على طلبك</b></div>`
+        : r.ts === 'away' ? `<div class="box live way">🚪 الفني ${esc(r.tech)} وصل ولم يجد أحداً — <b>تواصل معه</b></div>`
         : r.ts === 'assigned' ? `<div class="box live">👷 تم تعيين الفني ${esc(r.tech)} لطلبك</div>`
         : r.ts === 'done' ? `<div class="box live">✔️ أنهى الفني ${esc(r.tech)} العمل، ونتأكد من الإنجاز</div>` : '';
       const tg = !GUARD && !r.linked && r.status !== 'مرفوض' && r.status !== 'تمت المعالجة'
