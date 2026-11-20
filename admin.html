@@ -376,15 +376,15 @@
       const [t, g] = await Promise.all([api('team'), api('guards')]);
       const rows = t.team.map(m => `<tr class="${m.active ? '' : 'off'}">
         <td><b>${esc(m.name)}</b><br><small style="color:var(--mut)">${esc(m.spec)}</small>${m.role === 'فني' ? `<br><input class="inp" style="width:130px;padding:4px 6px;margin-top:4px" dir="ltr" inputmode="tel" placeholder="جوال الفني" value="${esc(m.phone)}" onchange="setPhone(${m.row}, this.value)">` : ''}</td>
-        <td>${m.role === 'مالك' || !t.owner ? esc(m.role) : `<select onchange="setRole(${m.row}, this.value)"><option ${m.role === 'فني' ? 'selected' : ''}>فني</option><option ${m.role === 'أدمن' ? 'selected' : ''}>أدمن</option></select>`}</td>
-        <td>${m.role === 'مالك' ? '✅' : t.owner ? `<button class="btn sm ${m.active ? '' : 'pri'}" onclick="setActive(${m.row}, '${m.active ? 'لا' : 'نعم'}')">${m.active ? '⏸ إيقاف' : '▶ تفعيل'}</button>` : (m.active ? '✅' : '⏸')}</td></tr>`).join('');
+        <td>${m.role === 'مالك' || m.row === t.meRow ? esc(m.role) : `<select onchange="setRole(${m.row}, this.value)"><option ${m.role === 'فني' ? 'selected' : ''}>فني</option><option ${m.role === 'أدمن' ? 'selected' : ''}>أدمن</option></select>`}</td>
+        <td>${m.role === 'مالك' || m.row === t.meRow ? (m.active ? '✅' : '⏸') : t.owner ? `<button class="btn sm ${m.active ? '' : 'pri'}" onclick="setActive(${m.row}, '${m.active ? 'لا' : 'نعم'}')">${m.active ? '⏸ إيقاف' : '▶ تفعيل'}</button>` : (m.active ? '✅' : '⏸')}</td></tr>`).join('');
       const grows = g.guards.map(x => `<tr class="${x.active ? '' : 'off'}">
         <td><b>🛡️ ${esc(x.name)}</b><br><small style="color:var(--mut)">${esc(x.bld)}${x.phone ? ' · ' + esc(x.phone) : ''}</small></td>
         <td><button class="btn sm" onclick="copyLink('${esc(x.link)}')">🔗 نسخ</button>
             <a class="btn sm" target="_blank" rel="noopener" href="https://wa.me/${x.phone ? '966' + esc(x.phone.slice(1)) : ''}?text=${encodeURIComponent('رابط رفع بلاغات الصيانة لعمارة ' + x.bld + ' (احفظه): ' + x.link)}">💬</a></td>
         <td><button class="btn sm ${x.active ? '' : 'pri'}" onclick="setGuard(${x.row}, '${x.active ? 'لا' : 'نعم'}')">${x.active ? '⏸ إيقاف' : '▶ تفعيل'}</button></td></tr>`).join('');
       v.innerHTML = `<div class="grid2">
-        <div class="panel"><b>👥 الفريق</b>${t.owner ? '' : '<div class="hint" style="color:var(--mut);font-size:13px">تغيير الأدوار للمالك فقط</div>'}
+        <div class="panel"><b>👥 الفريق</b>
           <table><tr><th>الاسم</th><th>الدور</th><th></th></tr>${rows}</table>
           <div style="color:var(--mut);font-size:12.5px;margin-top:8px">عضو جديد: يرسل /start للبوت وتوافق عليه من تليجرام.</div></div>
         <div class="panel"><b>🛡️ حراس العمائر</b>
