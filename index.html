@@ -9,108 +9,200 @@
 <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet">
 <style>
   :root {
-    --bg: #f3f5f9; --card: #ffffff; --text: #1b2430; --muted: #6b7686; --line: #dfe4ec;
-    --accent: #1f6feb; --accent-soft: #e7f0ff; --ok: #1a7f4b; --ok-soft: #e3f5eb;
-    --warn: #b54708; --danger: #c8102e; --danger-soft: #fde8eb; --r: 14px;
+    --bg: #eef2f7; --card: #ffffff; --text: #17202e; --muted: #667489; --line: #e1e7f0; --field: #f6f8fb;
+    --brand: #0f4c81; --brand2: #1f7ae0; --accent: #1f7ae0; --accent-soft: #e7f1ff;
+    --ok: #16794a; --ok-soft: #e1f5ea; --warn: #a85a00; --warn-soft: #fff1d6;
+    --danger: #c8102e; --danger-soft: #fde8eb; --r: 18px; --shadow: 0 1px 2px rgba(16,36,64,.06), 0 6px 20px rgba(16,36,64,.06);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #0d141d; --card: #151f2c; --text: #e8eef6; --muted: #92a2b6; --line: #25344a; --field: #0f1824;
+      --brand: #0b3a63; --brand2: #4d97f5; --accent: #4d97f5; --accent-soft: #14304f;
+      --ok: #5fd39a; --ok-soft: #12301f; --warn: #f1c35a; --warn-soft: #3a2d0c;
+      --danger: #ff8a96; --danger-soft: #3b1a20; --shadow: 0 1px 2px rgba(0,0,0,.4), 0 6px 20px rgba(0,0,0,.3);
+    }
   }
   * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
   html, body { margin: 0; background: var(--bg); color: var(--text); }
-  body { font-family: 'Tajawal', 'Segoe UI', Tahoma, sans-serif; font-size: 17px; line-height: 1.5; }
-  .wrap { max-width: 520px; margin: 0 auto; padding: 16px 16px 40px; }
-  header { display: flex; align-items: center; justify-content: space-between; margin: 4px 0 14px; }
-  header h1 { font-size: 20px; margin: 2px 0 0; font-weight: 800; }
-  .office { font-size: 18px; font-weight: 800; color: var(--accent); line-height: 1.3; }
-  header { flex-wrap: wrap; gap: 8px; }
-  .brand { flex: 1 1 100%; }
-  .link-btn { background: none; border: 1.5px solid var(--line); border-radius: 999px; padding: 6px 14px;
-    font: inherit; font-size: 15px; color: var(--accent); font-weight: 700; cursor: pointer; }
-  .card { background: var(--card); border: 1px solid var(--line); border-radius: var(--r); padding: 16px; margin-bottom: 14px; }
-  .card h2 { font-size: 16px; margin: 0 0 12px; color: var(--muted); font-weight: 700; }
-  label { display: block; font-weight: 700; margin: 12px 0 6px; font-size: 16px; }
-  label:first-of-type { margin-top: 0; }
+  body { font-family: 'Tajawal', 'Segoe UI', Tahoma, sans-serif; font-size: 17px; line-height: 1.55; }
+  .hidden { display: none !important; }
+  .wrap { max-width: 540px; margin: 0 auto; padding: 0 16px 120px; }
+
+  /* ===== الشريط العلوي ===== */
+  .hero { margin: 0 -16px 16px; padding: 22px 20px 26px; color: #fff; border-radius: 0 0 28px 28px;
+    background: linear-gradient(135deg, var(--brand) 0%, var(--brand2) 100%); box-shadow: var(--shadow); }
+  .hero .top { display: flex; align-items: center; gap: 14px; }
+  .logo { width: 52px; height: 52px; border-radius: 16px; background: rgba(255,255,255,.18); display: grid; place-items: center; flex: none; }
+  .logo svg { width: 30px; height: 30px; }
+  .office { font-size: 18px; font-weight: 800; line-height: 1.3; }
+  .sub { font-size: 14px; opacity: .85; margin-top: 2px; }
+  .pills { display: flex; gap: 8px; margin-top: 16px; flex-wrap: wrap; }
+  .pill { background: rgba(255,255,255,.16); color: #fff; border: 1px solid rgba(255,255,255,.3); border-radius: 999px; padding: 7px 14px;
+    font: inherit; font-size: 15px; font-weight: 700; cursor: pointer; text-decoration: none; }
+  .pill:active { background: rgba(255,255,255,.3); }
+
+  /* ===== الخطوات ===== */
+  .stepper { display: flex; align-items: center; gap: 6px; margin: 0 0 14px; padding: 0 4px; }
+  .stepper .st { flex: 1; height: 6px; border-radius: 99px; background: var(--line); transition: background .3s; }
+  .stepper .st.ok { background: var(--ok); }
+  .stepper .lbl { font-size: 13px; color: var(--muted); font-weight: 700; white-space: nowrap; margin-inline-start: 6px; }
+
+  .card { background: var(--card); border: 1px solid var(--line); border-radius: var(--r); padding: 18px; margin-bottom: 14px; box-shadow: var(--shadow); }
+  .sec { display: flex; align-items: center; gap: 10px; margin-bottom: 14px; }
+  .sec .num { width: 28px; height: 28px; border-radius: 50%; background: var(--accent-soft); color: var(--accent); font-weight: 800; display: grid; place-items: center; font-size: 15px; flex: none; }
+  .sec.ok .num { background: var(--ok); color: #fff; }
+  .sec h2 { font-size: 18px; margin: 0; font-weight: 800; flex: 1; }
+  .sec small { color: var(--muted); font-weight: 500; font-size: 13px; }
+  label { display: block; font-weight: 700; margin: 14px 0 6px; font-size: 15px; color: var(--muted); }
+  label:first-child { margin-top: 0; }
   input[type=text], input[type=tel], textarea {
-    width: 100%; font: inherit; font-size: 18px; padding: 12px 14px; border: 1.5px solid var(--line);
-    border-radius: 12px; background: #fbfcfe; color: var(--text); outline: none; }
-  input:focus, textarea:focus { border-color: var(--accent); background: #fff; }
-  textarea { min-height: 96px; resize: vertical; }
-  .row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-  .row2 label { margin-top: 12px; }
-  .types { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; }
-  .type { border: 1.5px solid var(--line); border-radius: 12px; background: #fbfcfe; padding: 10px 4px;
-    text-align: center; cursor: pointer; font: inherit; font-size: 14px; font-weight: 700; color: var(--text); }
-  .type .ic { display: block; font-size: 30px; line-height: 1.2; }
-  .type.on { border-color: var(--accent); background: var(--accent-soft); box-shadow: 0 0 0 2px var(--accent) inset; }
-  .urgent { display: flex; align-items: center; gap: 10px; margin-top: 12px; padding: 12px; border-radius: 12px;
-    border: 1.5px solid var(--line); cursor: pointer; font-weight: 700; }
-  .urgent input { width: 22px; height: 22px; accent-color: var(--danger); }
-  .urgent small { display: block; font-weight: 400; color: var(--muted); font-size: 13px; }
+    width: 100%; font: inherit; font-size: 18px; padding: 13px 14px; border: 2px solid var(--line); border-radius: 14px;
+    background: var(--field); color: var(--text); outline: none; transition: border-color .15s, background .15s; }
+  input:focus, textarea:focus { border-color: var(--accent); background: var(--card); }
+  .fld.bad input, .fld.bad textarea { border-color: var(--danger); background: var(--danger-soft); }
+  .fld .em { display: none; color: var(--danger); font-size: 13.5px; font-weight: 700; margin-top: 5px; }
+  .fld.bad .em { display: block; }
+  textarea { min-height: 92px; resize: vertical; }
+  .row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+
+  /* ملخص الملف المحفوظ */
+  .prof { display: flex; align-items: center; gap: 12px; background: var(--accent-soft); border-radius: 14px; padding: 12px 14px; }
+  .prof .av { width: 42px; height: 42px; border-radius: 50%; background: var(--accent); color: #fff; display: grid; place-items: center; font-size: 20px; font-weight: 800; flex: none; }
+  .prof .tx { flex: 1; min-width: 0; line-height: 1.35; }
+  .prof .tx b { display: block; font-size: 17px; }
+  .prof .tx small { color: var(--muted); font-size: 14px; }
+  .link { background: none; border: 0; color: var(--accent); font: inherit; font-weight: 800; font-size: 15px; cursor: pointer; padding: 6px; }
+
+  /* أنواع المشكلة */
+  .types { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
+  .type { --c: var(--accent); position: relative; border: 2px solid var(--line); border-radius: 16px; background: var(--field); padding: 14px 6px 12px;
+    text-align: center; cursor: pointer; font: inherit; font-size: 16px; font-weight: 800; color: var(--text); transition: transform .1s, border-color .15s, background .15s; }
+  .type:active { transform: scale(.97); }
+  .type .ic { display: grid; place-items: center; width: 54px; height: 54px; border-radius: 16px; margin: 0 auto 8px; font-size: 30px;
+    background: color-mix(in srgb, var(--c) 14%, transparent); }
+  .type.on { border-color: var(--c); background: color-mix(in srgb, var(--c) 10%, var(--card)); }
+  .type.on::after { content: '✓'; position: absolute; top: 8px; inset-inline-start: 10px; width: 22px; height: 22px; border-radius: 50%; background: var(--c); color: #fff; font-size: 13px; line-height: 22px; }
+  .chips { display: flex; gap: 8px; overflow-x: auto; padding: 2px 0 8px; margin: 0 -2px; scrollbar-width: none; }
+  .chips::-webkit-scrollbar { display: none; }
+  .chip { flex: none; border: 1.5px solid var(--line); background: var(--card); color: var(--text); border-radius: 999px; padding: 7px 14px; font: inherit; font-size: 15px; font-weight: 700; cursor: pointer; }
+  .chip:active { background: var(--accent-soft); }
+
+  /* طارئ */
+  .urgent { display: flex; align-items: center; gap: 12px; margin-top: 16px; padding: 12px 14px; border-radius: 14px; border: 2px solid var(--line); cursor: pointer; font-weight: 800; }
+  .urgent input { display: none; }
+  .urgent .sw { width: 48px; height: 28px; border-radius: 99px; background: var(--line); position: relative; flex: none; transition: background .2s; }
+  .urgent .sw::after { content: ''; position: absolute; top: 3px; inset-inline-end: 3px; width: 22px; height: 22px; border-radius: 50%; background: #fff; transition: inset-inline-end .2s; box-shadow: 0 1px 3px rgba(0,0,0,.3); }
   .urgent.on { border-color: var(--danger); background: var(--danger-soft); }
+  .urgent.on .sw { background: var(--danger); }
+  .urgent.on .sw::after { inset-inline-end: 23px; }
+  .urgent small { display: block; font-weight: 500; color: var(--muted); font-size: 13px; }
+
+  /* الوسائط */
   .media-btns { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-  .mbtn { border: 1.5px dashed var(--accent); border-radius: 12px; background: var(--accent-soft); color: var(--accent);
-    padding: 14px 6px; font: inherit; font-weight: 700; cursor: pointer; text-align: center; font-size: 15px; }
-  .mbtn .ic { display: block; font-size: 26px; }
-  .thumbs { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
-  .thumb { position: relative; width: 74px; height: 74px; border-radius: 10px; overflow: hidden; background: #000; }
+  .mbtn { border: 2px dashed var(--accent); border-radius: 16px; background: var(--accent-soft); color: var(--accent);
+    padding: 14px 6px; font: inherit; font-weight: 800; cursor: pointer; text-align: center; font-size: 15px; }
+  .mbtn .ic { display: block; font-size: 28px; }
+  .mbtn.big { grid-column: 1 / -1; padding: 18px 6px; font-size: 18px; background: var(--accent); color: #fff; border: 0; }
+  .mbtn.big .ic { display: inline; font-size: 26px; margin-inline-end: 8px; }
+  .mbtn.sec2 { padding: 10px 6px; border-style: solid; border-width: 1.5px; background: transparent; font-size: 14px; }
+  .mbtn.sec2 .ic { display: inline; font-size: 18px; margin-inline-end: 4px; }
+  .thumbs { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 12px; }
+  .thumb { position: relative; width: 78px; height: 78px; border-radius: 14px; overflow: hidden; background: #000; box-shadow: var(--shadow); }
   .thumb img, .thumb video { width: 100%; height: 100%; object-fit: cover; }
-  .thumb button { position: absolute; top: 3px; left: 3px; width: 24px; height: 24px; border-radius: 50%; border: 0;
-    background: rgba(0,0,0,.65); color: #fff; font-size: 14px; line-height: 24px; padding: 0; cursor: pointer; }
-  .hint { color: var(--muted); font-size: 13px; margin-top: 6px; }
-  .submit { width: 100%; border: 0; border-radius: 14px; background: var(--accent); color: #fff; font: inherit;
-    font-size: 20px; font-weight: 800; padding: 16px; cursor: pointer; }
-  .submit:disabled { opacity: .6; }
-  .err { background: var(--danger-soft); color: var(--danger); border-radius: 12px; padding: 10px 14px; margin-bottom: 12px; font-weight: 700; display: none; }
+  .thumb button { position: absolute; top: 4px; left: 4px; width: 26px; height: 26px; border-radius: 50%; border: 0; background: rgba(0,0,0,.7); color: #fff; font-size: 14px; line-height: 26px; padding: 0; cursor: pointer; }
+  .hint { color: var(--muted); font-size: 13.5px; margin-top: 8px; }
+
+  /* شريط الإرسال الثابت */
+  .barfix { position: fixed; inset-inline: 0; bottom: 0; z-index: 6; background: linear-gradient(to top, var(--bg) 70%, transparent); padding: 18px 16px 14px; }
+  .barfix .in { max-width: 540px; margin: 0 auto; }
+  .subhint { text-align: center; font-size: 13.5px; color: var(--muted); font-weight: 700; margin-bottom: 8px; min-height: 18px; }
+  .submit { width: 100%; border: 0; border-radius: 16px; background: linear-gradient(135deg, var(--brand2), var(--brand)); color: #fff; font: inherit;
+    font-size: 20px; font-weight: 800; padding: 16px; cursor: pointer; box-shadow: 0 8px 22px rgba(31,122,224,.35); }
+  .submit:active { transform: translateY(1px); }
+  .submit:disabled { opacity: .6; box-shadow: none; }
+  .err { background: var(--danger-soft); color: var(--danger); border-radius: 14px; padding: 12px 14px; margin-bottom: 14px; font-weight: 800; display: none; }
   /* مخفي بلا إزاحة يسار (الإزاحة في صفحة عربية RTL تسبب تمرير أفقي) */
   .hp { position: absolute; width: 1px; height: 1px; overflow: hidden; opacity: 0; pointer-events: none; clip-path: inset(50%); }
-  .overlay { position: fixed; inset: 0; background: rgba(15, 23, 42, .55); display: none; align-items: center; justify-content: center; z-index: 9; padding: 16px; }
-  .overlay .box { background: #fff; border-radius: 16px; padding: 22px; width: 100%; max-width: 360px; text-align: center; }
+  .overlay { position: fixed; inset: 0; background: rgba(8, 16, 28, .6); display: none; align-items: center; justify-content: center; z-index: 20; padding: 16px; backdrop-filter: blur(3px); }
+  .overlay .box { background: var(--card); border-radius: 22px; padding: 26px; width: 100%; max-width: 340px; text-align: center; margin: 0; }
+  .spin { width: 46px; height: 46px; border-radius: 50%; border: 5px solid var(--line); border-top-color: var(--accent); margin: 0 auto 12px; animation: sp 0.9s linear infinite; }
+  @keyframes sp { to { transform: rotate(360deg); } }
   .bar { height: 10px; background: var(--line); border-radius: 99px; overflow: hidden; margin-top: 14px; }
-  .bar i { display: block; height: 100%; width: 0; background: var(--accent); transition: width .3s; }
-  .done { text-align: center; padding: 26px 16px; }
-  .done .big { font-size: 64px; line-height: 1; }
-  .done .num { font-size: 34px; font-weight: 800; color: var(--accent); margin: 8px 0; letter-spacing: 1px; }
-  .btn2 { display: block; width: 100%; border: 1.5px solid var(--line); background: #fff; border-radius: 14px; padding: 14px;
-    font: inherit; font-weight: 700; font-size: 17px; margin-top: 10px; cursor: pointer; color: var(--text); }
+  .bar i { display: block; height: 100%; width: 0; background: var(--accent); transition: width .3s; border-radius: 99px; }
+
+  /* تم الاستلام */
+  .done { text-align: center; padding: 28px 18px 22px; }
+  .tick { width: 84px; height: 84px; border-radius: 50%; background: var(--ok); margin: 0 auto 14px; display: grid; place-items: center; animation: pop .45s cubic-bezier(.2,1.4,.4,1); }
+  .tick svg { width: 44px; height: 44px; stroke: #fff; stroke-width: 5; fill: none; stroke-linecap: round; stroke-linejoin: round; stroke-dasharray: 60; stroke-dashoffset: 60; animation: dr .5s .25s forwards; }
+  @keyframes pop { from { transform: scale(.4); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+  @keyframes dr { to { stroke-dashoffset: 0; } }
+  .done h3 { font-size: 22px; margin: 0 0 4px; font-weight: 800; }
+  .done .num { display: inline-block; font-size: 38px; font-weight: 800; color: var(--accent); margin: 8px 0; letter-spacing: 1px; background: var(--accent-soft); border-radius: 16px; padding: 4px 22px; }
+  .done .msg { color: var(--muted); }
+  .tl { display: flex; margin-top: 18px; text-align: center; font-size: 13px; color: var(--muted); font-weight: 700; }
+  .tl div { flex: 1; position: relative; }
+  .tl div::before { content: ''; display: block; width: 14px; height: 14px; border-radius: 50%; background: var(--line); margin: 0 auto 6px; }
+  .tl div.on::before { background: var(--ok); }
+  .btn2 { display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%; border: 2px solid var(--line); background: var(--card); border-radius: 16px; padding: 14px;
+    font: inherit; font-weight: 800; font-size: 17px; margin-top: 10px; cursor: pointer; color: var(--text); text-decoration: none; }
+  .btn2.wa { background: #25d366; border-color: #25d366; color: #fff; }
+
+  /* طلباتي */
+  .req { border-inline-start: 6px solid var(--accent); }
+  .req.s-done { border-inline-start-color: var(--ok); }
+  .req.s-rej { border-inline-start-color: var(--danger); }
+  .req.s-ask { border-inline-start-color: #7a4bd1; }
   .treq { display: flex; gap: 12px; align-items: flex-start; }
-  .treq .ic { font-size: 30px; }
-  .treq .t { font-weight: 800; }
+  .treq .ic { font-size: 32px; }
+  .treq .t { font-weight: 800; font-size: 18px; }
   .treq .d { color: var(--muted); font-size: 14px; }
-  .steps { display: flex; gap: 4px; margin-top: 10px; }
-  .steps span { flex: 1; text-align: center; font-size: 12px; padding: 6px 2px; border-radius: 8px; background: #eef1f6; color: var(--muted); font-weight: 700; }
-  .steps span.on { background: var(--accent-soft); color: var(--accent); }
-  .steps span.ok { background: var(--ok-soft); color: var(--ok); }
-  .box { border-radius: 12px; padding: 10px 12px; margin-top: 10px; font-size: 15px; }
+  .steps { display: flex; gap: 6px; margin-top: 12px; }
+  .steps span { flex: 1; text-align: center; font-size: 13px; padding: 7px 2px; border-radius: 10px; background: var(--field); color: var(--muted); font-weight: 700; border: 1px solid var(--line); }
+  .steps span.on { background: var(--accent-soft); color: var(--accent); border-color: transparent; }
+  .steps span.ok { background: var(--ok-soft); color: var(--ok); border-color: transparent; }
+  .box { border-radius: 14px; padding: 11px 13px; margin-top: 12px; font-size: 15px; }
   .box.rej { background: var(--danger-soft); color: var(--danger); }
   .box.live { background: var(--ok-soft); color: var(--ok); }
-  .box.live.way { background: #fff3cd; color: #7a4b00; }
+  .box.live.way { background: var(--warn-soft); color: var(--warn); }
   .box.ask { background: #efe9fb; color: #3b2a73; }
+  @media (prefers-color-scheme: dark) { .box.ask { background: #2a2145; color: #cdbcff; } .gdisp { background: #14304f !important; color: #e8eef6 !important; } .keypad button { background: var(--card) !important; color: var(--text) !important; border-color: var(--line) !important; } }
   .box.ask textarea { margin-top: 8px; min-height: 70px; }
-  .hidden { display: none !important; }
-  .gdisp { font-size: 46px; font-weight: 900; text-align: center; margin: 10px 0 4px; min-height: 66px; background: #eef3ff; color: #123; border-radius: 14px; padding: 6px; }
-  .keypad { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: 8px; }
-  .keypad button { font-size: 32px; padding: 14px 0; border-radius: 14px; border: 2px solid #cfd6e2; background: #fff; color: #123; font-weight: 800; }
+  .box .submit { font-size: 17px; padding: 12px; margin-top: 8px; box-shadow: none; }
+
+  /* الحارس */
+  .gdisp { font-size: 50px; font-weight: 900; text-align: center; margin: 12px 0 4px; min-height: 72px; background: #eef3ff; color: #123; border-radius: 18px; padding: 6px; }
+  .keypad { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: 10px; }
+  .keypad button { font: inherit; font-size: 32px; padding: 14px 0; border-radius: 16px; border: 2px solid #d4dbe7; background: #fff; color: #123; font-weight: 800; }
   .keypad button:active { background: #dbe6ff; }
-  #gKinds .type .ic { font-size: 48px; }
+  #gKinds .type .ic { width: auto; min-width: 70px; height: 70px; padding: 0 12px; white-space: nowrap; font-size: 32px; }
+  #gKinds .type { font-size: 17px; }
 </style>
 </head>
 <body>
 <div class="wrap">
 
-  <header>
-    <div class="brand"><div class="office">مكتب عبد الله الجلسي للعقارات</div><h1>🔧 بلاغ صيانة</h1></div>
-    <button class="link-btn hidden" id="myBtn" onclick="showTrack()">📋 طلباتي</button>
-    <a class="link-btn" id="waBtn" target="_blank" rel="noopener" style="text-decoration:none">💬 واتساب المكتب</a>
+  <header class="hero">
+    <div class="top">
+      <div class="logo"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a4 4 0 0 0-5.4 5.4L3 18l3 3 6.3-6.3a4 4 0 0 0 5.4-5.4l-2.6 2.6-2.4-.6-.6-2.4z"/></svg></div>
+      <div><div class="office">مكتب عبد الله الجلسي للعقارات</div><div class="sub">خدمة طلبات الصيانة</div></div>
+    </div>
+    <div class="pills">
+      <button class="pill hidden" id="myBtn" onclick="showTrack()">📋 طلباتي</button>
+      <a class="pill" id="waBtn" target="_blank" rel="noopener">💬 واتساب المكتب</a>
+    </div>
   </header>
 
   <!-- ===== النموذج ===== -->
   <div id="formView">
     <div class="err" id="err"></div>
+    <div class="stepper" id="stepper"><span class="st" id="st1"></span><span class="st" id="st2"></span><span class="st" id="st3"></span><span class="lbl" id="stLbl">٠ من ٣</span></div>
 
     <div class="card hidden" id="guardCard">
-      <h2 id="guardH">🛡️ بلاغ من الحارس</h2>
+      <div class="sec"><div class="num">🛡️</div><h2 id="guardH">بلاغ من الحارس</h2></div>
       <div class="types" id="gKinds">
-        <button type="button" class="type" data-k="water"><span class="ic">💧🚚</span>وايت ماء</button>
-        <button type="button" class="type" data-k="sewage"><span class="ic">🚽🚛</span>وايت صرف</button>
-        <button type="button" class="type" data-k="maint" style="grid-column:1/-1"><span class="ic">🔧🪛</span>صيانة (صوّر المشكلة)</button>
+        <button type="button" class="type" data-k="water" style="--c:#1f7ae0"><span class="ic">💧🚚</span>وايت ماء</button>
+        <button type="button" class="type" data-k="sewage" style="--c:#8a5a2b"><span class="ic">🚽🚛</span>وايت صرف</button>
+        <button type="button" class="type" data-k="maint" style="--c:#7a4bd1;grid-column:1/-1"><span class="ic">🔧🪛</span>صيانة (صوّر المشكلة)</button>
       </div>
       <div class="gdisp">🚪 <span id="gaptv">—</span></div>
       <input type="hidden" id="gapt" value="">
@@ -123,60 +215,66 @@
     </div>
 
     <div class="card" id="tenCard">
-      <h2>بيانات المستأجر</h2>
-      <label for="name">اسم المستأجر (الاسم الأول والأخير)</label>
-      <input type="text" id="name" autocomplete="name" placeholder="مثال: فهد العتيبي">
-      <div class="row2">
-        <div><label for="district">الحي</label><input type="text" id="district" placeholder="مثال: النسيم"></div>
-        <div><label for="apt">رقم الشقة</label><input type="text" id="apt" inputmode="numeric" placeholder="12"></div>
+      <div class="sec" id="sec1"><div class="num">1</div><h2>بياناتك</h2></div>
+      <div class="prof hidden" id="profSum"><div class="av" id="psAv">👤</div><div class="tx"><b id="psName"></b><small id="psSub"></small></div><button class="link" type="button" onclick="editProf()">تعديل</button></div>
+      <div id="tenFields">
+        <div class="fld" id="f_name"><label for="name">الاسم (الأول والأخير)</label>
+          <input type="text" id="name" autocomplete="name" placeholder="مثال: فهد العتيبي"><div class="em">اكتب اسمك</div></div>
+        <div class="row2">
+          <div class="fld" id="f_district"><label for="district">الحي</label><input type="text" id="district" placeholder="النسيم"><div class="em">اكتب الحي</div></div>
+          <div class="fld" id="f_apt"><label for="apt">رقم الشقة</label><input type="text" id="apt" inputmode="numeric" placeholder="12"><div class="em">اكتب رقم الشقة</div></div>
+        </div>
+        <div class="fld" id="f_phone"><label for="phone">جوال للتواصل</label>
+          <input type="tel" id="phone" inputmode="tel" autocomplete="tel" placeholder="05xxxxxxxx" dir="ltr" style="text-align:right"><div class="em">رقم الجوال غير صحيح (مثال: 0551234567)</div></div>
       </div>
-      <label for="phone">جوال للتواصل</label>
-      <input type="tel" id="phone" inputmode="tel" autocomplete="tel" placeholder="05xxxxxxxx" dir="ltr" style="text-align:right">
     </div>
 
     <div class="card" id="probCard">
-      <h2>المشكلة</h2>
-      <div class="types" id="types"></div>
+      <div class="sec" id="sec2"><div class="num">2</div><h2>وش المشكلة؟</h2></div>
+      <div class="fld" id="f_type"><div class="types" id="types"></div><div class="em">اختر نوع المشكلة</div></div>
       <label class="urgent" id="urgentBox">
         <input type="checkbox" id="urgent" onchange="this.parentNode.classList.toggle('on', this.checked)">
+        <span class="sw"></span>
         <span>🔴 طارئ<small>تسريب ماء، انقطاع كهرباء، مصعد معطّل…</small></span>
       </label>
-      <label for="desc">وصف المشكلة</label>
-      <textarea id="desc" placeholder="اكتب المشكلة باختصار…"></textarea>
+      <label for="desc" style="margin-top:18px">اشرح باختصار</label>
+      <div class="chips hidden" id="chips"></div>
+      <div class="fld" id="f_desc"><textarea id="desc" placeholder="اكتب المشكلة باختصار… أو اختر من الأعلى"></textarea><div class="em">اكتب وصف المشكلة أو أرفق صورة</div></div>
     </div>
 
     <div class="card">
-      <h2 id="mediaH">صور أو فيديو (اختياري)</h2>
+      <div class="sec" id="sec3"><div class="num">3</div><h2 id="mediaH">صور أو فيديو <small>(اختياري)</small></h2></div>
       <div class="media-btns">
-        <button class="mbtn" type="button" onclick="document.getElementById('photoCam').click()"><span class="ic">📷</span>تصوير صورة الآن</button>
-        <button class="mbtn" type="button" onclick="document.getElementById('photoIn').click()"><span class="ic">🖼️</span>صورة من الاستوديو</button>
-        <button class="mbtn" type="button" onclick="document.getElementById('videoCam').click()"><span class="ic">🎥</span>تصوير فيديو الآن</button>
-        <button class="mbtn" type="button" onclick="document.getElementById('videoIn').click()"><span class="ic">🎞️</span>فيديو من الاستوديو</button>
+        <button class="mbtn big" type="button" onclick="document.getElementById('photoCam').click()"><span class="ic">📷</span>صوّر المشكلة الآن</button>
+        <button class="mbtn sec2" type="button" onclick="document.getElementById('photoIn').click()"><span class="ic">🖼️</span>من الاستوديو</button>
+        <button class="mbtn sec2" type="button" onclick="document.getElementById('videoCam').click()"><span class="ic">🎥</span>فيديو الآن</button>
+        <button class="mbtn sec2" type="button" onclick="document.getElementById('videoIn').click()"><span class="ic">🎞️</span>فيديو من الاستوديو</button>
       </div>
       <input type="file" id="photoCam" accept="image/*" capture="environment" class="hidden">
       <input type="file" id="photoIn" accept="image/*" multiple class="hidden">
       <input type="file" id="videoCam" accept="video/*" capture="environment" class="hidden">
       <input type="file" id="videoIn" accept="video/*" class="hidden">
       <div class="thumbs" id="thumbs"></div>
-      <div class="hint">حتى 4 صور، وفيديو واحد لا يزيد عن 30 ثانية.</div>
+      <div class="hint">حتى 4 صور، وفيديو واحد لا يزيد عن 30 ثانية. الصورة تسرّع الحل.</div>
     </div>
 
     <div class="hp" aria-hidden="true"><input type="text" id="website" tabindex="-1" autocomplete="off"></div>
-    <button class="submit" id="sendBtn" onclick="send()">إرسال البلاغ</button>
+    <div class="barfix"><div class="in"><div class="subhint" id="subHint"></div><button class="submit" id="sendBtn" onclick="send()">إرسال البلاغ</button></div></div>
   </div>
 
   <!-- ===== تم الإرسال ===== -->
   <div id="doneView" class="hidden">
     <div class="card done">
-      <div class="big">✅</div>
-      <div style="font-size:20px;font-weight:800;margin-top:10px">تم استلام بلاغك</div>
+      <div class="tick"><svg viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></div>
+      <h3>تم استلام بلاغك</h3>
       <div class="num" id="doneNum"></div>
-      <div style="color:var(--muted)">ستصلك رسالة تأكيد الاستلام على واتساب 💬<br>وسيتواصل معك فريق الصيانة قريباً</div>
-      <div class="hint" id="doneWarn" style="color:var(--warn)"></div>
+      <div class="msg">ستصلك رسالة تأكيد الاستلام على واتساب 💬<br>وسيتواصل معك فريق الصيانة قريباً</div>
+      <div class="tl"><div class="on">تم الاستلام</div><div>تعيين فني</div><div>تم الإنجاز</div></div>
+      <div class="hint" id="doneWarn" style="color:var(--warn);font-weight:700"></div>
     </div>
-    <a class="btn2" id="tgBtn" target="_blank" rel="noopener" style="text-decoration:none;text-align:center;background:#e3f7ea;border-color:#9ed8b3;color:#127a3e">💬 أرسل رقم بلاغك لمكتب الجلسي على واتساب</a>
+    <a class="btn2 wa" id="tgBtn" target="_blank" rel="noopener">💬 أرسل رقم بلاغك لمكتب الجلسي على واتساب</a>
     <button class="btn2" id="trkBtn" onclick="showTrack()">📋 متابعة حالة طلباتي</button>
-    <button class="btn2" id="shBtn" onclick="shareLink()">🔗 احفظ رابط المتابعة (واتساب)</button>
+    <button class="btn2" id="shBtn" onclick="shareLink()">🔗 احفظ رابط المتابعة</button>
     <button class="btn2" onclick="newRequest()">➕ بلاغ جديد</button>
   </div>
 
@@ -189,7 +287,7 @@
 
 <div class="overlay" id="overlay">
   <div class="box">
-    <div style="font-size:40px">📤</div>
+    <div class="spin"></div>
     <div style="font-weight:800;font-size:18px" id="ovText">جاري الإرسال…</div>
     <div class="bar"><i id="ovBar"></i></div>
     <div class="hint">لا تغلق الصفحة</div>
@@ -200,7 +298,14 @@
   // /*CONFIG*/ — نسخة GitHub Pages تستبدل هذا السطر بقيمها (انظر build_page.py)
   const _q = new URLSearchParams(location.search);
   const TRACK = (_q.get('t') || '').replace(/[^a-f0-9]/g, '').slice(0, 20), APP_URL = location.origin + location.pathname, API_URL = 'https://script.google.com/macros/s/AKfycby4tmfamJKcw5g29sgp45Rp6j_jSC_1TB5a28VDDbqjznHfN8aZFDdc8Bn9pcWkLs6u7g/exec';
-  const TYPES = [['plumb','🚿','سباكة'],['elec','⚡','كهرباء'],['elev','🛗','مصعد'],['other','🛠️','أخرى']];
+  const TYPES = [['plumb','🚿','سباكة','#1f7ae0'],['elec','⚡','كهرباء','#f0a000'],['elev','🛗','مصعد','#6b7686'],['other','🛠️','أخرى','#7a4bd1']];
+  // عبارات جاهزة (ضغطة واحدة بدل الكتابة) حسب نوع المشكلة
+  const QUICK = {
+    plumb: ['تسريب مياه', 'انسداد مجاري', 'حنفية تقطر', 'ضعف المياه', 'سخان لا يعمل'],
+    elec: ['انقطاع الكهرباء', 'مفتاح تالف', 'إضاءة لا تعمل', 'تماس / شرارة', 'فيشة لا تعمل'],
+    elev: ['المصعد معطّل', 'المصعد لا يستجيب', 'صوت غريب بالمصعد', 'باب المصعد لا يغلق'],
+    other: ['مكيّف لا يبرّد', 'باب / قفل', 'شباك', 'دهان / تشققات', 'رائحة / حشرات'],
+  };
   const BOT_USER = 'Aljulsi_maint_bot';   // بوت تليجرام: ربط المستأجر بتحديثات طلبه
   const OFFICE_WA = '966572294942';   // رقم واتساب المكتب (يظهر في زر «واتساب المكتب»)
   const MAX_PHOTOS = 4, MAX_VIDEO_SEC = 30, MAX_VIDEO_MB = 45, CHUNK = 4 * 1024 * 1024; // مضاعف 256KB (شرط Drive)
@@ -226,17 +331,57 @@
     try { if (!API_URL) google.script.run[fn](...args); else apiPost(fn, args, true).catch(() => {}); } catch (e) {}
   }
   const $ = id => document.getElementById(id);
+  const toLatin = s => String(s || '').replace(/[٠-٩]/g, d => d.charCodeAt(0) - 1632).replace(/[۰-۹]/g, d => d.charCodeAt(0) - 1776);
+  const phoneOk = v => /^(05|5|\+9665|9665|009665)\d{8}$/.test(toLatin(v).replace(/[\s-]/g, ''));
 
   // ---------- بناء الصفحة ----------
-  $('types').innerHTML = TYPES.map(t => `<button type="button" class="type" data-k="${t[0]}"><span class="ic">${t[1]}</span>${t[2]}</button>`).join('');
+  $('types').innerHTML = TYPES.map(t => `<button type="button" class="type" data-k="${t[0]}" style="--c:${t[3]}"><span class="ic">${t[1]}</span>${t[2]}</button>`).join('');
   $('types').addEventListener('click', e => {
     const b = e.target.closest('.type'); if (!b) return;
     selType = b.dataset.k;
-    document.querySelectorAll('.type').forEach(x => x.classList.toggle('on', x === b));
+    document.querySelectorAll('#types .type').forEach(x => x.classList.toggle('on', x === b));
+    $('f_type').classList.remove('bad');
+    drawChips(); refreshSteps();
   });
+  function drawChips() {
+    const list = QUICK[selType] || [];
+    $('chips').classList.toggle('hidden', !list.length);
+    $('chips').innerHTML = list.map(t => `<button type="button" class="chip" onclick="addChip(this.textContent)">${t}</button>`).join('');
+  }
+  function addChip(t) {
+    const d = $('desc'), cur = d.value.trim();
+    if (cur.indexOf(t) < 0) d.value = cur ? cur + '، ' + t : t;
+    $('f_desc').classList.remove('bad'); refreshSteps();
+  }
   $('waBtn').href = 'https://wa.me/' + OFFICE_WA;
   const prof = lsGet('mr_profile', {});
   ['name', 'district', 'apt', 'phone'].forEach(k => { if (prof[k]) $(k).value = prof[k]; });
+  // الجوال: يقبل الأرقام العربية وينظّف المسافات
+  $('phone').addEventListener('input', () => { const v = toLatin($('phone').value).replace(/[^\d+\s-]/g, ''); if (v !== $('phone').value) $('phone').value = v; });
+  $('apt').addEventListener('input', () => { $('apt').value = toLatin($('apt').value); });
+  // ملف محفوظ كامل ⇒ نعرضه كملخص بدل الحقول (تعديل بضغطة)
+  function profComplete() { return $('name').value.trim().length >= 2 && $('district').value.trim() && $('apt').value.trim() && phoneOk($('phone').value); }
+  function drawProf() {
+    $('psName').textContent = $('name').value.trim();
+    $('psAv').textContent = $('name').value.trim().charAt(0) || '👤';
+    $('psSub').textContent = 'حي ' + $('district').value.trim() + ' · شقة ' + $('apt').value.trim() + ' · ' + $('phone').value.trim();
+  }
+  function editProf() { $('profSum').classList.add('hidden'); $('tenFields').classList.remove('hidden'); $('name').focus(); }
+  if (!GUARD && profComplete()) { drawProf(); $('profSum').classList.remove('hidden'); $('tenFields').classList.add('hidden'); }
+  ['name', 'district', 'apt', 'phone', 'desc'].forEach(id => $(id).addEventListener('input', () => { const f = $('f_' + id); if (f) f.classList.remove('bad'); refreshSteps(); }));
+
+  // ---------- مؤشر التقدّم ----------
+  function refreshSteps() {
+    if (GUARD) return;
+    const s1 = profComplete(), s2 = !!selType && ($('desc').value.trim().length >= 3 || photos.length || video), s3 = !!(photos.length || video);
+    [s1, s2, s3].forEach((ok, i) => { $('st' + (i + 1)).classList.toggle('ok', !!ok); });
+    ['sec1', 'sec2', 'sec3'].forEach((id, i) => $(id).classList.toggle('ok', !![s1, s2, s3][i]));
+    const n = [s1, s2].filter(Boolean).length;
+    $('stLbl').textContent = n === 2 ? 'جاهز للإرسال ✓' : (n + ' من 2');
+    $('subHint').textContent = n === 2 ? 'ضغطة وحدة وتوصل للمكتب 👇' : (!s1 ? 'أكمل بياناتك' : 'اختر نوع المشكلة واشرحها');
+  }
+  if (GUARD) { $('stepper').classList.add('hidden'); }
+
   refreshMyBtn();
   if (GUARD) {
     ['tenCard', 'probCard', 'tgBtn', 'shBtn'].forEach(k => { const e = $(k); if (e) e.classList.add('hidden'); });
@@ -246,9 +391,10 @@
       const b = e.target.closest('.type'); if (!b) return;
       gKind = b.dataset.k;
       document.querySelectorAll('#gKinds .type').forEach(x => x.classList.toggle('on', x === b));
-      $('mediaH').textContent = gKind === 'maint' ? 'صورة المشكلة (مطلوبة)' : 'صورة (اختيارية)';
+      $('mediaH').innerHTML = gKind === 'maint' ? 'صورة المشكلة <small>(مطلوبة)</small>' : 'صورة <small>(اختيارية)</small>';
     });
     $('sendBtn').textContent = '📤 إرسال';
+    $('subHint').textContent = 'اختر النوع، اكتب رقم الشقة، ثم أرسل';
     $('keypad').addEventListener('click', e => {
       const b = e.target.closest('button'); if (!b) return;
       let v = $('gapt').value; const k = b.dataset.k;
@@ -256,10 +402,10 @@
       $('gapt').value = v; $('gaptv').textContent = v || '—';
     });
     run('guardInfo', GUARD).then(r => {
-      if (r && r.ok) $('guardH').textContent = '🛡️ حارس عمارة ' + r.building;
+      if (r && r.ok) $('guardH').textContent = 'حارس عمارة ' + r.building;
       else { $('formView').innerHTML = '<div class="card"><h2>⚠️</h2>' + ((r && r.msg) || 'الرابط غير صالح') + '</div>'; }
     }).catch(() => {});
-  }
+  } else refreshSteps();
   if (TRACK && !GUARD) { const t = lsGet('mr_tokens', []); if (t.indexOf(TRACK) < 0) { t.push(TRACK); lsSet('mr_tokens', t); } showTrack(); }
 
   function refreshMyBtn() { $('myBtn').classList.toggle('hidden', !lsGet('mr_tokens', []).length && !TRACK); }
@@ -292,6 +438,7 @@
     const h = photos.map((p, i) => `<div class="thumb"><img src="${p.url}"><button onclick="rmPhoto(${i})">✕</button></div>`);
     if (video) h.push(`<div class="thumb"><video src="${video.url}" muted></video><button onclick="rmVideo()">✕</button></div>`);
     $('thumbs').innerHTML = h.join('');
+    $('f_desc').classList.remove('bad'); refreshSteps();
   }
   function rmPhoto(i) { photos.splice(i, 1); drawThumbs(); }
   function rmVideo() { video = null; drawThumbs(); }
@@ -312,6 +459,15 @@
 
   // ---------- الإرسال ----------
   function showErr(m) { const e = $('err'); e.textContent = m; e.style.display = m ? 'block' : 'none'; if (m) window.scrollTo({ top: 0, behavior: 'smooth' }); }
+  // خطأ على حقل بعينه: يلوّنه ويمرّر إليه
+  function bad(field, msg) {
+    showErr('');
+    const f = $('f_' + field); if (!f) return showErr(msg);
+    if (field === 'name' || field === 'district' || field === 'apt' || field === 'phone') { $('profSum').classList.add('hidden'); $('tenFields').classList.remove('hidden'); }
+    f.classList.add('bad'); const em = f.querySelector('.em'); if (em && msg) em.textContent = msg;
+    f.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    const inp = f.querySelector('input,textarea'); if (inp) setTimeout(() => inp.focus({ preventScroll: true }), 350);
+  }
   function progress(text, pct) { $('ovText').textContent = text; $('ovBar').style.width = Math.round(pct) + '%'; }
 
   async function send() {
@@ -325,16 +481,16 @@
       call = () => run('submitGuard', GUARD, gapt, gKind, photos.length + (video ? 1 : 0));
     } else {
       f = {
-        name: $('name').value.trim(), district: $('district').value.trim(), apt: $('apt').value.trim(),
-        phone: $('phone').value.trim(), desc: $('desc').value.trim(), type: selType, urgent: $('urgent').checked,
+        name: $('name').value.trim(), district: $('district').value.trim(), apt: toLatin($('apt').value).trim(),
+        phone: toLatin($('phone').value).trim(), desc: $('desc').value.trim(), type: selType, urgent: $('urgent').checked,
         website: $('website').value, mediaCount: photos.length + (video ? 1 : 0),
       };
-      if (f.name.length < 2) return showErr('اكتب اسم المستأجر');
-      if (!f.district) return showErr('اكتب الحي');
-      if (!f.apt) return showErr('اكتب رقم الشقة');
-      if (!/^(05|5|\+9665|9665|009665)\d{8}$/.test(f.phone.replace(/[\s-]/g, '').replace(/[٠-٩]/g, d => d.charCodeAt(0) - 1632))) return showErr('رقم الجوال غير صحيح (مثال: 0551234567)');
-      if (!f.type) return showErr('اختر نوع المشكلة');
-      if (f.desc.length < 3 && !f.mediaCount) return showErr('اكتب وصف المشكلة أو أرفق صورة');
+      if (f.name.length < 2) return bad('name');
+      if (!f.district) return bad('district');
+      if (!f.apt) return bad('apt');
+      if (!phoneOk(f.phone)) return bad('phone');
+      if (!f.type) return bad('type');
+      if (f.desc.length < 3 && !f.mediaCount) return bad('desc');
       call = () => run('submitRequest', f);
     }
 
@@ -356,7 +512,8 @@
     const hasMedia = !!(res.id && (ph.length || vd));
     $('doneWarn').textContent = hasMedia ? '⏳ جاري رفع المرفقات… لا تغلق الصفحة حتى تظهر «تم رفع المرفقات»' : '';
     photos = []; video = null; drawThumbs(); $('desc').value = ''; $('urgent').checked = false;
-    $('urgentBox').classList.remove('on'); selType = ''; document.querySelectorAll('.type').forEach(x => x.classList.remove('on'));
+    $('urgentBox').classList.remove('on'); selType = ''; document.querySelectorAll('.type').forEach(x => x.classList.remove('on')); drawChips();
+    if (!GUARD) { drawProf(); $('profSum').classList.remove('hidden'); $('tenFields').classList.add('hidden'); refreshSteps(); }
     show('doneView'); refreshMyBtn();
     if (!hasMedia) return;
 
@@ -420,11 +577,11 @@
       const rej = r.status === 'مرفوض' ? `<div class="box rej"><b>🚫 تعذّر تنفيذ الطلب</b>${r.reason ? '<div>السبب: ' + esc(r.reason) + '</div>' : ''}</div>` : '';
       const askMedia = r.status === 'بانتظار ردك' && r.media ? `<div class="box ask"><b>📷 الإدارة تطلب صورة أو فيديو:</b><div>${esc(r.question)}</div>
         <input type="file" id="mf${esc(r.id)}" accept="image/*,video/*" multiple class="hidden" onchange="sendMore('${esc(r.id)}','${esc(r.token)}')">
-        <button class="submit" style="font-size:17px;padding:12px;margin-top:8px" onclick="document.getElementById('mf${esc(r.id)}').click()">📷 اختر صورة أو فيديو</button>
+        <button class="submit" onclick="document.getElementById('mf${esc(r.id)}').click()">📷 اختر صورة أو فيديو</button>
         <div class="hint" id="ms${esc(r.id)}"></div></div>` : '';
       const ask = askMedia || (r.status === 'بانتظار ردك' ? `<div class="box ask"><b>❓ الإدارة تسأل:</b><div>${esc(r.question)}</div>
         <textarea id="rp${esc(r.id)}" placeholder="اكتب ردك هنا…"></textarea>
-        <button class="submit" style="font-size:17px;padding:12px;margin-top:8px" onclick="sendReply('${esc(r.id)}','${esc(r.token)}')">إرسال الرد</button></div>` : '');
+        <button class="submit" onclick="sendReply('${esc(r.id)}','${esc(r.token)}')">إرسال الرد</button></div>` : '');
       const live = r.ts === 'way' ? `<div class="box live way">🚗 الفني ${esc(r.tech)} <b>في الطريق إليك الآن</b></div>`
         : r.ts === 'work' ? `<div class="box live">🔧 الفني ${esc(r.tech)} <b>يعمل على طلبك</b></div>`
         : r.ts === 'away' ? `<div class="box live way">🚪 الفني ${esc(r.tech)} وصل ولم يجد أحداً — <b>تواصل معه</b></div>`
@@ -433,7 +590,8 @@
       const tg = '';   // الإشعارات كلها بواتساب (المستأجر ما يستخدم تليجرام)
       const note = r.status === 'تمت المعالجة' && r.note ? `<div class="hint">ملاحظة: ${esc(r.note)}</div>` : '';
       const when = r.closed ? (r.status === 'مرفوض' ? ' · ' : ' · أُنجز ') + esc(r.closed) : '';
-      return `<div class="card"><div class="treq"><div class="ic">${esc(r.icon)}</div><div style="flex:1">
+      const cls = r.status === 'مرفوض' ? 's-rej' : r.status === 'تمت المعالجة' ? 's-done' : r.status === 'بانتظار ردك' ? 's-ask' : '';
+      return `<div class="card req ${cls}"><div class="treq"><div class="ic">${esc(r.icon)}</div><div style="flex:1">
         <div class="t">طلب #${esc(r.id)} — ${esc(r.type)}</div><div class="d">${esc(r.date)}${when}</div>
         ${steps}${live}${rej}${ask}${note}${tg}</div></div></div>`;
     }).join('');
