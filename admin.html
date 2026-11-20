@@ -10,19 +10,19 @@
   :root {
     --bg: #f3f5f9; --card: #ffffff; --tx: #18212e; --mut: #667286; --bd: #e0e5ee; --pri: #1f5fd1; --pri-soft: #e6eefc;
     --ok: #17794a; --ok-soft: #dff3e8; --warn: #8a5a00; --warn-soft: #fff1cc; --bad: #b3261e; --bad-soft: #fbe3e1;
-    --new: #1f5fd1; --new-soft: #e6eefc; --ask: #5b3fb0; --ask-soft: #ece6fa; --wait: #a14a00; --wait-soft: #ffe9d6; --bar: #7da6ee;
+    --new: #1f5fd1; --new-soft: #e6eefc; --ask: #5b3fb0; --ask-soft: #ece6fa; --wait: #a14a00; --wait-soft: #ffe9d6; --bar: #7da6ee; --bar2: #c6d6f5;
   }
   @media (prefers-color-scheme: dark) {
     :root:not([data-theme="light"]) {
       --bg: #0f141b; --card: #171e28; --tx: #e8edf4; --mut: #93a0b3; --bd: #263041; --pri: #6ea2ff; --pri-soft: #1c2b47;
       --ok: #59d391; --ok-soft: #14301f; --warn: #f1c35a; --warn-soft: #382c0e; --bad: #ff8a80; --bad-soft: #3b1a18;
-      --new: #6ea2ff; --new-soft: #1c2b47; --ask: #b9a2ff; --ask-soft: #2a2145; --wait: #ffb27a; --wait-soft: #3a2412; --bar: #3d6fc4;
+      --new: #6ea2ff; --new-soft: #1c2b47; --ask: #b9a2ff; --ask-soft: #2a2145; --wait: #ffb27a; --wait-soft: #3a2412; --bar: #3d6fc4; --bar2: #25365a;
     }
   }
   :root[data-theme="dark"] {
     --bg: #0f141b; --card: #171e28; --tx: #e8edf4; --mut: #93a0b3; --bd: #263041; --pri: #6ea2ff; --pri-soft: #1c2b47;
     --ok: #59d391; --ok-soft: #14301f; --warn: #f1c35a; --warn-soft: #382c0e; --bad: #ff8a80; --bad-soft: #3b1a18;
-    --new: #6ea2ff; --new-soft: #1c2b47; --ask: #b9a2ff; --ask-soft: #2a2145; --wait: #ffb27a; --wait-soft: #3a2412; --bar: #3d6fc4;
+    --new: #6ea2ff; --new-soft: #1c2b47; --ask: #b9a2ff; --ask-soft: #2a2145; --wait: #ffb27a; --wait-soft: #3a2412; --bar: #3d6fc4; --bar2: #25365a;
   }
   * { box-sizing: border-box; }
   html, body { margin: 0; background: var(--bg); color: var(--tx); font-family: "Segoe UI", Tahoma, system-ui, sans-serif; font-size: 15px; }
@@ -31,7 +31,7 @@
   header h1 { font-size: 17px; margin: 0; }
   header .sp { flex: 1; }
   header .me { color: var(--mut); font-size: 12.5px; }
-  .tabs { display: flex; gap: 4px; }
+  .tabs { display: flex; gap: 4px; flex-wrap: wrap; }
   .tab { border: 0; background: transparent; color: var(--mut); padding: 8px 12px; border-radius: 10px; font-weight: 700; }
   .tab.on { background: var(--pri-soft); color: var(--pri); }
   .ib { border: 1px solid var(--bd); background: var(--card); color: var(--tx); border-radius: 10px; padding: 6px 10px; }
@@ -83,8 +83,10 @@
   .thumbs img { width: 100%; height: 100%; object-fit: cover; }
   .modal { position: fixed; inset: 0; background: #000a; display: none; align-items: center; justify-content: center; z-index: 20; padding: 16px; }
   .modal.on { display: flex; }
-  .modal .box { background: var(--card); border-radius: 14px; padding: 16px; width: min(440px, 100%); }
-  .modal textarea { width: 100%; min-height: 90px; border: 1px solid var(--bd); background: var(--bg); color: var(--tx); border-radius: 10px; padding: 9px; font: inherit; }
+  .modal .box { background: var(--card); border-radius: 14px; padding: 16px; width: min(460px, 100%); max-height: 92vh; overflow: auto; }
+  .modal label { display: block; color: var(--mut); font-size: 13px; margin: 10px 0 4px; }
+  .modal .inp, .modal textarea { width: 100%; }
+  .modal textarea { min-height: 90px; border: 1px solid var(--bd); background: var(--bg); color: var(--tx); border-radius: 10px; padding: 9px; font: inherit; }
   #lb img { max-width: 96vw; max-height: 90vh; border-radius: 10px; }
   .toast { position: fixed; bottom: 18px; inset-inline: 0; margin: auto; width: fit-content; max-width: 92vw; background: #222; color: #fff; padding: 9px 16px; border-radius: 10px; display: none; z-index: 30; }
   .toast.on { display: block; }
@@ -92,16 +94,25 @@
   @media (max-width: 860px) { .back { display: inline-block; margin-bottom: 8px; } }
   #gate { max-width: 420px; margin: 60px auto; padding: 0 16px; text-align: center; }
   .page { padding: 14px 16px; max-width: 1100px; margin: 0 auto; }
-  .grid2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 14px; margin-top: 14px; }
-  .bars div.b { display: grid; grid-template-columns: 130px 1fr 34px; gap: 8px; align-items: center; margin: 5px 0; font-size: 13.5px; }
+  .grid2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 14px; margin-top: 14px; }
+  .bars div.b { display: grid; grid-template-columns: 140px 1fr 34px; gap: 8px; align-items: center; margin: 5px 0; font-size: 13.5px; }
   .bars i { display: block; height: 14px; border-radius: 7px; background: var(--bar); min-width: 3px; }
-  .days { display: flex; align-items: flex-end; gap: 5px; height: 110px; margin-top: 10px; }
-  .days div { flex: 1; text-align: center; font-size: 10.5px; color: var(--mut); display: flex; flex-direction: column; justify-content: flex-end; height: 100%; }
-  .days i { display: block; background: var(--bar); border-radius: 5px 5px 0 0; min-height: 2px; }
+  .cols { display: flex; align-items: flex-end; gap: 6px; height: 130px; margin-top: 10px; }
+  .cols > div { flex: 1; text-align: center; font-size: 11px; color: var(--mut); display: flex; flex-direction: column; justify-content: flex-end; height: 100%; }
+  .cols .pair { display: flex; flex-direction: row; align-items: flex-end; gap: 2px; height: 100px; }
+  .cols .pair i { flex: 1; }
+  .cols i { display: block; background: var(--bar); border-radius: 5px 5px 0 0; min-height: 2px; }
+  .cols i.prev { background: var(--bar2); }
+  .cols b { color: var(--tx); font-size: 12px; }
   table { width: 100%; border-collapse: collapse; font-size: 14px; }
-  th, td { text-align: start; padding: 8px 6px; border-bottom: 1px solid var(--bd); }
+  th, td { text-align: start; padding: 8px 6px; border-bottom: 1px solid var(--bd); vertical-align: top; }
   th { color: var(--mut); font-weight: 600; font-size: 12.5px; }
   .off { opacity: .5; }
+  .chip { display: inline-flex; align-items: center; gap: 4px; background: var(--bg); border: 1px solid var(--bd); border-radius: 999px; padding: 2px 8px; margin: 2px; font-size: 13px; direction: ltr; }
+  .chip button { border: 0; background: transparent; color: var(--bad); padding: 0 2px; font-size: 14px; }
+  .legend { font-size: 12px; color: var(--mut); display: flex; gap: 12px; margin-top: 6px; }
+  .legend i { display: inline-block; width: 10px; height: 10px; border-radius: 3px; background: var(--bar); margin-inline-end: 4px; }
+  .legend i.prev { background: var(--bar2); }
 </style>
 </head>
 <body>
@@ -114,9 +125,10 @@
   <header>
     <h1>🛠️ الصيانة</h1>
     <div class="tabs">
-      <button class="tab on" id="tabReq" onclick="setTab('req')">📋 الطلبات</button>
-      <button class="tab" id="tabRep" onclick="setTab('rep')">📊 التقارير</button>
-      <button class="tab" id="tabTeam" onclick="setTab('team')">👥 الفريق والحراس</button>
+      <button class="tab on" id="tab_req" onclick="setTab('req')">📋 الطلبات</button>
+      <button class="tab" id="tab_rep" onclick="setTab('rep')">📊 الإحصاءات</button>
+      <button class="tab" id="tab_team" onclick="setTab('team')">👥 الفريق والحراس</button>
+      <button class="tab" id="tab_dir" onclick="setTab('dir')">🏢 العمائر والمستأجرون</button>
     </div>
     <span class="sp"></span>
     <span class="me" id="me"></span>
@@ -126,7 +138,7 @@
     <button class="ib" onclick="renewKey()" title="تجديد رابطي الشخصي">🔑</button>
   </header>
 
-  <div id="vReq">
+  <div id="vreq">
     <div class="stats" id="stats"></div>
     <div class="wrap">
       <div id="list">
@@ -137,13 +149,14 @@
     </div>
   </div>
 
-  <div id="vRep" class="page" style="display:none"></div>
-  <div id="vTeam" class="page" style="display:none"></div>
+  <div id="vrep" class="page" style="display:none"></div>
+  <div id="vteam" class="page" style="display:none"></div>
+  <div id="vdir" class="page" style="display:none"></div>
 </div>
 
 <div class="modal" id="modal"><div class="box">
   <h3 id="mTitle" style="margin-top:0;color:var(--tx);font-size:16px"></h3>
-  <textarea id="mText"></textarea>
+  <div id="mBody"></div>
   <div class="row"><button class="btn pri" id="mOk">تأكيد</button><button class="btn" onclick="closeModal()">إلغاء</button></div>
 </div></div>
 <div class="modal" id="lb" onclick="this.classList.remove('on')"><img id="lbImg" alt=""></div>
@@ -153,10 +166,11 @@
   const API_URL = 'https://script.google.com/macros/s/AKfycby4tmfamJKcw5g29sgp45Rp6j_jSC_1TB5a28VDDbqjznHfN8aZFDdc8Bn9pcWkLs6u7g/exec';
   const $ = id => document.getElementById(id);
   const esc = s => String(s == null ? '' : s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
-  let KEY = '', DATA = null, FILTER = 'open', SEL = '', DETAIL = null, busy = false, TAB = 'req';
-  const IMG = {};   // معرف الملف ← data URL
+  const TYPE_LIST = ['سباكة', 'كهرباء', 'مصعد', 'أخرى', 'وايت ماء', 'وايت صرف صحي'];
+  let KEY = '', DATA = null, FILTER = 'open', SEL = '', DETAIL = null, busy = false, TAB = 'req', BLDS = null;
+  let TEAM = null, GUARDS = null, TENROWS = [];
+  const IMG = {};
 
-  // ---------- المفتاح: من الرابط (#k=...) ثم يُحفظ بالمتصفح ويُخفى من الشريط ----------
   try {
     const m = /[#&]k=([a-f0-9]{24,64})/.exec(location.hash);
     if (m) { localStorage.setItem('adm_key', m[1]); history.replaceState(null, '', location.pathname); }
@@ -176,25 +190,44 @@
     return j.result;
   }
   function toast(t) { const e = $('toast'); e.textContent = t; e.classList.add('on'); clearTimeout(toast.t); toast.t = setTimeout(() => e.classList.remove('on'), 2800); }
+  // تنفيذ عملية بالخادم مع رسالة نجاح/فشل. يرجع النتيجة أو false
+  async function call(op, id, arg, okMsg) {
+    try { const r = await api(op, id, arg); if (!r.ok) { toast(r.msg || 'تعذّر'); return false; } if (okMsg !== '') toast(okMsg || '✅ تم'); return r; }
+    catch (e) { toast('تعذّر: ' + e.message); return false; }
+  }
 
   async function renewKey() {
     if (!confirm('تجديد رابطك الشخصي؟ الرابط القديم (وأي جهاز آخر فاتحه) يتوقف فوراً، وهذا الجهاز يستمر.')) return;
-    try {
-      const r = await api('newkey');
-      if (!r.ok) { toast(r.msg || 'تعذّر'); return; }
-      KEY = r.key; try { localStorage.setItem('adm_key', KEY); } catch (e) {}
-      toast('✅ تم التجديد — الرابط القديم توقف');
-    } catch (e) { toast('تعذّر: ' + e.message); }
+    const r = await call('newkey', '', '', '✅ تم التجديد — الرابط القديم توقف');
+    if (r) { KEY = r.key; try { localStorage.setItem('adm_key', KEY); } catch (e) {} }
   }
+
+  // ---------- نافذة نموذج عامة ----------
+  function openForm(title, fields, onOk, okLabel) {
+    $('mTitle').textContent = title;
+    $('mBody').innerHTML = fields.map((f, i) => {
+      const id = 'f_' + i;
+      if (f.type === 'select') return `<label for="${id}">${esc(f.label)}</label><select class="inp" id="${id}">${f.opts.map(o => `<option value="${esc(o[0])}" ${String(o[0]) === String(f.v) ? 'selected' : ''}>${esc(o[1])}</option>`).join('')}</select>`;
+      if (f.type === 'textarea') return `<label for="${id}">${esc(f.label)}</label><textarea id="${id}" placeholder="${esc(f.ph || '')}">${esc(f.v || '')}</textarea>`;
+      return `<label for="${id}">${esc(f.label)}</label><input class="inp" id="${id}" type="text" ${f.type === 'tel' ? 'inputmode="tel" dir="ltr"' : ''} value="${esc(f.v || '')}" placeholder="${esc(f.ph || '')}">`;
+    }).join('');
+    $('mOk').textContent = okLabel || 'حفظ';
+    $('mOk').onclick = async () => { const vals = fields.map((f, i) => $('f_' + i).value.trim()); closeModal(); await onOk(vals); };
+    $('modal').classList.add('on');
+    const first = $('f_0'); if (first) first.focus();
+  }
+  function closeModal() { $('modal').classList.remove('on'); }
+  function confirmBox(title, text, onOk, label) {
+    $('mTitle').textContent = title; $('mBody').innerHTML = `<div style="padding:6px 0;line-height:1.7">${esc(text)}</div>`;
+    $('mOk').textContent = label || 'تأكيد'; $('mOk').onclick = async () => { closeModal(); await onOk(); }; $('modal').classList.add('on');
+  }
+  async function getBlds() { if (!BLDS) { const r = await call('blds', '', '', ''); if (r) BLDS = r.blds; } return BLDS || []; }
 
   // ---------- التبويبات ----------
   function setTab(t) {
     TAB = t;
-    ['req', 'rep', 'team'].forEach(k => { $('tab' + k[0].toUpperCase() + k.slice(1)).classList.toggle('on', k === t); });
-    $('vReq').style.display = t === 'req' ? '' : 'none';
-    $('vRep').style.display = t === 'rep' ? '' : 'none';
-    $('vTeam').style.display = t === 'team' ? '' : 'none';
-    if (t === 'rep') loadReport(); if (t === 'team') loadTeam();
+    ['req', 'rep', 'team', 'dir'].forEach(k => { $('tab_' + k).classList.toggle('on', k === t); $('v' + k).style.display = k === t ? '' : 'none'; });
+    if (t === 'rep') loadReport(); if (t === 'team') loadTeam(); if (t === 'dir') loadDir();
   }
 
   // ---------- الطلبات ----------
@@ -208,7 +241,7 @@
       $('me').textContent = '👤 ' + r.me; $('upd').textContent = 'آخر تحديث ' + r.at.slice(11);
       draw();
       if (SEL && (manual || DETAIL)) openReq(SEL, true);
-      if (manual && TAB === 'rep') loadReport(); if (manual && TAB === 'team') loadTeam();
+      if (manual && TAB === 'rep') loadReport(); if (manual && TAB === 'team') loadTeam(); if (manual && TAB === 'dir') loadDir();
     } catch (e) { if (manual) toast('تعذّر التحميل: ' + e.message); }
     finally { busy = false; }
   }
@@ -220,6 +253,7 @@
     const m = Math.floor((Date.now() - d) / 60000);
     return m < 60 ? 'قبل ' + Math.max(m, 1) + ' د' : m < 1440 ? 'قبل ' + Math.floor(m / 60) + ' س' : 'قبل ' + Math.floor(m / 1440) + ' يوم';
   }
+  const hfmt = h => h >= 48 ? Math.floor(h / 24) + ' يوم' : h + ' ساعة';
   const place = r => r.bld ? r.bld + ' — ' + r.apt : (r.dis ? 'حي ' + r.dis + ' — ' : '') + r.apt;
 
   const FILTERS = [
@@ -248,7 +282,6 @@
   }
   function setFilter(f) { FILTER = f; draw(); }
 
-  // ---------- التفاصيل ----------
   async function openReq(id, quiet) {
     SEL = id; draw(); document.body.classList.add('showd');
     if (!quiet) $('detail').innerHTML = '<div class="empty">جاري التحميل…</div>';
@@ -317,100 +350,202 @@
           <button class="btn" onclick="ask2('ask','❓ سؤال لصاحب البلاغ','اكتب سؤالك…')">❓ طلب معلومة</button>
           <button class="btn bad" onclick="ask2('reject','🚫 رفض الطلب','سبب الرفض (يصل لصاحب البلاغ)', true)">🚫 رفض</button>
         </div>`}
+      <h3>تحكم</h3>
+      <div class="row"><button class="btn" onclick="editReq()">✏️ تعديل البيانات</button><button class="btn bad" onclick="delReq()">🗑️ حذف الطلب</button></div>
       <h3>🕓 السجل</h3>
       <div class="log">${DETAIL.logs.map(l => `<div><b>${esc(l.e)}</b> ${l.d ? '— ' + esc(l.d) : ''}<small>${esc(l.t)} · ${esc(l.by)}</small></div>`).reverse().join('') || '—'}</div>`;
   }
 
   async function act(op, arg) {
-    try {
-      const r = await api(op, SEL, arg);
-      if (!r.ok) { toast(r.msg || 'تعذّر'); return; }
-      toast('✅ تم'); await load(false); await openReq(SEL, true);
-    } catch (e) { toast('تعذّر: ' + e.message); }
+    const r = await call(op, SEL, arg);
+    if (r) { await load(false); await openReq(SEL, true); }
   }
   function assign() { const v = $('techSel').value; if (!v) { toast('اختر الفني أولاً'); return; } act('assign', v); }
   function ask2(op, title, ph, optional) {
-    $('mTitle').textContent = title; $('mText').value = ''; $('mText').placeholder = ph; $('modal').classList.add('on'); $('mText').focus();
-    $('mOk').onclick = () => { const v = $('mText').value.trim(); if (!optional && v.length < 2) { toast('اكتب النص'); return; } closeModal(); act(op, v); };
+    openForm(title, [{ type: 'textarea', label: ph, v: '', ph }], ([v]) => { if (!optional && v.length < 2) { toast('اكتب النص'); return; } return act(op, v); }, 'تأكيد');
   }
-  function closeModal() { $('modal').classList.remove('on'); }
+  async function editReq() {
+    const r = DETAIL.req, blds = await getBlds();
+    openForm('✏️ تعديل الطلب #' + r.id, [
+      { k: 'name', label: 'اسم المبلّغ', v: r.name },
+      { k: 'phone', label: 'جوال التواصل', type: 'tel', v: r.phone, ph: '05xxxxxxxx' },
+      { k: 'type', label: 'النوع', type: 'select', v: r.type, opts: TYPE_LIST.map(t => [t, t]) },
+      { k: 'bld', label: 'العمارة', type: 'select', v: r.bld, opts: [['', '— بدون —']].concat(blds.map(b => [b.name, b.name])) },
+      { k: 'apt', label: 'الشقة', v: r.apt },
+      { k: 'desc', label: 'الوصف', type: 'textarea', v: r.fullDesc },
+    ], async v => { const o = { name: v[0], phone: v[1], type: v[2], bld: v[3], apt: v[4], desc: v[5] }; const ok = await call('editreq', SEL, JSON.stringify(o), '✅ حُفظ التعديل'); if (ok) { await load(false); await openReq(SEL, true); } });
+  }
+  function delReq() {
+    confirmBox('🗑️ حذف الطلب #' + SEL, 'سيُحذف الطلب نهائياً من الجدول ومن تليجرام ولا يمكن التراجع. (لإنهائه فقط استخدم «إغلاق» أو «رفض».)', async () => {
+      const ok = await call('delreq', SEL, '', '🗑️ حُذف الطلب');
+      if (ok) { SEL = ''; DETAIL = null; closeDetail(); $('detail').innerHTML = '<div class="empty">اختر طلباً من القائمة</div>'; await load(false); }
+    }, 'حذف نهائي');
+  }
 
-  // ---------- التقارير ----------
-  let REP_DAYS = 30;
+  // ---------- الإحصاءات ----------
+  let REP_DAYS = 30, REP = null;
   async function loadReport(days) {
     if (days != null) REP_DAYS = days;
-    const v = $('vRep'); v.innerHTML = '<div class="empty">جاري التحميل…</div>';
+    const v = $('vrep'); v.innerHTML = '<div class="empty">جاري التحميل…</div>';
     try {
       const s = await api('stats', REP_DAYS);
       if (!s.ok) { v.innerHTML = '<div class="empty">' + esc(s.msg || 'تعذّر') + '</div>'; return; }
-      const max = a => Math.max(1, ...a.map(x => x.n));
-      const bars = (a) => `<div class="bars">${a.map(x => `<div class="b"><span>${esc(x.k)}</span><i style="width:${Math.round(100 * x.n / max(a))}%"></i><b>${x.n}</b></div>`).join('') || '—'}</div>`;
-      const dmax = Math.max(1, ...s.daily.map(x => x.n));
-      v.innerHTML = `
-        <div class="row" style="margin-top:0"><b>الفترة:</b>
-          ${[[7, '٧ أيام'], [30, '٣٠ يوماً'], [90, '٩٠ يوماً'], [0, 'الكل']].map(p => `<button class="btn sm ${REP_DAYS === p[0] ? 'pri' : ''}" onclick="loadReport(${p[0]})">${p[1]}</button>`).join('')}</div>
-        <div class="stats" style="padding:0">
-          <div class="stat"><b>${s.total}</b><span>إجمالي البلاغات</span></div>
-          <div class="stat"><b>${s.open}</b><span>مفتوحة الآن</span></div>
-          <div class="stat"><b>${s.closed}</b><span>مغلقة</span></div>
-          <div class="stat"><b>${s.rejected}</b><span>مرفوضة</span></div>
-          <div class="stat ${s.urgent ? 'red' : ''}"><b>${s.urgent}</b><span>عاجلة</span></div>
-          <div class="stat"><b>${s.avgClose ? (s.avgClose >= 48 ? (s.avgClose / 24).toFixed(1) + ' يوم' : s.avgClose + ' س') : '—'}</b><span>متوسط زمن الإغلاق</span></div>
-        </div>
-        <div class="grid2">
-          <div class="panel"><b>آخر ١٤ يوماً</b><div class="days">${s.daily.map(d => `<div title="${d.n}"><i style="height:${Math.round(90 * d.n / dmax)}px"></i>${esc(d.d.slice(3))}</div>`).join('')}</div></div>
-          <div class="panel"><b>حسب النوع</b>${bars(s.byType)}</div>
-          <div class="panel"><b>أكثر العمائر بلاغات</b>${bars(s.byBld)}</div>
-          <div class="panel"><b>حسب الحالة</b>${bars(s.byStatus)}</div>
-        </div>
-        <div class="panel" style="margin-top:14px"><b>أداء الفنيين</b>
-          <table><tr><th>الفني</th><th>الطلبات</th><th>المنجز</th><th>متوسط الإنجاز</th></tr>
-          ${s.techs.map(t => `<tr><td>👷 ${esc(t.name)}</td><td>${t.total}</td><td>${t.done}</td><td>${t.avgH ? (t.avgH >= 48 ? (t.avgH / 24).toFixed(1) + ' يوم' : t.avgH + ' س') : '—'}</td></tr>`).join('') || '<tr><td colspan="4">—</td></tr>'}</table></div>`;
+      REP = s; drawReport();
     } catch (e) { v.innerHTML = '<div class="empty">تعذّر التحميل</div>'; }
   }
+  function drawReport() {
+    const s = REP, v = $('vrep');
+    const max = a => Math.max(1, ...a.map(x => x.n));
+    const bars = a => `<div class="bars">${a.map(x => `<div class="b"><span>${esc(x.k)}</span><i style="width:${Math.round(100 * x.n / max(a))}%"></i><b>${x.n}</b></div>`).join('') || '—'}</div>`;
+    const w = s.week, wmax = Math.max(1, ...w.byDay.map(x => x.n), ...w.prevByDay.map(x => x.n));
+    const dmax = Math.max(1, ...s.daily.map(x => x.n)), wk = Math.max(1, ...s.weeks.map(x => x.n)), dw = Math.max(1, ...s.dow.map(x => x.n));
+    const diff = w.total - w.last, arrow = diff > 0 ? '▲ ' + diff : diff < 0 ? '▼ ' + Math.abs(diff) : '＝';
+    v.innerHTML = `
+      <div class="panel" style="border-color:var(--pri)">
+        <b>📅 هذا الأسبوع (الأحد ← السبت): ${esc(w.start)} إلى ${esc(w.end)}</b>
+        <div class="stats" style="padding:10px 0 0">
+          <div class="stat"><b>${w.total}</b><span>طلبات هذا الأسبوع</span></div>
+          <div class="stat"><b>${w.last}</b><span>الأسبوع الماضي (${arrow})</span></div>
+          <div class="stat"><b>${w.closed}</b><span>أُنجز هذا الأسبوع</span></div>
+          <div class="stat ${w.urgent ? 'red' : ''}"><b>${w.urgent}</b><span>عاجلة هذا الأسبوع</span></div>
+        </div>
+        <div class="cols">${w.byDay.map((d, i) => `<div><div class="pair"><i style="height:${Math.round(100 * d.n / wmax)}px"></i><i class="prev" style="height:${Math.round(100 * w.prevByDay[i].n / wmax)}px"></i></div><b>${d.n}</b>${esc(d.d)}</div>`).join('')}</div>
+        <div class="legend"><span><i></i>هذا الأسبوع</span><span><i class="prev"></i>الأسبوع الماضي</span></div>
+      </div>
+      <div class="row" style="margin-top:14px"><b>الفترة لباقي الإحصاءات:</b>
+        ${[[7, '٧ أيام'], [30, '٣٠ يوماً'], [90, '٩٠ يوماً'], [0, 'الكل']].map(p => `<button class="btn sm ${REP_DAYS === p[0] ? 'pri' : ''}" onclick="loadReport(${p[0]})">${p[1]}</button>`).join('')}</div>
+      <div class="stats" style="padding:0">
+        <div class="stat"><b>${s.total}</b><span>إجمالي البلاغات</span></div>
+        <div class="stat"><b>${s.openAll}</b><span>مفتوحة الآن</span></div>
+        <div class="stat ${s.overdue3 ? 'red' : ''}"><b>${s.overdue3}</b><span>متأخرة ٣ أيام فأكثر</span></div>
+        <div class="stat"><b>${s.closed}</b><span>مغلقة</span></div>
+        <div class="stat"><b>${s.rejected}</b><span>مرفوضة</span></div>
+        <div class="stat ${s.urgent ? 'red' : ''}"><b>${s.urgent}</b><span>عاجلة</span></div>
+        <div class="stat"><b>${s.avgAssign ? hfmt(s.avgAssign) : '—'}</b><span>متوسط وقت التعيين</span></div>
+        <div class="stat"><b>${s.avgClose ? hfmt(s.avgClose) : '—'}</b><span>متوسط زمن الإغلاق</span></div>
+      </div>
+      <div class="grid2">
+        <div class="panel"><b>⏳ الأكثر تأخيراً (مفتوحة)</b>
+          <table><tr><th>الطلب</th><th>المكان</th><th>الحالة</th><th>منذ</th></tr>
+          ${s.delayed.map(d => `<tr style="cursor:pointer" onclick="goReq('${esc(d.id)}')"><td>#${esc(d.id)} ${d.urg ? '🔴' : ''}</td><td>${esc(d.place)}<br><small style="color:var(--mut)">${esc(d.type)}${d.tech ? ' · 👷 ' + esc(d.tech) : ''}</small></td><td><span class="badge ${bcls(d.st)}">${esc(d.st)}</span></td><td><b>${hfmt(d.h)}</b></td></tr>`).join('') || '<tr><td colspan="4">لا توجد طلبات مفتوحة 🎉</td></tr>'}</table></div>
+        <div class="panel"><b>🏠 عدد الطلبات لكل شقة</b>
+          <input class="inp" id="aptQ" placeholder="🔎 ابحث بعمارة أو رقم شقة…" oninput="drawApts()" style="width:100%;margin:8px 0">
+          <div id="aptBox" style="max-height:340px;overflow:auto"></div></div>
+        <div class="panel"><b>آخر ٨ أسابيع</b><div class="cols">${s.weeks.map(d => `<div><i style="height:${Math.round(100 * d.n / wk)}px"></i><b>${d.n}</b>${esc(d.w)}</div>`).join('')}</div></div>
+        <div class="panel"><b>آخر ١٤ يوماً</b><div class="cols">${s.daily.map(d => `<div><i style="height:${Math.round(100 * d.n / dmax)}px"></i><b>${d.n}</b>${esc(d.d.slice(3))}</div>`).join('')}</div></div>
+        <div class="panel"><b>حسب يوم الأسبوع</b><div class="cols">${s.dow.map(d => `<div><i style="height:${Math.round(100 * d.n / dw)}px"></i><b>${d.n}</b>${esc(d.d)}</div>`).join('')}</div></div>
+        <div class="panel"><b>حسب النوع</b>${bars(s.byType)}</div>
+        <div class="panel"><b>أكثر العمائر بلاغات</b>${bars(s.byBld)}</div>
+        <div class="panel"><b>حسب الحالة</b>${bars(s.byStatus)}</div>
+        <div class="panel"><b>مصدر البلاغ</b>${bars(s.bySource)}</div>
+      </div>
+      <div class="panel" style="margin-top:14px"><b>👷 أداء الفنيين</b>
+        <table><tr><th>الفني</th><th>الطلبات</th><th>المنجز</th><th>متوسط الإنجاز</th></tr>
+        ${s.techs.map(t => `<tr><td>${esc(t.name)}</td><td>${t.total}</td><td>${t.done}</td><td>${t.avgH ? hfmt(t.avgH) : '—'}</td></tr>`).join('') || '<tr><td colspan="4">—</td></tr>'}</table></div>`;
+    drawApts();
+  }
+  function drawApts() {
+    if (!REP) return; const q = ($('aptQ') ? $('aptQ').value : '').trim().toLowerCase();
+    const list = REP.perApt.filter(a => !q || a.k.toLowerCase().includes(q));
+    $('aptBox').innerHTML = `<table><tr><th>الشقة</th><th>الطلبات</th><th>مفتوحة</th><th>آخر طلب</th></tr>${list.map(a => `<tr><td>${esc(a.k)}</td><td><b>${a.n}</b></td><td>${a.open || '—'}</td><td><small>${esc(a.last.slice(0, 10))}</small></td></tr>`).join('') || '<tr><td colspan="4">—</td></tr>'}</table>`;
+  }
+  function goReq(id) { setTab('req'); FILTER = 'all'; draw(); openReq(id); }
 
   // ---------- الفريق والحراس ----------
   async function loadTeam() {
-    const v = $('vTeam'); v.innerHTML = '<div class="empty">جاري التحميل…</div>';
+    const v = $('vteam'); v.innerHTML = '<div class="empty">جاري التحميل…</div>';
     try {
-      const [t, g] = await Promise.all([api('team'), api('guards')]);
-      const rows = t.team.map(m => `<tr class="${m.active ? '' : 'off'}">
-        <td><b>${esc(m.name)}</b><br><small style="color:var(--mut)">${esc(m.spec)}</small>${m.role === 'فني' ? `<br><input class="inp" style="width:130px;padding:4px 6px;margin-top:4px" dir="ltr" inputmode="tel" placeholder="جوال الفني" value="${esc(m.phone)}" onchange="setPhone(${m.row}, this.value)">` : ''}</td>
-        <td>${m.role === 'مالك' || m.row === t.meRow ? esc(m.role) : `<select onchange="setRole(${m.row}, this.value)"><option ${m.role === 'فني' ? 'selected' : ''}>فني</option><option ${m.role === 'أدمن' ? 'selected' : ''}>أدمن</option></select>`}</td>
-        <td>${m.role === 'مالك' || m.row === t.meRow ? (m.active ? '✅' : '⏸') : t.owner ? `<button class="btn sm ${m.active ? '' : 'pri'}" onclick="setActive(${m.row}, '${m.active ? 'لا' : 'نعم'}')">${m.active ? '⏸ إيقاف' : '▶ تفعيل'}</button>` : (m.active ? '✅' : '⏸')}</td></tr>`).join('');
-      const grows = g.guards.map(x => `<tr class="${x.active ? '' : 'off'}">
-        <td><b>🛡️ ${esc(x.name)}</b><br><small style="color:var(--mut)">${esc(x.bld)}${x.phone ? ' · ' + esc(x.phone) : ''}</small></td>
-        <td><button class="btn sm" onclick="copyLink('${esc(x.link)}')">🔗 نسخ</button>
-            <a class="btn sm" target="_blank" rel="noopener" href="https://wa.me/${x.phone ? '966' + esc(x.phone.slice(1)) : ''}?text=${encodeURIComponent('رابط رفع بلاغات الصيانة لعمارة ' + x.bld + ' (احفظه): ' + x.link)}">💬</a></td>
-        <td><button class="btn sm ${x.active ? '' : 'pri'}" onclick="setGuard(${x.row}, '${x.active ? 'لا' : 'نعم'}')">${x.active ? '⏸ إيقاف' : '▶ تفعيل'}</button></td></tr>`).join('');
-      v.innerHTML = `<div class="grid2">
-        <div class="panel"><b>👥 الفريق</b>
-          <table><tr><th>الاسم</th><th>الدور</th><th></th></tr>${rows}</table>
-          <div style="color:var(--mut);font-size:12.5px;margin-top:8px">عضو جديد: يرسل /start للبوت وتوافق عليه من تليجرام.</div></div>
-        <div class="panel"><b>🛡️ حراس العمائر</b>
-          <table><tr><th>الحارس</th><th>رابطه</th><th></th></tr>${grows || '<tr><td colspan="3">لا يوجد</td></tr>'}</table>
-          <h3>➕ حارس جديد</h3>
-          <div class="row"><input class="inp" id="gName" placeholder="الاسم" style="flex:1;min-width:120px">
-            <input class="inp" id="gPhone" placeholder="الجوال (اختياري)" inputmode="tel" dir="ltr" style="width:140px"></div>
-          <div class="row"><select id="gBld" style="flex:1">${g.blds.map(b => `<option>${esc(b)}</option>`).join('')}</select>
-            <button class="btn pri" onclick="addGuard()">إضافة</button></div>
-        </div></div>`;
+      const [t, g] = await Promise.all([api('team'), api('guards')]); TEAM = t; GUARDS = g; BLDS = null; drawTeam();
     } catch (e) { v.innerHTML = '<div class="empty">تعذّر التحميل</div>'; }
   }
-  async function simple(op, id, arg, okMsg) {
-    try { const r = await api(op, id, arg); if (!r.ok) { toast(r.msg || 'تعذّر'); return false; } toast(okMsg || '✅ تم'); loadTeam(); return r; }
-    catch (e) { toast('تعذّر: ' + e.message); return false; }
+  function drawTeam() {
+    const t = TEAM, g = GUARDS, v = $('vteam');
+    const rows = t.team.map((m, i) => { const self = m.row === t.meRow, own = m.role === 'مالك'; return `<tr class="${m.active ? '' : 'off'}">
+        <td><b>${esc(m.name)}</b>${self ? ' <small>(أنت)</small>' : ''}<br><small style="color:var(--mut)">${esc(m.spec)}${m.phone ? ' · ' + esc(m.phone) : ''}</small></td>
+        <td>${own || self ? esc(m.role) : `<select onchange="setRole(${m.row}, this.value)"><option ${m.role === 'فني' ? 'selected' : ''}>فني</option><option ${m.role === 'أدمن' ? 'selected' : ''}>أدمن</option></select>`}</td>
+        <td style="white-space:nowrap">${own || self ? (m.active ? '✅' : '⏸') : `<button class="btn sm ${m.active ? '' : 'pri'}" onclick="setActive(${m.row}, '${m.active ? 'لا' : 'نعم'}')">${m.active ? '⏸ إيقاف' : '▶ تفعيل'}</button>`}
+          <button class="btn sm" onclick="editMember(${i})" title="تعديل">✏️</button>${own || self ? '' : `<button class="btn sm bad" onclick="delMember(${i})" title="حذف">🗑️</button>`}</td></tr>`; }).join('');
+    const grows = g.guards.map((x, i) => `<tr class="${x.active ? '' : 'off'}">
+        <td><b>🛡️ ${esc(x.name)}</b><br><small style="color:var(--mut)">${esc(x.bld)}${x.phone ? ' · ' + esc(x.phone) : ''}</small></td>
+        <td style="white-space:nowrap"><button class="btn sm" onclick="copyLink('${esc(x.link)}')">🔗</button>
+            <a class="btn sm" target="_blank" rel="noopener" href="https://wa.me/${x.phone ? '966' + esc(x.phone.slice(1)) : ''}?text=${encodeURIComponent('رابط رفع بلاغات الصيانة لعمارة ' + x.bld + ' (احفظه): ' + x.link)}">💬</a></td>
+        <td style="white-space:nowrap"><button class="btn sm ${x.active ? '' : 'pri'}" onclick="setGuard(${x.row}, '${x.active ? 'لا' : 'نعم'}')">${x.active ? '⏸' : '▶'}</button>
+          <button class="btn sm" onclick="editGuard(${i})" title="تعديل">✏️</button><button class="btn sm bad" onclick="delGuard(${i})" title="حذف">🗑️</button></td></tr>`).join('');
+    v.innerHTML = `<div class="grid2">
+      <div class="panel"><b>👥 الفريق</b>
+        <table><tr><th>الاسم</th><th>الدور</th><th></th></tr>${rows}</table>
+        <div style="color:var(--mut);font-size:12.5px;margin-top:8px">عضو جديد: يرسل /start للبوت وتوافق عليه من تليجرام.</div></div>
+      <div class="panel"><b>🛡️ حراس العمائر</b>
+        <table><tr><th>الحارس</th><th>رابطه</th><th></th></tr>${grows || '<tr><td colspan="3">لا يوجد</td></tr>'}</table>
+        <h3>➕ حارس جديد</h3>
+        <div class="row"><input class="inp" id="gName" placeholder="الاسم" style="flex:1;min-width:120px">
+          <input class="inp" id="gPhone" placeholder="الجوال (اختياري)" inputmode="tel" dir="ltr" style="width:140px"></div>
+        <div class="row"><select id="gBld" style="flex:1">${g.blds.map(b => `<option>${esc(b)}</option>`).join('')}</select>
+          <button class="btn pri" onclick="addGuard()">إضافة</button></div>
+      </div></div>`;
   }
-  const setRole = (row, role) => simple('setrole', row + '|' + role, '', '✅ تغيّر الدور وأُبلغ العضو');
-  const setActive = (row, v) => simple('setactive', row + '|' + v);
-  const setGuard = (row, v) => simple('setguard', row + '|' + v);
-  const setPhone = (row, v) => simple('setphone', row + '|' + v.trim(), '', '✅ حُفظ الجوال');
+  const setRole = async (row, role) => { if (await call('setrole', row + '|' + role, '', '✅ تغيّر الدور وأُبلغ العضو')) loadTeam(); };
+  const setActive = async (row, v) => { if (await call('setactive', row + '|' + v)) loadTeam(); };
+  const setGuard = async (row, v) => { if (await call('setguard', row + '|' + v)) loadTeam(); };
+  function editMember(i) {
+    const m = TEAM.team[i];
+    openForm('✏️ تعديل ' + m.name, [{ label: 'الاسم', v: m.name }, { label: 'التخصص', v: m.spec, ph: 'سباك / كهربائي…' }, { label: 'الجوال', type: 'tel', v: m.phone, ph: '05xxxxxxxx' }],
+      async v => { if (await call('editmember', m.row, JSON.stringify({ name: v[0], spec: v[1], phone: v[2] }), '✅ حُفظ')) loadTeam(); });
+  }
+  function delMember(i) {
+    const m = TEAM.team[i];
+    confirmBox('🗑️ حذف ' + m.name, 'يُحذف من الفريق ولا يصله شيء بعد الآن (يقدر يرسل /start من جديد ويطلب الانضمام). الطلبات المسندة له تبقى باسمه.', async () => { if (await call('delmember', m.row, '', '🗑️ حُذف العضو')) loadTeam(); }, 'حذف');
+  }
   async function addGuard() {
     const o = { name: $('gName').value.trim(), phone: $('gPhone').value.trim(), bld: $('gBld').value };
-    const r = await simple('addguard', JSON.stringify(o), '', '✅ أُضيف الحارس');
-    if (r && r.link) copyLink(r.link);
+    const r = await call('addguard', JSON.stringify(o), '', '✅ أُضيف الحارس');
+    if (r) { loadTeam(); if (r.link) copyLink(r.link); }
+  }
+  function editGuard(i) {
+    const x = GUARDS.guards[i];
+    openForm('✏️ تعديل الحارس', [{ label: 'الاسم', v: x.name }, { label: 'الجوال', type: 'tel', v: x.phone, ph: '05xxxxxxxx' }, { label: 'العمارة', type: 'select', v: x.bld, opts: GUARDS.blds.map(b => [b, b]) }],
+      async v => { if (await call('editguard', x.row, JSON.stringify({ name: v[0], phone: v[1], bld: v[2] }), '✅ حُفظ')) loadTeam(); });
+  }
+  function delGuard(i) {
+    const x = GUARDS.guards[i];
+    confirmBox('🗑️ حذف الحارس ' + x.name, 'يُحذف الحارس ويتوقف رابطه نهائياً. (للإيقاف المؤقت استخدم ⏸).', async () => { if (await call('delguard', x.row, '', '🗑️ حُذف الحارس')) loadTeam(); }, 'حذف');
   }
   function copyLink(u) { try { navigator.clipboard.writeText(u).then(() => toast('🔗 نُسخ رابط الحارس'), () => prompt('انسخ الرابط:', u)); } catch (e) { prompt('انسخ الرابط:', u); } }
+
+  // ---------- العمائر والمستأجرون ----------
+  async function loadDir() {
+    const v = $('vdir'); v.innerHTML = '<div class="empty">جاري التحميل…</div>';
+    BLDS = null; const blds = await getBlds();
+    v.innerHTML = `<div class="grid2">
+      <div class="panel"><b>🏢 العمائر (من «التواصل العام»)</b>
+        <div style="color:var(--mut);font-size:12.5px;margin:4px 0 8px">رابط الموقع (خرائط جوجل) يظهر للفني بزر 📍 على بطاقة الطلب.</div>
+        <table><tr><th>العمارة</th><th>الوحدات</th><th>رابط الموقع</th></tr>
+        ${blds.map((b, i) => `<tr><td><b>${esc(b.name)}</b></td><td>${b.units}</td><td><input class="inp" style="width:100%;min-width:150px;padding:5px 7px" dir="ltr" placeholder="https://maps.app.goo.gl/…" value="${esc(b.url)}" onchange="saveMap(${i}, this.value)"></td></tr>`).join('')}</table></div>
+      <div class="panel"><b>🔎 المستأجرون وأرقامهم</b>
+        <div class="row"><input class="inp" id="tq" placeholder="اسم، عمارة، شقة أو جوال…" style="flex:1" onkeydown="if(event.key==='Enter')searchTen()"><button class="btn pri" onclick="searchTen()">بحث</button></div>
+        <div style="color:var(--mut);font-size:12.5px">الأرقام المضافة هنا تبقى بعد كل مزامنة. الرقم الأساسي من مصدر البيانات (التواصل العام/إيجار) لا يُحذف من هنا.</div>
+        <div id="tenBox" style="margin-top:8px"></div></div></div>`;
+  }
+  async function saveMap(i, url) { const b = BLDS[i]; if (await call('setmap', b.name, url.trim(), '✅ حُفظ رابط الموقع')) b.url = url.trim(); }
+  async function searchTen() {
+    const q = $('tq').value.trim(); if (!q) { toast('اكتب كلمة البحث'); return; }
+    const r = await call('tenants', q, '', ''); if (!r) return;
+    TENROWS = r.rows; drawTen(r.total);
+  }
+  function drawTen(total) {
+    $('tenBox').innerHTML = `<div style="color:var(--mut);font-size:12.5px">${total} نتيجة${total > TENROWS.length ? ' (أول ' + TENROWS.length + ')' : ''}</div>
+      <table>${TENROWS.map((t, i) => `<tr><td><b>${esc(t.name)}</b><br><small style="color:var(--mut)">${esc(t.bld)} — شقة ${esc(t.apt)} · ${esc(t.src)}</small></td>
+        <td><span class="chip">${esc(t.phone || '—')}</span>${String(t.more).split(/\s+/).filter(Boolean).map(p => `<span class="chip">${esc(p)}<button title="حذف" onclick="delPhone(${i}, '${esc(p)}')">✕</button></span>`).join('')}
+          <button class="btn sm" onclick="addPhone(${i})">➕ رقم</button></td></tr>`).join('') || '<tr><td>لا نتائج</td></tr>'}</table>`;
+  }
+  function addPhone(i) {
+    const t = TENROWS[i];
+    openForm('➕ رقم جديد لـ ' + t.name, [{ label: 'الجوال', type: 'tel', v: '', ph: '05xxxxxxxx' }], async v => { if (await call('addphone', t.row, v[0], '✅ أُضيف الرقم')) searchTen(); });
+  }
+  function delPhone(i, p) {
+    const t = TENROWS[i];
+    confirmBox('🗑️ حذف رقم', 'حذف ' + p + ' من ' + t.name + '؟', async () => { if (await call('delphone', t.row, p, '🗑️ حُذف الرقم')) searchTen(); }, 'حذف');
+  }
 
   load(true); setInterval(() => { if (!document.hidden && TAB === 'req' && !$('modal').classList.contains('on')) load(false); }, 30000);
 </script>
