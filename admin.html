@@ -330,6 +330,8 @@
       const r = await api('list');
       if (!r.ok) { $('app').style.display = 'none'; $('gate').style.display = 'block'; $('gateMsg').textContent = r.msg || 'الرابط غير صالح'; return; }
       DATA = r; $('gate').style.display = 'none'; $('app').style.display = 'block';
+      ['team', 'dir'].forEach(k => $('tab_' + k).classList.toggle('hidden', !r.owner));   // الفريق والعمائر للمالك فقط
+      if (!r.owner && (TAB === 'team' || TAB === 'dir')) setTab('req');
       $('me').textContent = '👤 ' + r.me; $('upd').textContent = 'آخر تحديث ' + r.at.slice(11);
       draw();
       if (SEL && (manual || DETAIL)) openReq(SEL, true);
@@ -454,8 +456,8 @@
           <button class="btn" onclick="ask2('ask','❓ سؤال لصاحب البلاغ','اكتب سؤالك…')">❓ طلب معلومة</button>
           <button class="btn bad" onclick="ask2('reject','🚫 رفض الطلب','سبب الرفض (يصل لصاحب البلاغ)', true)">🚫 رفض</button>
         </div>`}
-      <h3>تحكم</h3>
-      <div class="row"><button class="btn" onclick="editReq()">✏️ تعديل البيانات</button><button class="btn bad" onclick="delReq()">🗑️ حذف الطلب</button></div>
+      ${DATA.owner ? `<h3>تحكم (المالك)</h3>
+      <div class="row"><button class="btn" onclick="editReq()">✏️ تعديل البيانات</button><button class="btn bad" onclick="delReq()">🗑️ حذف الطلب</button></div>` : ''}
       <h3>🕓 السجل</h3>
       <div class="log">${DETAIL.logs.map(l => `<div><b>${esc(l.e)}</b> ${l.d ? '— ' + esc(l.d) : ''}<small>${esc(l.t)} · ${esc(l.by)}</small></div>`).reverse().join('') || '—'}</div>
       </div>`;
