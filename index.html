@@ -35,7 +35,7 @@
   textarea { min-height: 96px; resize: vertical; }
   .row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
   .row2 label { margin-top: 12px; }
-  .types { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+  .types { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; }
   .type { border: 1.5px solid var(--line); border-radius: 12px; background: #fbfcfe; padding: 10px 4px;
     text-align: center; cursor: pointer; font: inherit; font-size: 14px; font-weight: 700; color: var(--text); }
   .type .ic { display: block; font-size: 30px; line-height: 1.2; }
@@ -91,6 +91,7 @@
   <header>
     <div class="brand"><div class="office">مكتب عبد الله الجلسي للعقارات</div><h1>🔧 بلاغ صيانة</h1></div>
     <button class="link-btn hidden" id="myBtn" onclick="showTrack()">📋 طلباتي</button>
+    <a class="link-btn" id="waBtn" target="_blank" rel="noopener" style="text-decoration:none">💬 واتساب المكتب</a>
   </header>
 
   <!-- ===== النموذج ===== -->
@@ -174,7 +175,8 @@
   // /*CONFIG*/ — نسخة GitHub Pages تستبدل هذا السطر بقيمها (انظر build_page.py)
   const _q = new URLSearchParams(location.search);
   const TRACK = (_q.get('t') || '').replace(/[^a-f0-9]/g, '').slice(0, 20), APP_URL = location.origin + location.pathname, API_URL = 'https://script.google.com/macros/s/AKfycby4tmfamJKcw5g29sgp45Rp6j_jSC_1TB5a28VDDbqjznHfN8aZFDdc8Bn9pcWkLs6u7g/exec';
-  const TYPES = [['plumb','🚿','سباكة'],['elec','⚡','كهرباء'],['ac','❄️','تكييف'],['door','🚪','أبواب وأقفال'],['elev','🛗','مصعد'],['other','🛠️','أخرى']];
+  const TYPES = [['plumb','🚿','سباكة'],['elec','⚡','كهرباء'],['elev','🛗','مصعد'],['other','🛠️','أخرى']];
+  const OFFICE_WA = '966572294942';   // رقم واتساب المكتب (يظهر في زر «واتساب المكتب»)
   const MAX_PHOTOS = 4, MAX_VIDEO_SEC = 30, MAX_VIDEO_MB = 45, CHUNK = 4 * 1024 * 1024; // مضاعف 256KB (شرط Drive)
   let selType = '', photos = [], video = null, lastToken = '';
 
@@ -204,6 +206,7 @@
     selType = b.dataset.k;
     document.querySelectorAll('.type').forEach(x => x.classList.toggle('on', x === b));
   });
+  $('waBtn').href = 'https://wa.me/' + OFFICE_WA;
   const prof = lsGet('mr_profile', {});
   ['name', 'district', 'apt', 'phone'].forEach(k => { if (prof[k]) $(k).value = prof[k]; });
   refreshMyBtn();
