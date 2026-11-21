@@ -465,6 +465,7 @@
         <div>المستأجر</div><div>${esc(r.tenant || '—')} <small style="color:var(--mut)">${esc(r.match)}</small></div>
         <div>الجوال</div><div dir="ltr" style="text-align:end">${esc(r.phone || '—')}</div>
         <div>الفني</div><div>${r.tech ? '👷 ' + esc(r.tech) : '—'}</div>
+        ${r.src ? `<div>المصدر</div><div>⬆️ شقة ${esc(r.src)}</div>` : ''}
       </div>
       <div class="desc">${esc(r.fullDesc) || '—'}</div>
       ${r.question ? `<h3>❓ سؤال الإدارة</h3><div class="desc">${esc(r.question)}${r.reply ? '<hr style="border:0;border-top:1px solid var(--bd)">💬 ' + esc(r.reply) : ''}</div>` : ''}
