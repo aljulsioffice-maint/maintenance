@@ -105,6 +105,10 @@
   .urgent small { display: block; font-weight: 500; color: var(--muted); font-size: 13px; }
 
   /* الوسائط */
+  .tabs2 { display: flex; gap: 8px; margin-bottom: 12px; }
+  .tabbtn { flex: 1; border: 1.5px solid var(--bd, #d0d7e2); background: var(--card, #fff); color: inherit; border-radius: 12px; padding: 10px; font-weight: 700; font-size: 15px; margin-bottom: 10px; }
+  .tabs2 .tabbtn { margin-bottom: 0; }
+  .tabbtn.on { background: var(--pri, #0b6bcb); color: #fff; border-color: transparent; }
   .media-btns { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
   .mbtn { border: 2px dashed var(--accent); border-radius: 16px; background: var(--accent-soft); color: var(--accent);
     padding: 14px 6px; font: inherit; font-weight: 800; cursor: pointer; text-align: center; font-size: 15px; }
@@ -313,6 +317,7 @@
 
 <script>
   // /*CONFIG*/ — نسخة GitHub Pages تستبدل هذا السطر بقيمها (انظر build_page.py)
+  let SHOW_ALL = false, TRACK_TAB = 'open';   // قبل أول استدعاء لـshowTrack (تفادي TDZ)
   const _q = new URLSearchParams(location.search);
   const TRACK = (_q.get('t') || '').replace(/[^a-f0-9]/g, '').slice(0, 20), APP_URL = location.origin + location.pathname, API_URL = 'https://script.google.com/macros/s/AKfycby4tmfamJKcw5g29sgp45Rp6j_jSC_1TB5a28VDDbqjznHfN8aZFDdc8Bn9pcWkLs6u7g/exec';
   const TYPES = [['plumb','🚿','سباكة','#1f7ae0'],['elec','⚡','كهرباء','#f0a000'],['elev','🛗','مصعد','#6b7686'],['other','🛠️','أخرى','#7a4bd1']];
@@ -630,7 +635,8 @@
   async function showTrack(quiet) {
     if (quiet && uploadingMore) return;
     if (!quiet) show('trackView');
-    const tokens = lsGet('mr_tokens', []);
+    // رابط مخصص (?t=) يعرض طلبه فقط؛ «عرض كل طلباتي» يكشف البقية
+    const tokens = TRACK && !SHOW_ALL ? [TRACK] : lsGet('mr_tokens', []).slice();
     if (TRACK && tokens.indexOf(TRACK) < 0) tokens.push(TRACK);
     if (!tokens.length) { $('trackList').innerHTML = '<div class="card">لا توجد طلبات محفوظة في هذا الجوال.</div>'; return; }
     if (!quiet) $('trackList').innerHTML = '<div class="card">جاري التحميل…</div>';
@@ -638,7 +644,16 @@
     try { list = await run('getTracking', tokens); } catch (e) { if (!quiet) $('trackList').innerHTML = '<div class="card">تعذر التحميل، حاول لاحقاً.</div>'; return; }
     if (!list.length) { $('trackList').innerHTML = '<div class="card">لا توجد طلبات.</div>'; return; }
     const esc = s => String(s == null ? '' : s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
-    $('trackList').innerHTML = list.map(r => {
+    const isClosed = r => r.status === 'تمت المعالجة' || r.status === 'مرفوض';
+    const single = !!(TRACK && !SHOW_ALL);
+    if (single) list = list.filter(r => r.token === TRACK);
+    const nOpen = list.filter(r => !isClosed(r)).length, nClosed = list.length - nOpen;
+    const bar = single
+      ? (lsGet('mr_tokens', []).length > 1 ? '<button class="tabbtn" onclick="SHOW_ALL=true;showTrack()">📋 عرض كل طلباتي</button>' : '')
+      : `<div class="tabs2"><button class="tabbtn ${TRACK_TAB === 'open' ? 'on' : ''}" onclick="TRACK_TAB='open';showTrack(true)">الجارية (${nOpen})</button><button class="tabbtn ${TRACK_TAB === 'closed' ? 'on' : ''}" onclick="TRACK_TAB='closed';showTrack(true)">المغلقة (${nClosed})</button></div>`;
+    if (!single) list = list.filter(r => TRACK_TAB === 'closed' ? isClosed(r) : !isClosed(r));
+    if (!list.length) { $('trackList').innerHTML = bar + '<div class="card">' + (TRACK_TAB === 'closed' ? 'لا توجد طلبات مغلقة.' : 'لا توجد طلبات جارية 👍') + '</div>'; return; }
+    $('trackList').innerHTML = bar + list.map(r => {
       const labels = ['جديد', 'قيد المعالجة', 'تمت المعالجة'];
       const steps = r.status === 'مرفوض' ? '' : '<div class="steps">' + labels.map((s, i) =>
         `<span class="${r.step > i + 1 || r.step === 3 ? 'ok' : r.step === i + 1 ? 'on' : ''}">${s}</span>`).join('') + '</div>';
