@@ -232,7 +232,7 @@
       <div class="chipsbar" id="stats"></div>
       <div class="wrap">
         <div id="list">
-          <div class="tools"><input id="q" placeholder="🔎 ابحث: رقم الطلب، اسم، عمارة، شقة، فني…" oninput="draw()"></div>
+          <div class="tools"><input id="q" placeholder="🔎 ابحث: رقم الطلب، اسم، عمارة، شقة، فني…" oninput="draw()"><button class="btn pri" onclick="newReq()" style="margin-inline-start:8px">➕ طلب جديد</button></div>
           <div id="items"></div>
         </div>
         <div id="detail" class="panel"><div class="empty">👈 اختر طلباً من القائمة لعرض تفاصيله</div></div>
@@ -457,6 +457,7 @@
         <div class="thumbs">${files.map((f, i) => `<div class="th" data-fid="${esc(f)}" onclick="openThumb(${i})">⏳</div>`).join('')}</div>
         <div class="row">${r.links.map((u, i) => `<a class="btn sm" target="_blank" rel="noopener" href="${esc(u)}">فتح مرفق ${i + 1} في Drive</a>`).join('')}${r.after ? `<a class="btn sm" target="_blank" rel="noopener" href="${esc(r.after)}">✅ صورة بعد الإصلاح</a>` : ''}</div>` : ''}
       <div class="row">${wa}</div>
+      ${r.vis ? `<h3>📅 موعد الزيارة</h3><div class="desc"><b>${esc(r.vis)}${r.vdate ? ' — ' + esc(r.vdate) : ''}</b></div>` : ''}
       <h3>إجراءات</h3>
       ${done ? `<div class="row"><button class="btn pri" onclick="act('reopen')">♻️ إعادة فتح</button></div>` : `
         <div class="row">
@@ -468,6 +469,7 @@
           ${r.st === 'أنجزه الفني' ? '<button class="btn ok" onclick="ask2(\'close\',\'✅ تأكيد الإغلاق\',\'ملاحظة الإغلاق (اختياري)\',true)">✅ تأكيد الإغلاق</button><button class="btn" onclick="act(\'back\')">↩️ إرجاع للفني</button>' : '<button class="btn ok" onclick="ask2(\'close\',\'✅ إغلاق الطلب\',\'ملاحظة الإغلاق (اختياري)\',true)">✅ إغلاق</button>'}
           <button class="btn" onclick="act('urgent')">${r.urg ? '⚪ اجعله عادي' : '🔴 اجعله عاجل'}</button>
         </div>
+        <div class="row"><button class="btn pri" onclick="visitForm()">📅 ${r.vis ? 'إعادة جدولة' : 'تحديد موعد زيارة'}</button>${r.vis ? '<button class="btn" onclick="visitWait()">⏸ إرجاع للانتظار</button>' : ''}</div>
         <div class="row">
           ${r.st !== 'بانتظار المستأجر' && r.st !== 'أنجزه الفني' ? '<button class="btn" onclick="act(\'photo\')">📷 اطلب صورة/فيديو</button>' : ''}
           <button class="btn" onclick="ask2('ask','❓ سؤال لصاحب البلاغ','اكتب سؤالك…')">❓ طلب معلومة</button>
@@ -480,6 +482,28 @@
       </div>`;
   }
 
+  const DAYS_AR = [['6', 'السبت'], ['0', 'الأحد'], ['1', 'الاثنين'], ['2', 'الثلاثاء'], ['3', 'الأربعاء'], ['4', 'الخميس'], ['5', 'الجمعة']];
+  function waBtn(url, label) { if (!url) return; $('mTitle').textContent = '💬 ' + label; $('mBody').innerHTML = `<div style="padding:6px 0;line-height:1.8">أرسل الرسالة عبر واتساب:</div><div class="row"><a class="btn ok" target="_blank" rel="noopener" href="${esc(url)}">💬 افتح واتساب</a></div>`; $('mOk').textContent = 'تم'; $('mOk').onclick = closeModal; $('modal').classList.add('on'); }
+  function visitForm() {
+    openForm('📅 موعد الزيارة — طلب #' + SEL, [
+      { label: 'اليوم', type: 'select', v: '6', opts: DAYS_AR },
+      { label: 'الفترة', type: 'select', v: 'm', opts: [['m', 'صباحاً'], ['a', 'عصراً']] },
+    ], async v => { const r = await call('visit', SEL, v[0] + '|' + v[1], '✅ حُدّد الموعد وأُبلغ المستأجر والفني والحارس بحسب الإعدادات'); if (r) { await load(false); await openReq(SEL, true); waBtn(r.wa, 'أبلغ المستأجر بالموعد'); } }, 'تثبيت');
+  }
+  function visitWait() {
+    confirmBox('⏸ إرجاع للانتظار', 'سيُلغى الموعد ويُشال الفني، ويرجع الطلب «جديد». يُبلَّغ الفني بالإلغاء.', async () => { const r = await call('visitwait', SEL, '', '↩️ رجع لقائمة الانتظار'); if (r) { await load(false); await openReq(SEL, true); waBtn(r.wa, 'أبلغ المستأجر بإلغاء الموعد'); } }, 'تأكيد');
+  }
+  async function newReq() {
+    const blds = await getBlds();
+    openForm('➕ طلب جديد (من الإدارة)', [
+      { label: 'العمارة', type: 'select', v: '', opts: [['', '— اختر —']].concat(blds.map(b => [b.name, b.name])) },
+      { label: 'الشقة', v: '' },
+      { label: 'اسم صاحب البلاغ', v: '' },
+      { label: 'الجوال', type: 'tel', v: '', ph: '05xxxxxxxx' },
+      { label: 'النوع', type: 'select', v: TYPE_LIST[0], opts: TYPE_LIST.map(t => [t, t]) },
+      { label: 'الوصف', type: 'textarea', v: '' },
+    ], async v => { const r = await call('newreq', '', JSON.stringify({ bld: v[0], apt: v[1], name: v[2], phone: v[3], type: v[4], desc: v[5] }), '✅ أُضيف الطلب'); if (r) { await load(true); goReq(r.id); } }, 'إضافة');
+  }
   async function act(op, arg) {
     const r = await call(op, SEL, arg);
     if (r) { await load(false); await openReq(SEL, true); }
@@ -645,12 +669,27 @@
         <div style="color:var(--mut);font-size:13px;margin:0 0 10px">رابط الموقع (خرائط جوجل) يظهر للفني بزر 📍 على بطاقة الطلب.</div>
         <table><tr><th>العمارة</th><th>الوحدات</th><th>رابط الموقع</th><th>الصورة</th></tr>
         ${blds.map((b, i) => `<tr><td><b>${esc(b.name)}</b></td><td>${b.units}</td><td><div class="row" style="margin:0;flex-wrap:nowrap"><input class="inp" id="mp${i}" style="width:100%;min-width:150px;padding:6px 8px" dir="ltr" placeholder="https://maps.app.goo.gl/…" value="${esc(b.url)}" onkeydown="if(event.key==='Enter')saveMap(${i}, this.value)"><button class="btn sm pri" onclick="saveMap(${i}, $('mp${i}').value)">💾 حفظ</button></div></td>
-          <td style="white-space:nowrap"><input type="file" id="bf${i}" accept="image/*" class="hidden" onchange="uploadBld(${i})">${b.photo ? '✅ ' : ''}<button class="btn sm" onclick="$('bf${i}').click()">${b.photo ? '🔁 تغيير' : '📷 رفع'}</button>${b.photo ? ' <button class="btn sm" onclick="delBld(' + i + ')">🗑️</button>' : ''}</td></tr>`).join('')}</table></div>
+          <td style="white-space:nowrap"><input type="file" id="bf${i}" accept="image/*" class="hidden" onchange="uploadBld(${i})">${b.photo ? `<span id="bt${i}" onclick="viewBld(${i})" style="display:inline-block;width:64px;height:64px;border-radius:10px;background:var(--soft);vertical-align:middle;margin-inline-end:6px;overflow:hidden;cursor:zoom-in;text-align:center;line-height:64px">⏳</span>` : ''}<button class="btn sm" onclick="$('bf${i}').click()">${b.photo ? '🔁 تغيير' : '📷 رفع'}</button>${b.photo ? ' <button class="btn sm" onclick="delBld(' + i + ')">🗑️</button>' : ''}</td></tr>`).join('')}</table></div>
       <div class="panel"><b>🔎 المستأجرون وأرقامهم</b>
         <div class="row" style="margin-top:0"><input class="inp" id="tq" placeholder="اسم، عمارة، شقة أو جوال…" style="flex:1" onkeydown="if(event.key==='Enter')searchTen()"><button class="btn pri" onclick="searchTen()">بحث</button></div>
         <div style="color:var(--mut);font-size:13px">الأرقام المضافة هنا تبقى بعد كل مزامنة. الرقم الأساسي من مصدر البيانات لا يُحذف من هنا.</div>
         <div id="tenBox" style="margin-top:10px"></div></div></div>`;
+    loadBThumbs();
   }
+  const BIMG = {};
+  async function bldImg(i) {
+    const n = BLDS[i].name; if (BIMG[n]) return BIMG[n];
+    const r = await call('bphoto', n, '', ''); if (!r) return '';
+    return (BIMG[n] = 'data:' + r.mime + ';base64,' + r.b64);
+  }
+  async function loadBThumbs() {
+    for (let i = 0; i < BLDS.length; i++) {
+      if (!BLDS[i].photo) continue;
+      const el = $('bt' + i); if (!el) continue;
+      try { const u = await bldImg(i); if (u && $('bt' + i)) $('bt' + i).innerHTML = `<img src="${u}" alt="" style="width:100%;height:100%;object-fit:cover">`; else if (el) el.textContent = '🖼️'; } catch (e) { el.textContent = '🖼️'; }
+    }
+  }
+  async function viewBld(i) { const u = await bldImg(i); if (u) { $('lbImg').src = u; $('lb').classList.add('on'); } }
   async function saveMap(i, url) { const b = BLDS[i]; if (await call('setmap', b.name, url.trim(), '✅ حُفظ رابط الموقع')) b.url = url.trim(); }
   async function compressImg(file) {
     const url = URL.createObjectURL(file);
