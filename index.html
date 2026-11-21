@@ -665,10 +665,7 @@
       const ask = askMedia || (r.status === 'بانتظار ردك' ? `<div class="box ask"><b>❓ الإدارة تسأل:</b><div>${esc(r.question)}</div>
         <textarea id="rp${esc(r.id)}" placeholder="اكتب ردك هنا…"></textarea>
         <button class="submit" onclick="sendReply('${esc(r.id)}','${esc(r.token)}')">إرسال الرد</button></div>` : '');
-      const visit = r.visit ? `<div class="box ask"><b>📅 تم تحديد موعد زيارة الفني:</b><div style="font-size:17px;font-weight:700;margin:6px 0">${esc(r.visit)}</div>
-        <div style="display:flex;gap:8px"><button class="submit" style="flex:1" onclick="visitReply('${esc(r.id)}','${esc(r.token)}',1)">✅ أؤكد الموعد</button>
-        <button class="submit" style="flex:1;background:#b4232a" onclick="visitReply('${esc(r.id)}','${esc(r.token)}',0)">❌ لا أستطيع</button></div></div>`
-        : r.visitOk ? `<div class="box live">📅 موعد الزيارة المؤكد: <b>${esc(r.visitOk)}</b></div>` : '';
+      const visit = r.visit ? `<div class="box live">📅 موعد زيارة الفني: <b>${esc(r.visit)}</b></div>` : '';
       const live = r.ts === 'way' ? `<div class="box live way">🚗 الفني ${esc(r.tech)} <b>في الطريق إليك الآن</b></div>`
         : r.ts === 'work' ? `<div class="box live">🔧 الفني ${esc(r.tech)} <b>يعمل على طلبك</b></div>`
         : r.ts === 'away' ? `<div class="box live way">🚪 الفني ${esc(r.tech)} وصل ولم يجد أحداً — <b>تواصل معه</b></div>`
@@ -724,12 +721,6 @@
     try { await run('mediaDone', id, token); } catch (e) { /* */ }
     fire('flushMedia', id, token);
     uploadingMore = false;
-    showTrack();
-  }
-  async function visitReply(id, token, yes) {
-    if (!yes && !confirm('هل تعتذر عن هذا الموعد؟ ستحدد الإدارة موعداً آخر.')) return;
-    try { const r = await run('respondVisit', id, token, yes ? 1 : 0); if (!r || !r.ok) { alert(r && r.msg ? r.msg : 'تعذر الإرسال'); return; } }
-    catch (e) { alert('تعذر الإرسال، حاول مرة ثانية'); return; }
     showTrack();
   }
   async function sendReply(id, token) {
