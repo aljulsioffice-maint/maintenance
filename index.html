@@ -91,6 +91,7 @@
   .type.on::after { content: '✓'; position: absolute; top: 8px; inset-inline-start: 10px; width: 22px; height: 22px; border-radius: 50%; background: var(--c); color: #fff; font-size: 13px; line-height: 22px; }
   .chips { display: flex; gap: 8px; overflow-x: auto; padding: 2px 0 8px; margin: 0 -2px; scrollbar-width: none; }
   .chips::-webkit-scrollbar { display: none; }
+  .chip.on { background: var(--pri, #0b6bcb); color: #fff; border-color: transparent; }
   .chip { flex: none; border: 1.5px solid var(--line); background: var(--card); color: var(--text); border-radius: 999px; padding: 7px 14px; font: inherit; font-size: 15px; font-weight: 700; cursor: pointer; }
   .chip:active { background: var(--accent-soft); }
 
@@ -262,6 +263,9 @@
       </label>
       <label for="desc" style="margin-top:18px">اشرح باختصار</label>
       <div class="chips hidden" id="chips"></div>
+      <div class="fld hidden" id="f_src"><label>من أين المشكلة؟</label>
+        <div class="chips" style="flex-wrap:wrap"><button type="button" class="chip" id="srcSame" onclick="setSrc('same')">من شقتي</button><button type="button" class="chip" id="srcUp" onclick="setSrc('up')">من الشقة اللي فوقي</button></div>
+        <input type="text" id="srcApt" class="hidden" inputmode="numeric" placeholder="رقم الشقة اللي فوقك" style="margin-top:6px"><div class="em">اختر مصدر المشكلة، ولو من الشقة اللي فوقك اكتب رقمها</div></div>
       <div class="fld" id="f_desc"><textarea id="desc" placeholder="اكتب المشكلة باختصار… أو اختر من الأعلى"></textarea><div class="em">اكتب وصف المشكلة أو أرفق صورة</div></div>
     </div>
 
@@ -325,15 +329,15 @@
   const TYPES = [['plumb','🚿','سباكة','#1f7ae0'],['elec','⚡','كهرباء','#f0a000'],['elev','🛗','مصعد','#6b7686'],['other','🛠️','أخرى','#7a4bd1']];
   // عبارات جاهزة (ضغطة واحدة بدل الكتابة) حسب نوع المشكلة
   const QUICK = {
-    plumb: ['شطاف خربان'],
-    elec: ['إضاءة لا تعمل'],
-    elev: ['المصعد معطّل', 'باب المصعد لا يغلق'],
+    plumb: [{ t: 'شطاف خربان' }, { t: 'تهريب مياه', src: 1 }, { t: 'انسداد مجاري' }, { t: 'مياه مكيف', src: 1 }, { t: 'إزعاج مكيف', src: 1 }],
+    elec: [{ t: 'أفياش لا تعمل' }, { t: 'التماس كهربائي' }, { t: 'مشكلة بالطبلون' }],
+    elev: [{ t: 'المصعد معطّل' }, { t: 'باب المصعد لا يغلق' }],
     other: [],
   };
   const BOT_USER = 'Aljulsi_maint_bot';   // بوت تليجرام: ربط المستأجر بتحديثات طلبه
   const OFFICE_WA = '966572294942';   // رقم واتساب المكتب (يظهر في زر «واتساب المكتب»)
   const MAX_PHOTOS = 4, MAX_VIDEO_SEC = 30, MAX_VIDEO_MB = 45, CHUNK = 4 * 1024 * 1024; // مضاعف 256KB (شرط Drive)
-  let selType = '', photos = [], video = null, lastToken = '', gKind = '';
+  let selType = '', photos = [], video = null, lastToken = '', gKind = '', needSrc = false, srcMode = '';
   // رابط الحارس: ?g=رمز — يعرض نموذجاً مبسطاً (رقم شقة + صورة) بلا تسجيل
   const GUARD = (new URLSearchParams(location.search).get('g') || '').replace(/[^a-f0-9]/g, '').slice(0, 12);
 
@@ -370,12 +374,21 @@
   function drawChips() {
     const list = QUICK[selType] || [];
     $('chips').classList.toggle('hidden', !list.length);
-    $('chips').innerHTML = list.map(t => `<button type="button" class="chip" onclick="addChip(this.textContent)">${t}</button>`).join('');
+    $('chips').innerHTML = list.map((c, i) => `<button type="button" class="chip" onclick="addChip(${i})">${c.t}</button>`).join('');
+    needSrc = false; srcMode = ''; $('f_src').classList.add('hidden'); $('srcSame').classList.remove('on'); $('srcUp').classList.remove('on'); $('srcApt').classList.add('hidden');
   }
-  function addChip(t) {
+  function addChip(i) {
+    const c = (QUICK[selType] || [])[i]; if (!c) return;
     const d = $('desc'), cur = d.value.trim();
-    if (cur.indexOf(t) < 0) d.value = cur ? cur + '، ' + t : t;
+    if (cur.indexOf(c.t) < 0) d.value = cur ? cur + '، ' + c.t : c.t;
+    if (c.src) { needSrc = true; $('f_src').classList.remove('hidden'); }
     $('f_desc').classList.remove('bad'); refreshSteps();
+  }
+  // تهريب/مياه مكيف: هل المصدر شقتي أم الشقة اللي فوقي (ورقمها)
+  function setSrc(m) {
+    srcMode = m; $('srcSame').classList.toggle('on', m === 'same'); $('srcUp').classList.toggle('on', m === 'up');
+    $('srcApt').classList.toggle('hidden', m !== 'up'); $('f_src').classList.remove('bad');
+    if (m === 'up') setTimeout(() => $('srcApt').focus({ preventScroll: true }), 50);
   }
   $('waBtn').href = 'https://wa.me/' + OFFICE_WA;
   // ---------- «من أنت؟»: هوية أو جوال مسجّل ⇒ استيراد البيانات؛ وإلا تسجيل يدوي ----------
@@ -566,6 +579,12 @@
       } else return bad('lk');
       if (!f.type) return bad('type');
       if (f.desc.length < 3 && !f.mediaCount) return bad('desc');
+      if (needSrc || (selType === 'plumb' && /تهريب|تسريب|تسرب|مكيف|نقط/.test(f.desc))) {
+        $('f_src').classList.remove('hidden');
+        if (!srcMode) return bad('src', 'اختر مصدر المشكلة: من شقتي أم من الشقة اللي فوقي');
+        if (srcMode === 'up') { f.src = toLatin($('srcApt').value).trim(); if (!f.src) return bad('src', 'اكتب رقم الشقة اللي فوقك'); }
+        else f.desc += ' (من شقتي)';
+      }
       call = () => run('submitRequest', f);
     }
 
