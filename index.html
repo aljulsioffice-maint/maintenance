@@ -28,27 +28,6 @@
   .hidden { display: none !important; }
   .wrap { max-width: 540px; margin: 0 auto; padding: 0 16px 120px; }
 
-  /* ===== شاشة البداية ===== */
-  .service-btn {
-    display: flex; align-items: center; gap: 14px; width: 100%;
-    padding: 18px 16px; margin-bottom: 12px; text-align: start;
-    background: var(--field); border: 2px solid var(--line); border-radius: 18px;
-    font: inherit; color: var(--text); cursor: pointer;
-    transition: border-color .15s, transform .1s, background .15s;
-  }
-  .service-btn:hover { border-color: var(--accent); }
-  .service-btn:active { transform: scale(.98); }
-  .service-btn .ic { font-size: 34px; flex: none; }
-  .service-btn .tx { flex: 1; line-height: 1.4; }
-  .service-btn .tx b { display: block; font-size: 18px; font-weight: 800; }
-  .service-btn .tx small { display: block; color: var(--muted); font-size: 14px; }
-  .service-btn .ar { font-size: 26px; color: var(--muted); }
-  .service-btn.soon { opacity: .65; cursor: not-allowed; }
-  .service-btn .badge {
-    background: var(--warn-soft); color: var(--warn);
-    font-size: 12px; font-weight: 800; padding: 4px 10px; border-radius: 999px;
-  }
-
   /* ===== الشريط العلوي ===== */
   .hero { margin: 0 -16px 16px; padding: 22px 20px 26px; color: #fff; border-radius: 0 0 28px 28px;
     background: linear-gradient(135deg, var(--brand) 0%, var(--brand2) 100%); box-shadow: var(--shadow); }
@@ -86,6 +65,7 @@
   textarea { min-height: 92px; resize: vertical; }
   .row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
 
+  /* ملخص الملف المحفوظ */
   .prof { display: flex; align-items: center; gap: 12px; background: var(--accent-soft); border-radius: 14px; padding: 12px 14px; }
   .prof .av { width: 42px; height: 42px; border-radius: 50%; background: var(--accent); color: #fff; display: grid; place-items: center; font-size: 20px; font-weight: 800; flex: none; }
   .prof .tx { flex: 1; min-width: 0; line-height: 1.35; }
@@ -100,6 +80,7 @@
   .ubtn small { display: block; color: var(--muted); font-weight: 500; }
   select.sel { width: 100%; font: inherit; font-size: 18px; padding: 13px 14px; border: 2px solid var(--line); border-radius: 14px; background: var(--field); color: var(--text); outline: none; }
   .fld.bad select.sel { border-color: var(--danger); background: var(--danger-soft); }
+  /* أنواع المشكلة */
   .types { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
   .type { --c: var(--accent); position: relative; border: 2px solid var(--line); border-radius: 16px; background: var(--field); padding: 14px 6px 12px;
     text-align: center; cursor: pointer; font: inherit; font-size: 16px; font-weight: 800; color: var(--text); transition: transform .1s, border-color .15s, background .15s; }
@@ -114,6 +95,7 @@
   .chip { flex: none; border: 1.5px solid var(--line); background: var(--card); color: var(--text); border-radius: 999px; padding: 7px 14px; font: inherit; font-size: 15px; font-weight: 700; cursor: pointer; }
   .chip:active { background: var(--accent-soft); }
 
+  /* طارئ */
   .urgent { display: flex; align-items: center; gap: 12px; margin-top: 16px; padding: 12px 14px; border-radius: 14px; border: 2px solid var(--line); cursor: pointer; font-weight: 800; }
   .urgent input { display: none; }
   .urgent .sw { width: 48px; height: 28px; border-radius: 99px; background: var(--line); position: relative; flex: none; transition: background .2s; }
@@ -123,6 +105,7 @@
   .urgent.on .sw::after { inset-inline-end: 23px; }
   .urgent small { display: block; font-weight: 500; color: var(--muted); font-size: 13px; }
 
+  /* الوسائط */
   .stars { display: flex; gap: 4px; margin: 8px 0; }
   .star { border: 0; background: none; font-size: 32px; color: #e0a800; padding: 0 2px; line-height: 1; }
   .tabs2 { display: flex; gap: 8px; margin-bottom: 12px; }
@@ -143,6 +126,7 @@
   .thumb button { position: absolute; top: 4px; left: 4px; width: 26px; height: 26px; border-radius: 50%; border: 0; background: rgba(0,0,0,.7); color: #fff; font-size: 14px; line-height: 26px; padding: 0; cursor: pointer; }
   .hint { color: var(--muted); font-size: 13.5px; margin-top: 8px; }
 
+  /* شريط الإرسال الثابت */
   .barfix { position: fixed; inset-inline: 0; bottom: 0; z-index: 6; background: linear-gradient(to top, var(--bg) 70%, transparent); padding: 18px 16px 14px; }
   .barfix .in { max-width: 540px; margin: 0 auto; }
   .subhint { text-align: center; font-size: 13.5px; color: var(--muted); font-weight: 700; margin-bottom: 8px; min-height: 18px; }
@@ -151,6 +135,7 @@
   .submit:active { transform: translateY(1px); }
   .submit:disabled { opacity: .6; box-shadow: none; }
   .err { background: var(--danger-soft); color: var(--danger); border-radius: 14px; padding: 12px 14px; margin-bottom: 14px; font-weight: 800; display: none; }
+  /* مخفي بلا إزاحة يسار (الإزاحة في صفحة عربية RTL تسبب تمرير أفقي) */
   .hp { position: absolute; width: 1px; height: 1px; overflow: hidden; opacity: 0; pointer-events: none; clip-path: inset(50%); }
   .overlay { position: fixed; inset: 0; background: rgba(8, 16, 28, .6); display: none; align-items: center; justify-content: center; z-index: 20; padding: 16px; backdrop-filter: blur(3px); }
   .overlay .box { background: var(--card); border-radius: 22px; padding: 26px; width: 100%; max-width: 340px; text-align: center; margin: 0; }
@@ -159,6 +144,7 @@
   .bar { height: 10px; background: var(--line); border-radius: 99px; overflow: hidden; margin-top: 14px; }
   .bar i { display: block; height: 100%; width: 0; background: var(--accent); transition: width .3s; border-radius: 99px; }
 
+  /* تم الاستلام */
   .done { text-align: center; padding: 28px 18px 22px; }
   .tick { width: 84px; height: 84px; border-radius: 50%; background: var(--ok); margin: 0 auto 14px; display: grid; place-items: center; animation: pop .45s cubic-bezier(.2,1.4,.4,1); }
   .tick svg { width: 44px; height: 44px; stroke: #fff; stroke-width: 5; fill: none; stroke-linecap: round; stroke-linejoin: round; stroke-dasharray: 60; stroke-dashoffset: 60; animation: dr .5s .25s forwards; }
@@ -175,6 +161,7 @@
     font: inherit; font-weight: 800; font-size: 17px; margin-top: 10px; cursor: pointer; color: var(--text); text-decoration: none; }
   .btn2.wa { background: #25d366; border-color: #25d366; color: #fff; }
 
+  /* طلباتي */
   .req { border-inline-start: 6px solid var(--accent); }
   .req.s-done { border-inline-start-color: var(--ok); }
   .req.s-rej { border-inline-start-color: var(--danger); }
@@ -196,17 +183,13 @@
   .box.ask textarea { margin-top: 8px; min-height: 70px; }
   .box .submit { font-size: 17px; padding: 12px; margin-top: 8px; box-shadow: none; }
 
+  /* الحارس */
   .gdisp { font-size: 50px; font-weight: 900; text-align: center; margin: 12px 0 4px; min-height: 72px; background: #eef3ff; color: #123; border-radius: 18px; padding: 6px; }
   .keypad { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: 10px; }
   .keypad button { font: inherit; font-size: 32px; padding: 14px 0; border-radius: 16px; border: 2px solid #d4dbe7; background: #fff; color: #123; font-weight: 800; }
   .keypad button:active { background: #dbe6ff; }
   #gKinds .type .ic { width: auto; min-width: 70px; height: 70px; padding: 0 12px; white-space: nowrap; font-size: 32px; }
   #gKinds .type { font-size: 17px; }
-
-  /* زر الرجوع للرئيسية */
-  .back-home { display:inline-flex; align-items:center; gap:6px; background: var(--field); border: 1px solid var(--line);
-    color: var(--muted); border-radius: 999px; padding: 6px 12px; font: inherit; font-size: 14px; font-weight: 700; cursor: pointer; margin-bottom: 10px; }
-  .back-home:active { background: var(--accent-soft); color: var(--accent); }
 </style>
 </head>
 <body>
@@ -223,35 +206,8 @@
     </div>
   </header>
 
-  <!-- ===== شاشة البداية: اختيار الخدمة ===== -->
-  <div id="landingView">
-    <div class="card" style="text-align:center; padding: 30px 18px;">
-      <h2 style="font-size: 22px; margin: 0 0 6px;">أهلاً بك 👋</h2>
-      <p style="color: var(--muted); margin: 0 0 24px;">اختر الخدمة التي تحتاجها</p>
-
-      <button class="service-btn" onclick="showService('maint')">
-        <span class="ic">🔧</span>
-        <span class="tx">
-          <b>طلبات الصيانة</b>
-          <small>بلّغ عن مشكلة في وحدتك</small>
-        </span>
-        <span class="ar">‹</span>
-      </button>
-
-      <button class="service-btn soon" onclick="showService('other')">
-        <span class="ic">🏢</span>
-        <span class="tx">
-          <b>خدمات أخرى</b>
-          <small>قريباً إن شاء الله</small>
-        </span>
-        <span class="badge">قريباً</span>
-      </button>
-    </div>
-  </div>
-
   <!-- ===== النموذج ===== -->
-  <div id="formView" class="hidden">
-    <button class="back-home" onclick="goHome()">↩️ الرئيسية</button>
+  <div id="formView">
     <div class="err" id="err"></div>
     <div class="stepper" id="stepper"><span class="st" id="st1"></span><span class="st" id="st2"></span><span class="st" id="st3"></span><span class="lbl" id="stLbl">٠ من ٣</span></div>
 
@@ -351,7 +307,6 @@
 
   <!-- ===== طلباتي ===== -->
   <div id="trackView" class="hidden">
-    <button class="back-home" onclick="goHome()">↩️ الرئيسية</button>
     <div id="trackList"></div>
     <button class="btn2" onclick="newRequest()">➕ بلاغ جديد</button>
   </div>
@@ -368,25 +323,29 @@
 
 <script>
   // /*CONFIG*/ — نسخة GitHub Pages تستبدل هذا السطر بقيمها (انظر build_page.py)
-  let SHOW_ALL = false, TRACK_TAB = 'open';
+  let SHOW_ALL = false, TRACK_TAB = 'open';   // قبل أول استدعاء لـshowTrack (تفادي TDZ)
   const _q = new URLSearchParams(location.search);
   const TRACK = (_q.get('t') || '').replace(/[^a-f0-9]/g, '').slice(0, 20), APP_URL = location.origin + location.pathname, API_URL = 'https://script.google.com/macros/s/AKfycby4tmfamJKcw5g29sgp45Rp6j_jSC_1TB5a28VDDbqjznHfN8aZFDdc8Bn9pcWkLs6u7g/exec';
   const TYPES = [['plumb','🚿','سباكة','#1f7ae0'],['elec','⚡','كهرباء','#f0a000'],['elev','🛗','مصعد','#6b7686'],['other','🛠️','أخرى','#7a4bd1']];
+  // عبارات جاهزة (ضغطة واحدة بدل الكتابة) حسب نوع المشكلة
   const QUICK = {
     plumb: [{ t: 'شطاف خربان' }, { t: 'تهريب مياه', src: 1 }, { t: 'انسداد مجاري' }, { t: 'مياه مكيف', src: 1 }, { t: 'إزعاج مكيف', src: 1 }],
     elec: [{ t: 'أفياش لا تعمل' }, { t: 'التماس كهربائي' }, { t: 'مشكلة بالطبلون' }],
     elev: [{ t: 'المصعد معطّل' }, { t: 'باب المصعد لا يغلق' }],
     other: [],
   };
-  const BOT_USER = 'Aljulsi_maint_bot';
-  const OFFICE_WA = '966572294942';
-  const MAX_PHOTOS = 4, MAX_VIDEO_SEC = 30, MAX_VIDEO_MB = 45, CHUNK = 4 * 1024 * 1024;
+  const BOT_USER = 'Aljulsi_maint_bot';   // بوت تليجرام: ربط المستأجر بتحديثات طلبه
+  const OFFICE_WA = '966572294942';   // رقم واتساب المكتب (يظهر في زر «واتساب المكتب»)
+  const MAX_PHOTOS = 4, MAX_VIDEO_SEC = 30, MAX_VIDEO_MB = 45, CHUNK = 4 * 1024 * 1024; // مضاعف 256KB (شرط Drive)
   let selType = '', photos = [], video = null, lastToken = '', gKind = '', needSrc = false, srcMode = '';
+  // رابط الحارس: ?g=رمز — يعرض نموذجاً مبسطاً (رقم شقة + صورة) بلا تسجيل
   const GUARD = (new URLSearchParams(location.search).get('g') || '').replace(/[^a-f0-9]/g, '').slice(0, 12);
 
+  // ---------- تخزين محلي (قد يكون محظوراً بالمتصفح: كل شيء داخل try) ----------
   function lsGet(k, d) { try { const v = localStorage.getItem(k); return v ? JSON.parse(v) : d; } catch (e) { return d; } }
   function lsSet(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} }
 
+  // داخل Google: google.script.run — خارجها (GitHub Pages): fetch لنفس الدوال، بلا حساب Google (credentials: omit)
   function apiPost(fn, args, keepalive) {
     return fetch(API_URL, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' },
       body: JSON.stringify({ fn: fn, args: args }), credentials: 'omit', redirect: 'follow', keepalive: !!keepalive });
@@ -395,6 +354,7 @@
     if (!API_URL) return new Promise((res, rej) => google.script.run.withSuccessHandler(res).withFailureHandler(rej)[fn](...args));
     return apiPost(fn, args).then(r => r.json()).then(j => { if (!j.ok) throw new Error(j.error); return j.result; });
   }
+  // بلا انتظار: يكمل في الخادم حتى لو أُغلقت الصفحة
   function fire(fn, ...args) {
     try { if (!API_URL) google.script.run[fn](...args); else apiPost(fn, args, true).catch(() => {}); } catch (e) {}
   }
@@ -402,6 +362,7 @@
   const toLatin = s => String(s || '').replace(/[٠-٩]/g, d => d.charCodeAt(0) - 1632).replace(/[۰-۹]/g, d => d.charCodeAt(0) - 1776);
   const phoneOk = v => /^(05|5|\+9665|9665|009665)\d{8}$/.test(toLatin(v).replace(/[\s-]/g, ''));
 
+  // ---------- بناء الصفحة ----------
   $('types').innerHTML = TYPES.map(t => `<button type="button" class="type" data-k="${t[0]}" style="--c:${t[3]}"><span class="ic">${t[1]}</span>${t[2]}</button>`).join('');
   $('types').addEventListener('click', e => {
     const b = e.target.closest('.type'); if (!b) return;
@@ -423,18 +384,20 @@
     if (c.src) { needSrc = true; $('f_src').classList.remove('hidden'); }
     $('f_desc').classList.remove('bad'); refreshSteps();
   }
+  // تهريب/مياه مكيف: هل المصدر شقتي أم الشقة اللي فوقي (ورقمها)
   function setSrc(m) {
     srcMode = m; $('srcSame').classList.toggle('on', m === 'same'); $('srcUp').classList.toggle('on', m === 'up');
     $('srcApt').classList.toggle('hidden', m !== 'up'); $('f_src').classList.remove('bad');
     if (m === 'up') setTimeout(() => $('srcApt').focus({ preventScroll: true }), 50);
   }
   $('waBtn').href = 'https://wa.me/' + OFFICE_WA;
+  // ---------- «من أنت؟»: هوية أو جوال مسجّل ⇒ استيراد البيانات؛ وإلا تسجيل يدوي ----------
   let ident = null, lkSeq = 0, manualOn = false;
   const plausible = v => /^[12]\d{9}$/.test(v) || /^05\d{8}$/.test(v) || /^5\d{8}$/.test(v) || /^9665\d{8}$/.test(v);
   function manualValid() { return $('name').value.trim().length >= 2 && $('bld').value && $('apt').value.trim() && phoneOk($('phone').value); }
   function identReady() { return !!ident && (!ident.needPhone || phoneOk($('phone2').value)); }
   function profComplete() { return identReady() || (!ident && manualValid() && !manualOn); }
-  function show1(which) {
+  function show1(which) {   // idBox | prof | pick | manual
     $('idBox').classList.toggle('hidden', which === 'prof' || which === 'pick');
     $('profSum').classList.toggle('hidden', which !== 'prof');
     $('unitPick').classList.toggle('hidden', which !== 'pick');
@@ -493,6 +456,7 @@
   ['name', 'apt', 'phone', 'phone2', 'desc'].forEach(id => $(id).addEventListener('input', () => { const f = $('f_' + id); if (f) f.classList.remove('bad'); refreshSteps(); }));
   $('bld').addEventListener('input', () => { $('f_bld').classList.remove('bad'); refreshSteps(); });
 
+  // ---------- مؤشر التقدّم ----------
   function refreshSteps() {
     if (GUARD) return;
     const s1 = profComplete(), s2 = !!selType && ($('desc').value.trim().length >= 3 || photos.length || video), s3 = !!(photos.length || video);
@@ -508,7 +472,7 @@
   if (GUARD) {
     ['tenCard', 'probCard', 'tgBtn', 'shBtn'].forEach(k => { const e = $(k); if (e) e.classList.add('hidden'); });
     $('guardCard').classList.remove('hidden'); $('mediaH').textContent = 'الصورة';
-    document.querySelectorAll('.media-btns .mbtn').forEach((b, i) => { if (i > 1) b.classList.add('hidden'); });
+    document.querySelectorAll('.media-btns .mbtn').forEach((b, i) => { if (i > 1) b.classList.add('hidden'); });   // الحارس: صورة فقط بلا فيديو
     $('gKinds').addEventListener('click', e => {
       const b = e.target.closest('.type'); if (!b) return;
       gKind = b.dataset.k;
@@ -532,6 +496,7 @@
 
   function refreshMyBtn() { $('myBtn').classList.toggle('hidden', !lsGet('mr_tokens', []).length && !TRACK); }
 
+  // ---------- الوسائط ----------
   ['photoIn', 'photoCam'].forEach(id => $(id).addEventListener('change', e => {
     const files = Array.from(e.target.files || []);
     for (const f of files) {
@@ -578,7 +543,9 @@
     return new Promise((res, rej) => { const r = new FileReader(); r.onload = () => res(String(r.result).split(',')[1]); r.onerror = rej; r.readAsDataURL(blob); });
   }
 
+  // ---------- الإرسال ----------
   function showErr(m) { const e = $('err'); e.textContent = m; e.style.display = m ? 'block' : 'none'; if (m) window.scrollTo({ top: 0, behavior: 'smooth' }); }
+  // خطأ على حقل بعينه: يلوّنه ويمرّر إليه
   function bad(field, msg) {
     showErr('');
     const f = $('f_' + field); if (!f) return showErr(msg);
@@ -629,6 +596,7 @@
     if (!GUARD) lsSet('mr_profile', ident ? { lk: ident.lk, pick: ident.pick, name: ident.name, bld: ident.bld, apt: ident.apt, needPhone: ident.needPhone, phone2: f.phone || '' } : { manual: true, name: f.name, bld: f.district, apt: f.apt, phone: f.phone });
     else { $('gapt').value = ''; $('gaptv').textContent = '—'; gKind = ''; document.querySelectorAll('#gKinds .type').forEach(x => x.classList.remove('on')); }
 
+    // رقم البلاغ يظهر فوراً؛ المرفقات تكمل رفعها بالخلفية وتظهر حالتها بشاشة «تم الاستلام»
     const ph = photos.slice(), vd = video;
     if (res.id) { const t = lsGet('mr_tokens', []); t.push(res.token); lsSet('mr_tokens', t); }
     lastToken = res.token;
@@ -649,6 +617,7 @@
     const total = ph.length + (vd ? Math.max(1, Math.ceil(vd.file.size / CHUNK)) : 0);
     let step = 0;
     const bump = () => { $('doneWarn').textContent = '⏳ جاري رفع المرفقات (' + Math.min(100, Math.round(100 * (++step) / Math.max(1, total))) + '%)… لا تغلق الصفحة'; };
+    // الصور كلها والفيديو بنفس الوقت (لا واحد بعد الثاني) — هذا أكبر توفير في الوقت
     const photoJobs = ph.map(async p => {
       try { const r = await run('uploadPhoto', res.id, res.token, await compress(p.file)); if (!r || !r.ok) failed++; }
       catch (e) { failed++; }
@@ -669,37 +638,25 @@
     })();
     await Promise.all(photoJobs.concat([videoJob]));
     uploading = false; window.removeEventListener('beforeunload', guard);
+    // الإرسال لتليجرام يكمل في الخلفية — المستأجر لا ينتظره
     fire('flushMedia', res.id, res.token);
     $('doneWarn').textContent = failed ? 'تعذر رفع بعض المرفقات — البلاغ نفسه وصل.' : '✅ تم رفع المرفقات';
   }
   function endSend(msg) { $('overlay').style.display = 'none'; $('sendBtn').disabled = false; showErr(msg); }
 
-  // ===== إظهار/إخفاء الشاشات =====
-  function show(id) {
-    ['landingView', 'formView', 'doneView', 'trackView'].forEach(v => $(v).classList.toggle('hidden', v !== id));
-    window.scrollTo(0, 0);
-  }
+  function show(id) { ['formView', 'doneView', 'trackView'].forEach(v => $(v).classList.toggle('hidden', v !== id)); window.scrollTo(0, 0); }
   function newRequest() { show('formView'); }
-  function goHome() { show('landingView'); }
-
-  // ===== اختيار الخدمة =====
-  function showService(kind) {
-    if (kind === 'maint') {
-      show('formView');
-    } else {
-      alert('🏢 خدمات أخرى — قريباً إن شاء الله');
-    }
-  }
-
   function shareLink() {
     const url = APP_URL + '?t=' + lastToken;
     window.open('https://wa.me/?text=' + encodeURIComponent('رابط متابعة بلاغ الصيانة: ' + url), '_blank');
   }
 
+  // ---------- طلباتي ----------
   let uploadingMore = false;
   async function showTrack(quiet) {
     if (quiet && uploadingMore) return;
     if (!quiet) show('trackView');
+    // رابط مخصص (?t=) يعرض طلبه فقط؛ «عرض كل طلباتي» يكشف البقية
     const tokens = TRACK && !SHOW_ALL ? [TRACK] : lsGet('mr_tokens', []).slice();
     if (TRACK && tokens.indexOf(TRACK) < 0) tokens.push(TRACK);
     if (!tokens.length) { $('trackList').innerHTML = '<div class="card">لا توجد طلبات محفوظة في هذا الجوال.</div>'; return; }
@@ -740,7 +697,7 @@
         : r.ts === 'away' ? `<div class="box live way">🚪 الفني ${esc(r.tech)} وصل ولم يجد أحداً — <b>تواصل معه</b></div>`
         : r.ts === 'assigned' ? `<div class="box live">👷 تم تعيين الفني ${esc(r.tech)} لطلبك</div>`
         : r.ts === 'done' ? `<div class="box live">✔️ أنهى الفني ${esc(r.tech)} العمل، ونتأكد من الإنجاز</div>` : '';
-      const tg = '';
+      const tg = '';   // الإشعارات كلها بواتساب (المستأجر ما يستخدم تليجرام)
       const note = r.status === 'تمت المعالجة' && r.note ? `<div class="hint">ملاحظة: ${esc(r.note)}</div>` : '';
       const when = r.closed ? (r.status === 'مرفوض' ? ' · ' : ' · أُنجز ') + esc(r.closed) : '';
       const cls = r.status === 'مرفوض' ? 's-rej' : r.status === 'تمت المعالجة' ? 's-done' : r.status === 'بانتظار ردك' ? 's-ask' : '';
@@ -750,6 +707,7 @@
     }).join('');
     Object.keys(STARS).forEach(id => { if ($('st' + id)) pickStar(id, STARS[id]); });
   }
+  // تحديث تلقائي كل 20 ثانية والمستأجر فاتح «طلباتي» (لا نمسح ما يكتبه برد معلّق)
   setInterval(() => {
     try {
       if ($('trackView').classList.contains('hidden') || document.hidden || uploadingMore) return;
@@ -757,6 +715,7 @@
       showTrack(true);
     } catch (e) {}
   }, 20000);
+  // الإدارة طلبت صورة/فيديو: يرفعها المستأجر من «طلباتي»
   async function sendMore(id, token) {
     const files = [...$('mf' + id).files], st = $('ms' + id);
     if (!files.length) return;
@@ -807,11 +766,6 @@
     try { const r = await run('replyInfo', id, token, text); if (!r || !r.ok) { alert(r && r.msg ? r.msg : 'تعذر الإرسال'); ta.disabled = false; return; } }
     catch (e) { alert('تعذر الإرسال، حاول مرة ثانية'); ta.disabled = false; return; }
     showTrack();
-  }
-
-  // ===== إظهار شاشة البداية (إلا لو فيه رابط متابعة أو حارس) =====
-  if (!GUARD && !TRACK) {
-    show('landingView');
   }
 </script>
 </body>
