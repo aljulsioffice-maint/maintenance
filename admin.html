@@ -492,8 +492,8 @@
           <button class="btn" onclick="ask2('ask','❓ سؤال لصاحب البلاغ','اكتب سؤالك…')">❓ طلب معلومة</button>
           <button class="btn bad" onclick="ask2('reject','🚫 رفض الطلب','سبب الرفض (يصل لصاحب البلاغ)', true)">🚫 رفض</button>
         </div>`}
-      ${DATA.owner ? `<h3>تحكم (المالك)</h3>
-      <div class="row"><button class="btn" onclick="editReq()">✏️ تعديل البيانات</button><button class="btn bad" onclick="delReq()">🗑️ حذف الطلب</button></div>` : ''}
+      <h3>تعديل</h3>
+      <div class="row"><button class="btn" onclick="editReq()">✏️ تعديل البيانات</button>${DATA.owner ? '<button class="btn bad" onclick="delReq()">🗑️ حذف الطلب</button>' : ''}</div>
       <h3>🕓 السجل</h3>
       <div class="log">${DETAIL.logs.map(l => `<div><b>${esc(l.e)}</b> ${l.d ? '— ' + esc(l.d) : ''}<small>${esc(l.t)} · ${esc(l.by)}</small></div>`).reverse().join('') || '—'}</div>
       </div>`;
