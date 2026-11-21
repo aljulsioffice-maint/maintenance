@@ -105,6 +105,8 @@
   .urgent small { display: block; font-weight: 500; color: var(--muted); font-size: 13px; }
 
   /* الوسائط */
+  .stars { display: flex; gap: 4px; margin: 8px 0; }
+  .star { border: 0; background: none; font-size: 32px; color: #e0a800; padding: 0 2px; line-height: 1; }
   .tabs2 { display: flex; gap: 8px; margin-bottom: 12px; }
   .tabbtn { flex: 1; border: 1.5px solid var(--bd, #d0d7e2); background: var(--card, #fff); color: inherit; border-radius: 12px; padding: 10px; font-weight: 700; font-size: 15px; margin-bottom: 10px; }
   .tabs2 .tabbtn { margin-bottom: 0; }
@@ -666,6 +668,11 @@
         <textarea id="rp${esc(r.id)}" placeholder="اكتب ردك هنا…"></textarea>
         <button class="submit" onclick="sendReply('${esc(r.id)}','${esc(r.token)}')">إرسال الرد</button></div>` : '');
       const visit = r.visit ? `<div class="box live">📅 موعد زيارة الفني: <b>${esc(r.visit)}</b></div>` : '';
+      const rate = r.canRate ? `<div class="box ask"><b>⭐ قيّم الفني ${esc(r.techName)}</b>
+        <div class="stars" id="st${esc(r.id)}">${[1, 2, 3, 4, 5].map(n => `<button type="button" class="star" onclick="pickStar('${esc(r.id)}',${n})">☆</button>`).join('')}</div>
+        <textarea id="rn${esc(r.id)}" placeholder="ملاحظة أو شكوى (اختياري)…"></textarea>
+        <button class="submit" onclick="sendRate('${esc(r.id)}','${esc(r.token)}')">إرسال التقييم</button></div>`
+        : r.rated ? `<div class="hint">شكراً لتقييمك ${'★'.repeat(r.rated)}</div>` : '';
       const live = r.ts === 'way' ? `<div class="box live way">🚗 الفني ${esc(r.tech)} <b>في الطريق إليك الآن</b></div>`
         : r.ts === 'work' ? `<div class="box live">🔧 الفني ${esc(r.tech)} <b>يعمل على طلبك</b></div>`
         : r.ts === 'away' ? `<div class="box live way">🚪 الفني ${esc(r.tech)} وصل ولم يجد أحداً — <b>تواصل معه</b></div>`
@@ -677,8 +684,9 @@
       const cls = r.status === 'مرفوض' ? 's-rej' : r.status === 'تمت المعالجة' ? 's-done' : r.status === 'بانتظار ردك' ? 's-ask' : '';
       return `<div class="card req ${cls}"><div class="treq"><div class="ic">${esc(r.icon)}</div><div style="flex:1">
         <div class="t">طلب #${esc(r.id)} — ${esc(r.type)}</div><div class="d">${esc(r.date)}${when}</div>
-        ${steps}${live}${visit}${rej}${ask}${note}${tg}</div></div></div>`;
+        ${steps}${live}${visit}${rej}${ask}${note}${rate}${tg}</div></div></div>`;
     }).join('');
+    Object.keys(STARS).forEach(id => { if ($('st' + id)) pickStar(id, STARS[id]); });
   }
   // تحديث تلقائي كل 20 ثانية والمستأجر فاتح «طلباتي» (لا نمسح ما يكتبه برد معلّق)
   setInterval(() => {
@@ -722,6 +730,15 @@
     fire('flushMedia', id, token);
     uploadingMore = false;
     showTrack();
+  }
+  const STARS = {};
+  function pickStar(id, n) { STARS[id] = n; document.querySelectorAll('#st' + id + ' .star').forEach((b, i) => { b.textContent = i < n ? '★' : '☆'; }); }
+  async function sendRate(id, token) {
+    const n = STARS[id]; if (!n) { alert('اختر عدد النجوم أولاً'); return; }
+    const note = ($('rn' + id).value || '').trim();
+    try { const r = await run('rateTech', id, token, n, note); if (!r || !r.ok) { alert(r && r.msg ? r.msg : 'تعذر الإرسال'); return; } }
+    catch (e) { alert('تعذر الإرسال، حاول مرة ثانية'); return; }
+    delete STARS[id]; alert('شكراً لتقييمك 🌟'); showTrack();
   }
   async function sendReply(id, token) {
     const ta = $('rp' + id), text = (ta.value || '').trim();
