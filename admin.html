@@ -205,6 +205,7 @@
     <nav class="nav">
       <button class="tab on" id="tab_req" onclick="setTab('req')"><span class="ico">📋</span><span>الطلبات</span><span class="cnt hidden" id="cntOpen"></span></button>
       <button class="tab" id="tab_vis" onclick="setTab('vis')"><span class="ico">📅</span><span>المواعيد</span></button>
+      <button class="tab" id="tab_rat" onclick="setTab('rat')"><span class="ico">⭐</span><span>التقييمات</span></button>
       <button class="tab" id="tab_rep" onclick="setTab('rep')"><span class="ico">📊</span><span>الإحصاءات</span></button>
       <button class="tab" id="tab_team" onclick="setTab('team')"><span class="ico">👥</span><span>الفريق</span></button>
       <button class="tab" id="tab_dir" onclick="setTab('dir')"><span class="ico">🏢</span><span>العمائر</span></button>
@@ -240,6 +241,7 @@
     </div>
 
     <div id="vvis" class="page" style="display:none"></div>
+    <div id="vrat" class="page" style="display:none"></div>
     <div id="vrep" class="page" style="display:none"></div>
     <div id="vteam" class="page" style="display:none"></div>
     <div id="vdir" class="page" style="display:none"></div>
@@ -260,7 +262,7 @@
   const $ = id => document.getElementById(id);
   const esc = s => String(s == null ? '' : s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
   const TYPE_LIST = ['سباكة', 'كهرباء', 'مصعد', 'أخرى', 'وايت ماء', 'وايت صرف صحي'];
-  const TITLES = { req: 'الطلبات', vis: 'جدول المواعيد', rep: 'الإحصاءات', team: 'الفريق والحراس', dir: 'العمائر والمستأجرون', set: 'الإعدادات والميزات' };
+  const TITLES = { req: 'الطلبات', rat: 'تقييمات الفنيين', vis: 'جدول المواعيد', rep: 'الإحصاءات', team: 'الفريق والحراس', dir: 'العمائر والمستأجرون', set: 'الإعدادات والميزات' };
   let KEY = '', DATA = null, FILTER = 'open', SEL = '', DETAIL = null, busy = false, TAB = 'req', BLDS = null;
   let TEAM = null, GUARDS = null, TENROWS = [];
   const IMG = {};
@@ -321,10 +323,24 @@
   // ---------- التبويبات ----------
   function setTab(t) {
     TAB = t; $('ttl').textContent = TITLES[t];
-    ['req', 'vis', 'rep', 'team', 'dir', 'set'].forEach(k => { $('tab_' + k).classList.toggle('on', k === t); $('v' + k).style.display = k === t ? '' : 'none'; });
+    ['req', 'vis', 'rat', 'rep', 'team', 'dir', 'set'].forEach(k => { $('tab_' + k).classList.toggle('on', k === t); $('v' + k).style.display = k === t ? '' : 'none'; });
     window.scrollTo({ top: 0 });
-    if (t === 'rep') loadReport(); if (t === 'team') loadTeam(); if (t === 'dir') loadDir(); if (t === 'set') loadSet(); if (t === 'vis') drawVisits();
+    if (t === 'rep') loadReport(); if (t === 'team') loadTeam(); if (t === 'dir') loadDir(); if (t === 'set') loadSet(); if (t === 'vis') drawVisits(); if (t === 'rat') loadRatings();
   }
+  // ---------- تقييمات الفنيين ----------
+  async function loadRatings() {
+    const v = $('vrat'); v.innerHTML = skel(3);
+    const r = await call('ratings', '', '', ''); if (!r) { v.innerHTML = '<div class="empty">تعذّر التحميل</div>'; return; }
+    const stars = n => '★'.repeat(n) + '☆'.repeat(5 - n), by = {};
+    r.list.filter(x => x.st === 'معتمد').forEach(x => { (by[x.tech] = by[x.tech] || []).push(x.stars); });
+    const avg = Object.keys(by).map(k => `<span class="chip"><b>${esc(k)}</b> ${(by[k].reduce((a, b) => a + b, 0) / by[k].length).toFixed(1)} / 5 (${by[k].length})</span>`).join(' ');
+    const badge = s => s === 'معتمد' ? '<span class="badge b-تمت">يظهر للأعضاء</span>' : s === 'مرفوض' ? '<span class="badge b-مرفوض">مخفي</span>' : '<span class="badge b-بانتظار">بانتظار قرارك</span>';
+    v.innerHTML = `<div class="panel"><b>⭐ التقييمات والشكاوى</b><div class="hint" style="margin:6px 0 10px">${r.owner ? 'أنت تقرّر أي تقييم يظهر للأعضاء (الأدمن والفني المعني).' : 'التقييمات المعتمدة من المالك فقط.'}</div>${avg ? '<div class="row" style="margin:0 0 10px">' + avg + '</div>' : ''}
+      <table><tr><th>التقييم</th><th>الفني</th><th>الطلب</th><th>الملاحظة</th>${r.owner ? '<th>القرار</th>' : ''}</tr>
+      ${r.list.map(x => `<tr><td style="white-space:nowrap;color:#e0a800">${stars(x.stars)}<br><small style="color:var(--mut)">${esc(x.date)}</small></td><td>👷 ${esc(x.tech)}</td><td><a href="#" onclick="goReq('${esc(x.id)}');return false">#${esc(x.id)}</a></td><td>${esc(x.note) || '—'}</td>${r.owner ? `<td style="white-space:nowrap">${badge(x.st)}<div class="row" style="margin:6px 0 0"><button class="btn sm ok" onclick="rateRev(${x.row},'y')">✅ يظهر</button><button class="btn sm" onclick="rateRev(${x.row},'n')">🚫 يخفى</button></div></td>` : ''}</tr>`).join('') || '<tr><td colspan="5">لا توجد تقييمات</td></tr>'}</table></div>`;
+  }
+  async function rateRev(row, yn) { if (await call('raterev', row, yn, yn === 'y' ? '✅ سيظهر للأعضاء' : '🚫 سيبقى مخفياً')) loadRatings(); }
+
   // ---------- جدول المواعيد ----------
   function drawVisits() {
     const v = $('vvis'); if (!DATA) { v.innerHTML = skel(4); return; }
