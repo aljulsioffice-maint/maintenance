@@ -208,6 +208,7 @@
       <button class="tab" id="tab_rep" onclick="setTab('rep')"><span class="ico">📊</span><span>الإحصاءات</span></button>
       <button class="tab" id="tab_team" onclick="setTab('team')"><span class="ico">👥</span><span>الفريق</span></button>
       <button class="tab" id="tab_dir" onclick="setTab('dir')"><span class="ico">🏢</span><span>العمائر</span></button>
+      <button class="tab" id="tab_set" onclick="setTab('set')"><span class="ico">⚙️</span><span>الإعدادات</span></button>
     </nav>
     <div class="foot">
       <div class="me" id="me"></div>
@@ -242,6 +243,7 @@
     <div id="vrep" class="page" style="display:none"></div>
     <div id="vteam" class="page" style="display:none"></div>
     <div id="vdir" class="page" style="display:none"></div>
+    <div id="vset" class="page" style="display:none"></div>
   </main>
 </div>
 
@@ -258,7 +260,7 @@
   const $ = id => document.getElementById(id);
   const esc = s => String(s == null ? '' : s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
   const TYPE_LIST = ['سباكة', 'كهرباء', 'مصعد', 'أخرى', 'وايت ماء', 'وايت صرف صحي'];
-  const TITLES = { req: 'الطلبات', vis: 'جدول المواعيد', rep: 'الإحصاءات', team: 'الفريق والحراس', dir: 'العمائر والمستأجرون' };
+  const TITLES = { req: 'الطلبات', vis: 'جدول المواعيد', rep: 'الإحصاءات', team: 'الفريق والحراس', dir: 'العمائر والمستأجرون', set: 'الإعدادات والميزات' };
   let KEY = '', DATA = null, FILTER = 'open', SEL = '', DETAIL = null, busy = false, TAB = 'req', BLDS = null;
   let TEAM = null, GUARDS = null, TENROWS = [];
   const IMG = {};
@@ -319,22 +321,22 @@
   // ---------- التبويبات ----------
   function setTab(t) {
     TAB = t; $('ttl').textContent = TITLES[t];
-    ['req', 'vis', 'rep', 'team', 'dir'].forEach(k => { $('tab_' + k).classList.toggle('on', k === t); $('v' + k).style.display = k === t ? '' : 'none'; });
+    ['req', 'vis', 'rep', 'team', 'dir', 'set'].forEach(k => { $('tab_' + k).classList.toggle('on', k === t); $('v' + k).style.display = k === t ? '' : 'none'; });
     window.scrollTo({ top: 0 });
-    if (t === 'rep') loadReport(); if (t === 'team') loadTeam(); if (t === 'dir') loadDir(); if (t === 'vis') drawVisits();
+    if (t === 'rep') loadReport(); if (t === 'team') loadTeam(); if (t === 'dir') loadDir(); if (t === 'set') loadSet(); if (t === 'vis') drawVisits();
   }
   // ---------- جدول المواعيد ----------
   function drawVisits() {
     const v = $('vvis'); if (!DATA) { v.innerHTML = skel(4); return; }
     const today = new Date(Date.now() + 3 * 3600000).toISOString().slice(0, 10);
-    const DAYS = ['الأحد', 'الاثنين', 'الثلاثاء', 'الأربعاء', 'الخميس', 'الجمعة', 'السبت'];
-    const all = DATA.reqs.filter(r => r.vis).sort((a, b) => String(a.vdate).localeCompare(String(b.vdate)) || (a.vis.includes('صباحاً') ? 0 : 1) - (b.vis.includes('صباحاً') ? 0 : 1));
-    const up = all.filter(r => !isDone(r.st) && r.vdate >= today), past = all.filter(r => !(!isDone(r.st) && r.vdate >= today)).reverse();
-    const st = r => r.vst === 'مؤكد' ? '<span class="badge b-تمت">✅ مؤكد</span>' : r.vst === 'اعتذر المستأجر' ? '<span class="badge b-مرفوض">❌ اعتذر</span>' : '<span class="badge b-بانتظار">⏳ بانتظار المستأجر</span>';
+    const per = r => r.vis.includes('صباحاً') ? 0 : 1;
+    const all = DATA.reqs.filter(r => r.vis && r.vdate).sort((a, b) => String(a.vdate).localeCompare(String(b.vdate)) || per(a) - per(b));
+    const late = all.filter(r => !isDone(r.st) && r.vdate < today), up = all.filter(r => !isDone(r.st) && r.vdate >= today), past = all.filter(r => isDone(r.st)).reverse();
     const fmt = r => { const d = String(r.vdate).split('-'); const w = r.vis.split(' '); return esc(w[0]) + (d.length === 3 ? ' ' + Number(d[2]) + '/' + Number(d[1]) : '') + ' ' + esc(w.slice(1).join(' ')); };
-    const tbl = (list, empty) => `<table><tr><th>الموعد</th><th>المكان</th><th>المستأجر</th><th>الفني</th><th>الحالة</th></tr>${list.map(r => `<tr style="cursor:pointer;${r.vdate === today ? 'background:var(--soft)' : ''}" onclick="goReq('${esc(r.id)}')"><td><b>${fmt(r)}</b>${r.vdate === today ? '<br><small>اليوم</small>' : ''}</td><td>#${esc(r.id)} · ${esc(place(r))}<br><small style="color:var(--mut)">${esc(r.type)}</small></td><td>${esc(r.tenant || r.name)}</td><td>${r.tech ? '👷 ' + esc(r.tech) : '—'}</td><td>${st(r)}</td></tr>`).join('') || '<tr><td colspan="5">' + empty + '</td></tr>'}</table>`;
-    v.innerHTML = `<div class="panel"><b>📅 المواعيد القادمة (${up.length})</b>${tbl(up, 'لا توجد مواعيد قادمة')}</div>
-      <div class="panel" style="margin-top:16px"><b>🕘 سابقة / مغلقة</b>${tbl(past, 'لا شيء')}</div>`;
+    const tbl = (list, empty, warn) => `<table><tr><th>الموعد</th><th>المكان</th><th>المستأجر</th><th>الفني</th><th>الحالة</th></tr>${list.map(r => `<tr style="cursor:pointer;${warn ? 'background:rgba(220,60,60,.10)' : r.vdate === today ? 'background:var(--soft)' : ''}" onclick="goReq('${esc(r.id)}')"><td><b>${fmt(r)}</b>${r.vdate === today ? '<br><small>اليوم</small>' : warn ? '<br><small>⚠️ فات</small>' : ''}</td><td>#${esc(r.id)} · ${esc(place(r))}<br><small style="color:var(--mut)">${esc(r.type)}</small></td><td>${esc(r.tenant || r.name)}</td><td>${r.tech ? '👷 ' + esc(r.tech) : '—'}</td><td><span class="badge ${bcls(r.st)}">${esc(r.st)}</span></td></tr>`).join('') || '<tr><td colspan="5">' + empty + '</td></tr>'}</table>`;
+    v.innerHTML = (late.length ? `<div class="panel" style="border:2px solid var(--bad)"><b>⚠️ فات موعدها ولم تُغلق (${late.length})</b><div class="hint">افتح الطلب من تليجرام: إعادة جدولة، أو إرجاع للانتظار، أو إغلاق</div>${tbl(late, '', true)}</div>` : '')
+      + `<div class="panel" style="margin-top:16px"><b>📅 المواعيد القادمة (${up.length})</b>${tbl(up, 'لا توجد مواعيد قادمة')}</div>
+      <div class="panel" style="margin-top:16px"><b>✅ مغلقة</b>${tbl(past, 'لا شيء')}</div>`;
   }
 
   // ---------- الطلبات ----------
@@ -345,8 +347,8 @@
       const r = await api('list');
       if (!r.ok) { $('app').style.display = 'none'; $('gate').style.display = 'block'; $('gateMsg').textContent = r.msg || 'الرابط غير صالح'; return; }
       DATA = r; $('gate').style.display = 'none'; $('app').style.display = 'block';
-      ['team', 'dir'].forEach(k => $('tab_' + k).classList.toggle('hidden', !r.owner));   // الفريق والعمائر للمالك فقط
-      if (!r.owner && (TAB === 'team' || TAB === 'dir')) setTab('req');
+      ['team', 'dir', 'set'].forEach(k => $('tab_' + k).classList.toggle('hidden', !r.owner));   // الفريق والعمائر للمالك فقط
+      if (!r.owner && (TAB === 'team' || TAB === 'dir' || TAB === 'set')) setTab('req');
       $('me').textContent = '👤 ' + r.me; $('upd').textContent = 'آخر تحديث ' + r.at.slice(11);
       draw(); if (TAB === 'vis') drawVisits();
       if (SEL && (manual || DETAIL)) openReq(SEL, true);
@@ -641,14 +643,37 @@
     v.innerHTML = `<div class="grid2" style="margin-top:0">
       <div class="panel"><b>🏢 العمائر (من «التواصل العام»)</b>
         <div style="color:var(--mut);font-size:13px;margin:0 0 10px">رابط الموقع (خرائط جوجل) يظهر للفني بزر 📍 على بطاقة الطلب.</div>
-        <table><tr><th>العمارة</th><th>الوحدات</th><th>رابط الموقع</th></tr>
-        ${blds.map((b, i) => `<tr><td><b>${esc(b.name)}</b></td><td>${b.units}</td><td><input class="inp" style="width:100%;min-width:150px;padding:6px 8px" dir="ltr" placeholder="https://maps.app.goo.gl/…" value="${esc(b.url)}" onchange="saveMap(${i}, this.value)"></td></tr>`).join('')}</table></div>
+        <table><tr><th>العمارة</th><th>الوحدات</th><th>رابط الموقع</th><th>الصورة</th></tr>
+        ${blds.map((b, i) => `<tr><td><b>${esc(b.name)}</b></td><td>${b.units}</td><td><div class="row" style="margin:0;flex-wrap:nowrap"><input class="inp" id="mp${i}" style="width:100%;min-width:150px;padding:6px 8px" dir="ltr" placeholder="https://maps.app.goo.gl/…" value="${esc(b.url)}" onkeydown="if(event.key==='Enter')saveMap(${i}, this.value)"><button class="btn sm pri" onclick="saveMap(${i}, $('mp${i}').value)">💾 حفظ</button></div></td>
+          <td style="white-space:nowrap"><input type="file" id="bf${i}" accept="image/*" class="hidden" onchange="uploadBld(${i})">${b.photo ? '✅ ' : ''}<button class="btn sm" onclick="$('bf${i}').click()">${b.photo ? '🔁 تغيير' : '📷 رفع'}</button>${b.photo ? ' <button class="btn sm" onclick="delBld(' + i + ')">🗑️</button>' : ''}</td></tr>`).join('')}</table></div>
       <div class="panel"><b>🔎 المستأجرون وأرقامهم</b>
         <div class="row" style="margin-top:0"><input class="inp" id="tq" placeholder="اسم، عمارة، شقة أو جوال…" style="flex:1" onkeydown="if(event.key==='Enter')searchTen()"><button class="btn pri" onclick="searchTen()">بحث</button></div>
         <div style="color:var(--mut);font-size:13px">الأرقام المضافة هنا تبقى بعد كل مزامنة. الرقم الأساسي من مصدر البيانات لا يُحذف من هنا.</div>
         <div id="tenBox" style="margin-top:10px"></div></div></div>`;
   }
   async function saveMap(i, url) { const b = BLDS[i]; if (await call('setmap', b.name, url.trim(), '✅ حُفظ رابط الموقع')) b.url = url.trim(); }
+  async function compressImg(file) {
+    const url = URL.createObjectURL(file);
+    const img = await new Promise((res, rej) => { const i = new Image(); i.onload = () => res(i); i.onerror = rej; i.src = url; });
+    const k = Math.min(1, 1280 / Math.max(img.naturalWidth, img.naturalHeight)), c = document.createElement('canvas');
+    c.width = Math.round(img.naturalWidth * k); c.height = Math.round(img.naturalHeight * k);
+    c.getContext('2d').drawImage(img, 0, 0, c.width, c.height); URL.revokeObjectURL(url);
+    return c.toDataURL('image/jpeg', 0.75).split(',')[1];
+  }
+  async function uploadBld(i) {
+    const f = $('bf' + i).files[0]; if (!f) return;
+    toast('⏳ جاري الرفع…');
+    try { const b64 = await compressImg(f); if (await call('setbphoto', BLDS[i].name, b64, '✅ حُفظت صورة العمارة')) loadDir(); }
+    catch (e) { toast('تعذّر رفع الصورة'); }
+  }
+  function delBld(i) { confirmBox('🗑️ حذف الصورة', 'حذف صورة ' + BLDS[i].name + '؟', async () => { if (await call('setbphoto', BLDS[i].name, '', '🗑️ حُذفت الصورة')) loadDir(); }, 'حذف'); }
+  async function loadSet() {
+    const v = $('vset'); v.innerHTML = skel(3);
+    const r = await call('feat', '', '', ''); if (!r) { v.innerHTML = '<div class="empty">تعذّر التحميل</div>'; return; }
+    v.innerHTML = `<div class="panel"><b>🎛️ الميزات</b><div class="hint" style="margin:6px 0 10px">فعّل أو ألغِ أي ميزة. الإلغاء يوقفها فوراً بدون حذف شيء.</div>
+      ${r.feats.map(f => `<label style="display:flex;align-items:center;gap:10px;padding:12px 4px;border-top:1px solid var(--bd);cursor:pointer"><input type="checkbox" ${f.on ? 'checked' : ''} onchange="toggleFeat('${f.key}', this)" style="width:20px;height:20px"><span style="font-weight:700">${esc(f.label)}</span></label>`).join('')}</div>`;
+  }
+  async function toggleFeat(k, el) { const want = el.checked; if (!(await call('setfeat', k, want ? 'on' : 'off', want ? '✅ فُعّلت' : '⛔ أُلغيت'))) el.checked = !want; }
   async function searchTen() {
     const q = $('tq').value.trim(); if (!q) { toast('اكتب كلمة البحث'); return; }
     const r = await call('tenants', q, '', ''); if (!r) return;
