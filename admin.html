@@ -635,7 +635,7 @@
         <td><b>${esc(m.name)}</b>${self ? ' <small>(أنت)</small>' : ''}<br><small style="color:var(--mut)">${esc(m.spec)}${m.phone ? ' · ' + esc(m.phone) : ''}</small></td>
         <td>${own || self ? esc(m.role) : `<select onchange="setRole(${m.row}, this.value)"><option ${m.role === 'فني' ? 'selected' : ''}>فني</option><option ${m.role === 'أدمن' ? 'selected' : ''}>أدمن</option><option ${m.role === 'سوبر أدمن' ? 'selected' : ''}>سوبر أدمن</option></select>`}</td>
         <td style="white-space:nowrap">${own || self ? (m.active ? '✅' : '⏸') : `<button class="btn sm ${m.active ? '' : 'pri'}" onclick="setActive(${m.row}, '${m.active ? 'لا' : 'نعم'}')">${m.active ? '⏸ إيقاف' : '▶ تفعيل'}</button>`}
-          ${m.role === 'أدمن' ? `<button class="btn sm" onclick="editPerms(${m.row})" title="الصلاحيات">🔐</button>` : ''}<button class="btn sm" onclick="editMember(${i})" title="تعديل">✏️</button>${own || self ? '' : `<button class="btn sm bad" onclick="delMember(${i})" title="حذف">🗑️</button>`}</td></tr>`; }).join('');
+          ${m.role === 'أدمن' ? `<button class="btn sm" onclick="editPerms(${m.row})" title="الصلاحيات">🔐</button>` : ''}${!own && !self && m.role !== 'سوبر أدمن' ? `<button class="btn sm ${m.test ? 'pri' : ''}" onclick="toggleTestAcct(${m.row})" title="${m.test ? 'يستلم بوضع التجربة (اضغط للإلغاء)' : 'اجعله يستلم بوضع التجربة'}">🧪</button>` : ''}<button class="btn sm" onclick="editMember(${i})" title="تعديل">✏️</button>${own || self ? '' : `<button class="btn sm bad" onclick="delMember(${i})" title="حذف">🗑️</button>`}</td></tr>`; }).join('');
     const grows = g.guards.map((x, i) => `<tr class="${x.active ? '' : 'off'}">
         <td><b>🛡️ ${esc(x.name)}</b><br><small style="color:var(--mut)">${esc(x.bld)}${x.phone ? ' · ' + esc(x.phone) : ''}</small></td>
         <td style="white-space:nowrap"><button class="btn sm" onclick="copyLink('${esc(x.link)}')">🔗</button>
@@ -664,6 +664,7 @@
     $('mOk').onclick = async () => { const ch = {}; document.querySelectorAll('.pcb').forEach(c => { ch[c.dataset.k] = c.checked; }); closeModal(); await call('setperms', row, JSON.stringify(ch), '✅ حُفظت الصلاحيات'); };
     $('modal').classList.add('on');
   }
+  const toggleTestAcct = async row => { const r = await call('testacct', String(row), '', ''); if (r) { toast(r.on ? '🧪 يستلم الآن بوضع التجربة' : 'أُلغي — لا يستلم بوضع التجربة'); loadTeam(); } };
   const setRole = async (row, role) => { if (await call('setrole', row + '|' + role, '', '✅ تغيّر الدور وأُبلغ العضو')) loadTeam(); };
   const setActive = async (row, v) => { if (await call('setactive', row + '|' + v)) loadTeam(); };
   const setGuard = async (row, v) => { if (await call('setguard', row + '|' + v)) loadTeam(); };
