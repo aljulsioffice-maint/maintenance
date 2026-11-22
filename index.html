@@ -183,6 +183,7 @@
 </head>
 <body>
 <div class="wrap">
+  <div id="demoBanner" style="display:none;background:#fff3cd;color:#704d00;border:1px solid #f2d27b;border-radius:14px;padding:10px 13px;margin:12px 0;font-weight:800;text-align:center">🧪 نسخة معاينة تجريبية — البيانات والبلاغات هنا وهمية ولا تصل للمكتب</div>
 
   <header class="hero">
     <div class="top">
@@ -328,26 +329,85 @@
   const BOT_USER = 'Aljulsi_maint_bot';
   const OFFICE_WA = '966572294942';
   const MAX_PHOTOS = 4, MAX_VIDEO_SEC = 30, MAX_VIDEO_MB = 45, CHUNK = 4 * 1024 * 1024;
-  const TEMP_KEY = 'tmp_' + Math.random().toString(36).slice(2, 10);
-  // يبقى المفتاح نفسه عند إعادة المحاولة بعد انقطاع الشبكة لتفادي تكرار البلاغ.
-  let REQUEST_KEY = lsGet('mr_submit_key', '');
+  const DEMO_MODE = new URLSearchParams(location.search).get('preview') === '1';
+  const DEMO_STORE = {};
+  let TEMP_KEY = lsGet('mr_temp_key', '');
+  let VIDEO_TEMP_KEY = lsGet('mr_video_temp_key', '');
+  if (!/^[a-z0-9_-]{12,64}$/i.test(TEMP_KEY)) { TEMP_KEY = 'tmp_' + (crypto.randomUUID ? crypto.randomUUID().replace(/-/g, '') : (Date.now().toString(36) + Math.random().toString(36).slice(2))); lsSet('mr_temp_key', TEMP_KEY); }
+  if (!/^tmp_[a-z0-9_-]{12,64}$/i.test(VIDEO_TEMP_KEY)) { VIDEO_TEMP_KEY = 'tmp_' + (crypto.randomUUID ? crypto.randomUUID().replace(/-/g, '') : (Date.now().toString(36)+Math.random().toString(36).slice(2))) + '_v'; lsSet('mr_video_temp_key', VIDEO_TEMP_KEY); }
+  let DEMO_NEXT_ID = 26001;
+  const DEMO_TOKEN = () => (crypto.randomUUID ? crypto.randomUUID().replace(/-/g, '').slice(0,20) : (Date.now().toString(16)+Math.random().toString(16).slice(2)).slice(0,20));
+  async function demoRun(fn, args) {
+    await new Promise(r => setTimeout(r, fn.indexOf('Video') >= 0 || fn === 'uploadTempPhoto' ? 350 : 220));
+    if (fn === 'lookupTenant') return {ok:true,found:true,kind:'phone',needPhone:false,units:[{i:0,name:'مستأجر تجريبي',bld:'عمارة التجربة',apt:'12'}]};
+    if (fn === 'uploadTempPhoto') return {ok:true,index:1};
+    if (fn === 'removeTempPhoto' || fn === 'removeTempVideo' || fn === 'uploadTempVideoChunk' || fn === 'finishTempVideo' || fn === 'uploadVideoChunk' || fn === 'finishVideo' || fn === 'flushMedia' || fn === 'mediaDone') return {ok:true,done:true};
+    if (fn === 'startTempVideo') return {ok:true,key:'demo-upload-'+DEMO_TOKEN(),nextOffset:0};
+    if (fn === 'submitRequest') return {ok:true,id:DEMO_NEXT_ID++,token:DEMO_TOKEN()};
+    if (fn === 'submitGuard') return {ok:true,id:DEMO_NEXT_ID++,token:DEMO_TOKEN()};
+    if (fn === 'getTracking') return (args[0]||[]).map((t,i)=>({id:26000+i,token:t,date:'2026-11-22 10:30',type:'سباكة',icon:'🚿',status:'قيد المعالجة',step:2,tech:'فني تجريبي',ts:'work',linked:true,visit:''}));
+    if (fn === 'replyInfo') return {ok:true};
+    if (fn === 'rateTech') return {ok:true};
+    if (fn === 'adminApi') return {ok:true,items:[]};
+    return {ok:true};
+  }
+  function sessionGet(k,d) { if (DEMO_MODE) return Object.prototype.hasOwnProperty.call(DEMO_STORE,k)?DEMO_STORE[k]:d; try { return sessionStorage.getItem(k) || d; } catch(e) { return d; } }
+  function sessionSet(k,v) { if (DEMO_MODE) { DEMO_STORE[k]=v; return; } try { sessionStorage.setItem(k,v); } catch(e) {} }
+  // مفتاح خاص بهذه التبويبة، يبقى عند تحديث الصفحة ولا يتشارك بين تبويبات مستقلة.
+  let REQUEST_KEY = sessionGet('mr_submit_key', '');
   if (!/^[a-f0-9]{32}$/i.test(REQUEST_KEY)) { REQUEST_KEY = ''; }
-  if (!REQUEST_KEY) { REQUEST_KEY = (crypto.randomUUID ? crypto.randomUUID().replace(/-/g, '') : (Date.now().toString(16) + Math.random().toString(16).slice(2)).slice(0, 32)); lsSet('mr_submit_key', REQUEST_KEY); }
+  if (!REQUEST_KEY) { REQUEST_KEY = (crypto.randomUUID ? crypto.randomUUID().replace(/-/g, '') : (Date.now().toString(16) + Math.random().toString(16).slice(2)).slice(0, 32)); sessionSet('mr_submit_key', REQUEST_KEY); }
   let selType = '', photos = [], video = null, lastToken = '', gKind = '', needSrc = false, srcMode = '';
+  let DRAFT_RESTORING = !DEMO_MODE;
   const GUARD = (new URLSearchParams(location.search).get('g') || '').replace(/[^a-f0-9]/g, '').slice(0, 12);
 
-  function lsGet(k, d) { try { const v = localStorage.getItem(k); return v ? JSON.parse(v) : d; } catch (e) { return d; } }
-  function lsSet(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} }
+  function lsGet(k, d) { if (DEMO_MODE) return Object.prototype.hasOwnProperty.call(DEMO_STORE, k) ? DEMO_STORE[k] : d; try { const v = localStorage.getItem(k); return v ? JSON.parse(v) : d; } catch (e) { return d; } }
+  function lsSet(k, v) { if (DEMO_MODE) { DEMO_STORE[k] = v; return; } try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} }
+  function draftDbOpen() {
+    if (DEMO_MODE || !window.indexedDB) return Promise.reject(new Error('التخزين المحلي غير متاح'));
+    return new Promise((resolve,reject) => { const q=indexedDB.open('maintenance-draft-v2',1); q.onupgradeneeded=()=>{if(!q.result.objectStoreNames.contains('files'))q.result.createObjectStore('files',{keyPath:'id'});}; q.onsuccess=()=>resolve(q.result); q.onerror=()=>reject(q.error); });
+  }
+  async function draftFilePut(kind, clientId, file) {
+    if (DEMO_MODE) return;
+    const db=await draftDbOpen(), rec={id:(kind==='photo'?TEMP_KEY:VIDEO_TEMP_KEY)+':'+kind+':'+clientId,tempKey:kind==='photo'?TEMP_KEY:'',videoKey:kind==='video'?VIDEO_TEMP_KEY:'',kind:kind,clientId:clientId,name:file.name,type:file.type,lastModified:file.lastModified,blob:file};
+    await new Promise((resolve,reject)=>{const tx=db.transaction('files','readwrite');tx.objectStore('files').put(rec);tx.oncomplete=resolve;tx.onerror=()=>reject(tx.error);}); db.close();
+  }
+  async function draftFileDelete(kind, clientId, key) {
+    if (DEMO_MODE) return;
+    try { const db=await draftDbOpen(), id=key+':'+kind+':'+clientId; await new Promise((resolve,reject)=>{const tx=db.transaction('files','readwrite');tx.objectStore('files').delete(id);tx.oncomplete=resolve;tx.onerror=()=>reject(tx.error);}); db.close(); } catch(e) {}
+  }
+  async function draftFilesGetAll() {
+    if (DEMO_MODE) return [];
+    const db=await draftDbOpen(); const a=await new Promise((resolve,reject)=>{const q=db.transaction('files','readonly').objectStore('files').getAll();q.onsuccess=()=>resolve(q.result||[]);q.onerror=()=>reject(q.error);});db.close();return a;
+  }
+  async function draftFilesClear(photoKey, videoKey) {
+    if (DEMO_MODE) return;
+    try { const all=await draftFilesGetAll(), db=await draftDbOpen(); await new Promise((resolve,reject)=>{const tx=db.transaction('files','readwrite'), st=tx.objectStore('files');all.filter(x=>x.tempKey===photoKey||x.videoKey===videoKey).forEach(x=>st.delete(x.id));tx.oncomplete=resolve;tx.onerror=()=>reject(tx.error);});db.close(); } catch(e) {}
+  }
+  function persistDraftState() {
+    lsSet('mr_draft',{desc:$('desc').value,selType:selType,urgent:$('urgent').checked,srcMode:srcMode,needSrc:needSrc,srcApt:$('srcApt').value,name:$('name').value,bld:$('bld').value,apt:$('apt').value,phone:$('phone').value,phone2:$('phone2').value,gapt:$('gapt').value,gKind:gKind});
+  }
+  function restoreDraftState() {
+    const d=lsGet('mr_draft',{}); if(!d||typeof d!=='object')return;
+    ['desc','name','bld','apt','phone','phone2','srcApt','gapt'].forEach(k=>{if(d[k]!=null && $(k))$(k).value=d[k];});
+    if(d.selType){selType=d.selType;document.querySelectorAll('#types .type').forEach(x=>x.classList.toggle('on',x.dataset.k===selType));drawChips();}
+    if(d.urgent){$('urgent').checked=true;$('urgentBox').classList.add('on');}
+    if(d.srcMode){srcMode=d.srcMode;needSrc=!!d.needSrc;$('f_src').classList.remove('hidden');$('srcSame').classList.toggle('on',srcMode==='same');$('srcUp').classList.toggle('on',srcMode==='up');$('srcApt').classList.toggle('hidden',srcMode!=='up');}
+    if(d.gKind){gKind=d.gKind;document.querySelectorAll('#gKinds .type').forEach(x=>x.classList.toggle('on',x.dataset.k===gKind));}
+    refreshSteps();
+  }
 
   function apiPost(fn, args, keepalive) {
     return fetch(API_URL, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' },
       body: JSON.stringify({ fn: fn, args: args }), credentials: 'omit', redirect: 'follow', keepalive: !!keepalive });
   }
   function run(fn, ...args) {
+    if (DEMO_MODE) return demoRun(fn, args);
     if (!API_URL) return new Promise((res, rej) => google.script.run.withSuccessHandler(res).withFailureHandler(rej)[fn](...args));
     return apiPost(fn, args).then(r => r.json()).then(j => { if (!j.ok) throw new Error(j.error); return j.result; });
   }
   function fire(fn, ...args) {
+    if (DEMO_MODE) return;
     try { if (!API_URL) google.script.run[fn](...args); else apiPost(fn, args, true).catch(() => {}); } catch (e) {}
   }
   const $ = id => document.getElementById(id);
@@ -360,7 +420,7 @@
     selType = b.dataset.k;
     document.querySelectorAll('#types .type').forEach(x => x.classList.toggle('on', x === b));
     $('f_type').classList.remove('bad');
-    drawChips(); refreshSteps();
+    drawChips(); refreshSteps(); persistDraftState();
   });
   function drawChips() {
     const list = QUICK[selType] || [];
@@ -373,14 +433,15 @@
     const d = $('desc'), cur = d.value.trim();
     if (cur.indexOf(c.t) < 0) d.value = cur ? cur + '، ' + c.t : c.t;
     if (c.src) { needSrc = true; $('f_src').classList.remove('hidden'); }
-    $('f_desc').classList.remove('bad'); refreshSteps();
+    $('f_desc').classList.remove('bad'); refreshSteps(); persistDraftState();
   }
   function setSrc(m) {
     srcMode = m; $('srcSame').classList.toggle('on', m === 'same'); $('srcUp').classList.toggle('on', m === 'up');
     $('srcApt').classList.toggle('hidden', m !== 'up'); $('f_src').classList.remove('bad');
     if (m === 'up') setTimeout(() => $('srcApt').focus({ preventScroll: true }), 50);
+    persistDraftState();
   }
-  $('waBtn').href = 'https://wa.me/' + OFFICE_WA;
+  $('waBtn').href = DEMO_MODE ? 'javascript:void(0)' : 'https://wa.me/' + OFFICE_WA;
   let ident = null, lkSeq = 0, manualOn = false;
   const plausible = v => /^[12]\d{9}$/.test(v) || /^05\d{8}$/.test(v) || /^5\d{8}$/.test(v) || /^9665\d{8}$/.test(v);
   function manualValid() { return $('name').value.trim().length >= 2 && $('bld').value && $('apt').value.trim() && phoneOk($('phone').value); }
@@ -433,7 +494,8 @@
     $('f_lk').classList.remove('bad'); lkSeq++;
     if (plausible(v)) doLookup(v); else { $('lkSt').className = 'lkst'; $('lkSt').textContent = v.length ? 'أكمل الرقم…' : 'نجيب بياناتك تلقائياً — بدون تعبئة 👌'; }
   });
-  $('waBtn').href = 'https://wa.me/' + OFFICE_WA;
+  $('waBtn').href = DEMO_MODE ? 'javascript:void(0)' : 'https://wa.me/' + OFFICE_WA;
+  if (DEMO_MODE) { $('demoBanner').style.display = 'block'; $('lk').value = '0550000000'; setTimeout(() => doLookup('0550000000'), 80); }
   const prof = lsGet('mr_profile', {});
   if (prof.lk && prof.name) { ident = { lk: prof.lk, pick: prof.pick || 0, name: prof.name, bld: prof.bld, apt: prof.apt, needPhone: !!prof.needPhone }; if (prof.phone2) $('phone2').value = prof.phone2; }
   else if (prof.manual) { ['name', 'bld', 'apt', 'phone'].forEach(k => { if (prof[k]) $(k).value = prof[k]; }); }
@@ -443,11 +505,14 @@
   if (!GUARD && ident) { show1('prof'); drawProf(); }
   else if (!GUARD && prof.manual && manualValid()) { show1('prof'); drawProf(); }
   ['name', 'apt', 'phone', 'phone2', 'desc'].forEach(id => $(id).addEventListener('input', () => { const f = $('f_' + id); if (f) f.classList.remove('bad'); refreshSteps(); }));
-  $('bld').addEventListener('input', () => { $('f_bld').classList.remove('bad'); refreshSteps(); });
+  $('bld').addEventListener('input', () => { $('f_bld').classList.remove('bad'); refreshSteps(); persistDraftState(); });
+  ['name','apt','phone','phone2','desc','srcApt','gapt'].forEach(id=>{if($(id))$(id).addEventListener('input',persistDraftState);});
+  $('urgent').addEventListener('change',persistDraftState);
+  restoreDraftState();
 
   function refreshSteps() {
     if (GUARD) return;
-    const uploading = photos.some(p => p.uploading);
+    const uploading = photos.some(p => p.uploading) || !!(video && video.uploading);
     
     const s1 = profComplete(), s2 = !!(photos.length || video), s3 = !!selType && ($('desc').value.trim().length >= 3 || photos.length || video);
     [s1, s2, s3].forEach((ok, i) => { $('st' + (i + 1)).classList.toggle('ok', !!ok && !uploading); });
@@ -456,7 +521,7 @@
     const n = [s1, s3].filter(Boolean).length;
     
     $('stLbl').textContent = uploading ? '⏳ جاري الرفع…' : (n === 2 ? 'جاهز للإرسال ✓' : (n + ' من 2'));
-    $('subHint').textContent = uploading ? 'انتظر قليلاً حتى يتم رفع الصور' : (n === 2 ? 'ضغطة وحدة وتوصل للمكتب 👇' : (!s1 ? 'اكتب هويتك أو جوالك أول' : 'اختر نوع المشكلة واشرحها'));
+    $('subHint').textContent = uploading ? 'انتظر حتى يكتمل رفع الصور والفيديو'  : (n === 2 ? 'ضغطة وحدة وتوصل للمكتب 👇' : (!s1 ? 'اكتب هويتك أو جوالك أول' : 'اختر نوع المشكلة واشرحها'));
 
     const btn = $('sendBtn');
     if (btn) {
@@ -474,13 +539,13 @@
 
   refreshMyBtn();
   if (GUARD) {
-    ['tenCard', 'probCard', 'tgBtn', 'shBtn', 'mediaCard'].forEach(k => { const e = $(k); if (e) e.classList.add('hidden'); });
+    ['tenCard', 'probCard', 'tgBtn', 'shBtn'].forEach(k => { const e = $(k); if (e) e.classList.add('hidden'); });
     $('guardCard').classList.remove('hidden'); $('mediaH').textContent = 'الصورة';
-    $('guardCard').appendChild($('photoCam').parentNode);
+    $('guardCard').appendChild($('mediaCard')); $('mediaCard').classList.remove('hidden');
     document.querySelectorAll('.media-btns .mbtn').forEach((b, i) => { if (i > 1) b.classList.add('hidden'); });
     $('gKinds').addEventListener('click', e => {
       const b = e.target.closest('.type'); if (!b) return;
-      gKind = b.dataset.k;
+      gKind = b.dataset.k; persistDraftState();
       document.querySelectorAll('#gKinds .type').forEach(x => x.classList.toggle('on', x === b));
       $('mediaH').innerHTML = gKind === 'maint' ? 'صورة المشكلة <small>(مطلوبة)</small>' : 'صورة <small>(اختيارية)</small>';
     });
@@ -490,7 +555,7 @@
       const b = e.target.closest('button'); if (!b) return;
       let v = $('gapt').value; const k = b.dataset.k;
       if (k === 'b') v = v.slice(0, -1); else if (k === 'c') v = ''; else if (v.length < 4) v += k;
-      $('gapt').value = v; $('gaptv').textContent = v || '—';
+      $('gapt').value = v; $('gaptv').textContent = v || '—'; persistDraftState();
     });
     run('guardInfo', GUARD).then(r => {
       if (r && r.ok) $('guardH').textContent = 'حارس عمارة ' + r.building;
@@ -505,18 +570,21 @@
   ['photoIn', 'photoCam'].forEach(id => $(id).addEventListener('change', async e => {
     const files = Array.from(e.target.files || []);
     for (const f of files) {
+      if (DRAFT_RESTORING) { showErr('انتظر حتى تكتمل استعادة المرفقات المحفوظة.'); break; }
       if (photos.length >= MAX_PHOTOS) { showErr('الحد ' + MAX_PHOTOS + ' صور'); break; }
       
-      const p = { file: f, url: URL.createObjectURL(f), uploading: true };
+      const clientId = crypto.randomUUID ? crypto.randomUUID().replace(/-/g,'') : (Date.now().toString(36)+Math.random().toString(36).slice(2));
+      const p = { file: f, clientId:clientId, url: URL.createObjectURL(f), uploading: true };
       photos.push(p); drawThumbs();
       
       try {
+        try { await draftFilePut('photo', clientId, f); } catch(e) {}
         const b64 = await compress(f);
-        const r = await run('uploadTempPhoto', b64, TEMP_KEY);
-        if (r && r.ok) p.uploading = false;
-        else { showErr('تعذر رفع الصورة'); photos = photos.filter(x => x !== p); }
+        const r = await run('uploadTempPhoto', b64, TEMP_KEY, clientId);
+        if (r && r.ok) { p.uploading = false; p.tempIndex = r.index; if (p.cancelled) { run('removeTempPhoto', TEMP_KEY, p.tempIndex, p.clientId); draftFileDelete('photo',p.clientId,TEMP_KEY); } }
+        else { showErr('تعذر رفع الصورة'); photos = photos.filter(x => x !== p); run('removeTempPhoto',TEMP_KEY,0,p.clientId).catch(()=>{}); draftFileDelete('photo',p.clientId,TEMP_KEY); }
       } catch (err) { 
-        photos = photos.filter(x => x !== p); 
+        photos = photos.filter(x => x !== p); URL.revokeObjectURL(p.url); run('removeTempPhoto',TEMP_KEY,0,p.clientId).catch(()=>{}); draftFileDelete('photo',p.clientId,TEMP_KEY); showErr('تعذر رفع الصورة. أعد اختيارها قبل إرسال البلاغ.');
       }
       drawThumbs(); refreshSteps();
     }
@@ -525,11 +593,38 @@
   ['videoIn', 'videoCam'].forEach(id => $(id).addEventListener('change', async e => {
     const f = e.target.files && e.target.files[0]; e.target.value = '';
     if (!f) return;
+    if (DRAFT_RESTORING) return showErr('انتظر حتى تكتمل استعادة المرفقات المحفوظة.');
     const dur = await videoDuration(f);
-    if (dur > MAX_VIDEO_SEC + 1) return showErr('الفيديو أطول من ' + MAX_VIDEO_SEC + ' ثانية — صوّر مقطعاً أقصر');
-    if (f.size > MAX_VIDEO_MB * 1024 * 1024) return showErr('حجم الفيديو كبير — صوّر مقطعاً أقصر');
-    video = { file: f, url: URL.createObjectURL(f) }; drawThumbs();
+    if (!dur || dur > MAX_VIDEO_SEC + 1) return showErr('تعذر قراءة مدة الفيديو أو أنه أطول من ' + MAX_VIDEO_SEC + ' ثانية — اختر مقطعاً أقصر');
+    if (f.size > MAX_VIDEO_MB * 1024 * 1024) return showErr('حجم الفيديو كبير — الحد ' + MAX_VIDEO_MB + 'MB');
+    if (!/^video\//i.test(f.type || '')) return showErr('صيغة الفيديو غير مدعومة');
+    if (video && video.url) { const oldKey = VIDEO_TEMP_KEY; video.cancelled = true; URL.revokeObjectURL(video.url); run('removeTempVideo', oldKey).catch(() => {}); draftFileDelete('video','video',oldKey); }
+    VIDEO_TEMP_KEY = 'tmp_' + (crypto.randomUUID ? crypto.randomUUID().replace(/-/g, '') : (Date.now().toString(36)+Math.random().toString(36).slice(2))) + '_v'; lsSet('mr_video_temp_key', VIDEO_TEMP_KEY);
+    video = { file: f, url: URL.createObjectURL(f), uploading: true, uploaded: false, progress: 0, uploadKey: '' };
+    const selectedVideo = video;
+    const videoKey = VIDEO_TEMP_KEY;
+    try { await draftFilePut('video', 'video', f); } catch(e) {}
+    drawThumbs(); refreshSteps();
+    await uploadVideoFile(selectedVideo, videoKey);
   }));
+  async function restoreDraftFiles() {
+    if (DEMO_MODE) return;
+    try {
+      const all=await draftFilesGetAll();
+      const savedPhotos=all.filter(x=>x.kind==='photo'&&x.tempKey===TEMP_KEY);
+      for (const rec of savedPhotos) {
+        const file=new File([rec.blob],rec.name,{type:rec.type,lastModified:rec.lastModified}), p={file:file,clientId:rec.clientId,url:URL.createObjectURL(file),uploading:true};
+        photos.push(p); drawThumbs();
+        try { const r=await run('uploadTempPhoto',await compress(file),TEMP_KEY,rec.clientId); if(r&&r.ok){p.tempIndex=r.index;p.uploading=false;}else throw new Error('photo restore'); }
+        catch(e){p.uploading=false;p.error=true;showErr('تعذر استعادة إحدى الصور المحفوظة؛ أعد اختيارها.');}
+        drawThumbs();
+      }
+      const savedVideo=all.filter(x=>x.kind==='video'&&x.videoKey===VIDEO_TEMP_KEY)[0];
+      if(savedVideo){const file=new File([savedVideo.blob],savedVideo.name,{type:savedVideo.type,lastModified:savedVideo.lastModified}),url=URL.createObjectURL(file),v={file:file,url:url,uploading:true,uploaded:false,progress:0};video=v;drawThumbs();const dur=await videoDuration(file);if(dur>MAX_VIDEO_SEC+1){v.uploading=false;v.error=true;showErr('الفيديو المحفوظ تجاوز المدة المسموحة.');}else await uploadVideoFile(v,VIDEO_TEMP_KEY);}
+    } catch(e) { console.warn('draft restore',e); }
+  }
+  if (!DEMO_MODE) setTimeout(()=>restoreDraftFiles().finally(()=>{DRAFT_RESTORING=false;drawThumbs();refreshSteps();}),150);
+
   function videoDuration(file) {
     return new Promise(res => {
       const v = document.createElement('video'); v.preload = 'metadata';
@@ -537,20 +632,43 @@
       v.onerror = () => res(0); v.src = URL.createObjectURL(file);
     });
   }
+  async function uploadVideoFile(selectedVideo, videoKey) {
+    const f=selectedVideo.file;
+    try {
+      const st = await retryRun('startTempVideo', videoKey, f.size, f.type || 'video/mp4');
+      if (!st || !st.ok || (!st.key && !st.complete)) throw new Error((st && st.msg) || 'تعذر بدء رفع الفيديو');
+      selectedVideo.uploadKey = st.key || '';
+      let off = Number(st.nextOffset || 0);
+      while (!st.complete && off < f.size) {
+        const end = Math.min(off + CHUNK, f.size), b64 = await blobToB64(f.slice(off, end));
+        const part = await retryRun('uploadVideoChunk', st.key, off, b64);
+        if (!part || !part.ok) throw new Error('تعذر رفع جزء من الفيديو');
+        const next = Number(part.nextOffset); off = Number.isFinite(next) && next > off ? next : end;
+        selectedVideo.progress = Math.min(99, Math.round(off * 100 / f.size)); if (video === selectedVideo) drawThumbs();
+      }
+      const done = st.complete ? {ok:true} : await retryRun('finishTempVideo', videoKey, st.key);
+      if (!done || !done.ok) throw new Error('لم يكتمل حفظ الفيديو');
+      if (video !== selectedVideo || selectedVideo.cancelled) { await run('removeTempVideo', videoKey); await draftFileDelete('video','video',videoKey); return; }
+      selectedVideo.uploading = false; selectedVideo.uploaded = true; selectedVideo.progress = 100; drawThumbs(); refreshSteps();
+    } catch (err) {
+      if (video === selectedVideo) { selectedVideo.uploading = false; selectedVideo.uploaded = false; selectedVideo.error = true; drawThumbs(); refreshSteps(); showErr('تعذر رفع الفيديو. احتفظنا بالمسودة؛ يمكنك إعادة اختيار المقطع نفسه لاستكمال الرفع.'); }
+      else { try { await run('removeTempVideo', videoKey); } catch (ignore) {} }
+    }
+  }
   function drawThumbs() {
     const h = photos.map((p, i) => `<div class="thumb" style="${p.uploading ? 'opacity:0.5' : ''}">
       <img src="${p.url}">
-      ${p.uploading ? '<div style="position:absolute;top:30%;left:30%;font-size:20px">⏳</div>' : '<div style="position:absolute;bottom:4px;right:4px;color:#fff;background:green;border-radius:50%;width:20px;height:20px;text-align:center;font-size:12px;">✓</div>'}
+      ${p.uploading ? '<div style="position:absolute;top:30%;left:30%;font-size:20px">⏳</div>' : `<div style="position:absolute;bottom:4px;right:4px;color:#fff;background:${p.error ? '#b91c1c' : 'green'};border-radius:50%;width:20px;height:20px;text-align:center;font-size:12px;">${p.error ? '!' : '✓'}</div>`}
       <button onclick="rmPhoto(${i})">✕</button></div>`);
-    if (video) h.push(`<div class="thumb"><video src="${video.url}" muted></video><button onclick="rmVideo()">✕</button></div>`);
+    if (video) h.push(`<div class="thumb" style="${video.uploading ? 'opacity:.55' : ''}"><video src="${video.url}" muted></video>${video.uploading ? `<span style="position:absolute;inset:0;display:grid;place-items:center;color:white;background:#0008;font-size:12px;font-weight:800">${video.progress || 0}%</span>` : `<span style="position:absolute;bottom:4px;right:4px;color:#fff;background:${video.error ? '#b91c1c' : 'green'};border-radius:50%;width:20px;height:20px;text-align:center;font-size:12px">${video.error ? '!' : '✓'}</span>`}${video.error ? '<button style="left:34px;background:#b7791f" onclick="retryVideo()">↻</button>' : ''}<button onclick="rmVideo()">✕</button></div>`);
     $('thumbs').innerHTML = h.join('');
     
-    const uploadingCount = photos.filter(p => p.uploading).length;
+    const uploadingCount = photos.filter(p => p.uploading).length + (video && video.uploading ? 1 : 0);
     const prog = $('uploadProgress');
     if (prog) {
       if (uploadingCount > 0) {
         prog.style.display = 'block';
-        prog.textContent = '⏳ جاري رفع ' + uploadingCount + ' صورة… يرجى الانتظار حتى يكتمل الرفع.';
+        prog.textContent = '⏳ جاري رفع ' + uploadingCount + ' مرفق… لا تضغط إرسال قبل ظهور علامة الاكتمال.';
       } else {
         prog.style.display = 'none';
       }
@@ -558,8 +676,9 @@
 
     $('f_desc').classList.remove('bad'); refreshSteps();
   }
-  function rmPhoto(i) { photos.splice(i, 1); drawThumbs(); }
-  function rmVideo() { video = null; drawThumbs(); }
+  function rmPhoto(i) { const p = photos[i]; if (!p) return; p.cancelled = true; photos.splice(i, 1); run('removeTempPhoto', TEMP_KEY, p.tempIndex || 0, p.clientId).catch(() => {}); if (p.tempIndex) photos.slice(i).forEach(x => { if (x.tempIndex > p.tempIndex) x.tempIndex--; }); draftFileDelete('photo',p.clientId,TEMP_KEY); drawThumbs(); }
+  async function retryVideo() { if (!video || !video.error) return; video.error=false; video.uploading=true; video.progress=0; drawThumbs(); refreshSteps(); await uploadVideoFile(video,VIDEO_TEMP_KEY); }
+  function rmVideo() { const old = video, oldKey = VIDEO_TEMP_KEY; if (old) { old.cancelled = true; if (old.url) URL.revokeObjectURL(old.url); run('removeTempVideo', oldKey).catch(() => {}); draftFileDelete('video','video',oldKey); } video = null; VIDEO_TEMP_KEY = 'tmp_' + (crypto.randomUUID ? crypto.randomUUID().replace(/-/g, '') : (Date.now().toString(36)+Math.random().toString(36).slice(2))) + '_v'; lsSet('mr_video_temp_key', VIDEO_TEMP_KEY); drawThumbs(); refreshSteps(); }
 
   async function compress(file) {
     const url = URL.createObjectURL(file);
@@ -574,6 +693,14 @@
   function blobToB64(blob) {
     return new Promise((res, rej) => { const r = new FileReader(); r.onload = () => res(String(r.result).split(',')[1]); r.onerror = rej; r.readAsDataURL(blob); });
   }
+  async function retryRun(fn, ...args) {
+    let last;
+    for (let attempt = 0; attempt < 3; attempt++) {
+      try { return await run(fn, ...args); }
+      catch (e) { last = e; if (attempt < 2) await new Promise(r => setTimeout(r, 700 * Math.pow(2, attempt))); }
+    }
+    throw last || new Error('تعذر الاتصال بالخادم');
+  }
 
   function showErr(m) { const e = $('err'); e.textContent = m; e.style.display = m ? 'block' : 'none'; if (m) window.scrollTo({ top: 0, behavior: 'smooth' }); }
   function bad(field, msg) {
@@ -586,21 +713,23 @@
   }
   function progress(text, pct) { $('ovText').textContent = text; $('ovBar').style.width = Math.round(pct) + '%'; }
 
+  let SEND_LOCK = false;
   async function send() {
+    if (SEND_LOCK) return;
+    if (DRAFT_RESTORING) return showErr('⏳ جارٍ استعادة المسودة والمرفقات المحفوظة. انتظر لحظات ثم أرسل.');
     showErr('');
     // الزر مقفول مسبقاً، لكن نضع هذا كاحتياط
-    if (photos.some(p => p.uploading)) {
-      return showErr('⏳ يرجى الانتظار حتى تكتمل عملية رفع الصور قبل إرسال البلاغ.');
-    }
+    if (photos.some(p => p.uploading) || (video && video.uploading)) return showErr('⏳ انتظر حتى يكتمل رفع جميع الصور والفيديو.');
+    if (video && !video.uploaded) return showErr('تعذر إكمال رفع الفيديو. احذفه وأعد اختياره قبل إرسال البلاغ.');
     let f, call;
     if (GUARD) {
       const gapt = $('gapt').value.trim();
       if (!gKind) return showErr('اختر: وايت ماء أو وايت صرف أو صيانة');
       if (!gapt) return showErr('اكتب رقم الشقة');
       if (gKind === 'maint' && !photos.length && !video) return showErr('صوّر المشكلة');
-      call = () => run('submitGuard', GUARD, gapt, gKind, photos.length + (video ? 1 : 0));
+      call = () => run('submitGuard', GUARD, gapt, gKind, photos.length + (video ? 1 : 0), TEMP_KEY, REQUEST_KEY);
     } else {
-      f = { desc: $('desc').value.trim(), type: selType, urgent: $('urgent').checked, website: $('website').value, mediaCount: photos.length + (video ? 1 : 0), tmpKey: TEMP_KEY, requestKey: REQUEST_KEY };
+      f = { desc: $('desc').value.trim(), type: selType, urgent: $('urgent').checked, website: $('website').value, mediaCount: photos.length + (video ? 1 : 0), tmpKey: TEMP_KEY, videoTmpKey: VIDEO_TEMP_KEY, requestKey: REQUEST_KEY };
       if (ident) {
         f.lk = ident.lk; f.pick = ident.pick;
         if (ident.needPhone) { f.phone = toLatin($('phone2').value).trim(); if (!phoneOk(f.phone)) return bad('phone2'); }
@@ -622,6 +751,7 @@
       call = () => run('submitRequest', f);
     }
 
+    SEND_LOCK = true;
     $('sendBtn').disabled = true; 
     $('sendBtn').textContent = '⏳ جاري معالجة البلاغ…';
     $('overlay').style.display = 'flex'; 
@@ -638,51 +768,34 @@
     if (!GUARD) lsSet('mr_profile', ident ? { lk: ident.lk, pick: ident.pick, name: ident.name, bld: ident.bld, apt: ident.apt, needPhone: ident.needPhone, phone2: f.phone || '' } : { manual: true, name: f.name, bld: f.district, apt: f.apt, phone: f.phone });
     else { $('gapt').value = ''; $('gaptv').textContent = '—'; gKind = ''; document.querySelectorAll('#gKinds .type').forEach(x => x.classList.remove('on')); }
 
-    const vd = video;
-    
-    if (vd) {
-      progress('⏳ جاري رفع الفيديو (قد يستغرق دقيقة)…', 10);
-      let failed = 0;
-      try {
-        const st = await run('startVideo', res.id, res.token, vd.file.size, vd.file.type);
-        if (!st.ok) throw new Error(st.msg);
-        for (let off = 0; off < vd.file.size; off += CHUNK) {
-          const b64 = await blobToB64(vd.file.slice(off, off + CHUNK));
-          await run('uploadVideoChunk', st.key, off, b64);
-          progress('⏳ جاري رفع الفيديو (' + Math.round(100 * (off + b64.length) / vd.file.size) + '%)…', 10 + Math.round(80 * (off + b64.length) / vd.file.size));
-        }
-        await run('finishVideo', res.id, res.token, st.key);
-      } catch (e) { failed++; }
-      
-      if (failed) {
-        $('overlay').style.display = 'none';
-        $('sendBtn').disabled = false;
-        $('sendBtn').textContent = 'إرسال البلاغ';
-        return showErr('تم إنشاء البلاغ، لكن تعذر رفع الفيديو. يمكنك متابعة الطلب وإرفاق الفيديو من صفحة "طلباتي".');
-      }
-    }
+    // جميع المرفقات رُفعت مسبقاً؛ ربطها بالبلاغ يتم داخل الخادم عند الإنشاء.
 
     progress('✅ تم رفع المرفقات، جاري الإرسال النهائي…', 95);
-    fire('flushMedia', res.id, res.token);
+    let mediaFlush = {ok:true,pending:0};
+    try { mediaFlush = await run('flushMedia', res.id, res.token); } catch (e) { mediaFlush = {ok:false,pending:photos.length + (video ? 1 : 0)}; }
     
     lastToken = res.token;
     $('tgBtn').href = 'https://wa.me/' + OFFICE_WA + '?text=' + encodeURIComponent('بلاغ صيانة رقم #' + res.id + ' — ' + (GUARD ? 'من حارس العمارة' : 'أرجو تأكيد الاستلام'));
     
+    SEND_LOCK = false;
     $('overlay').style.display = 'none'; 
     $('sendBtn').disabled = false; 
     $('sendBtn').textContent = 'إرسال البلاغ';
     
     $('doneNum').textContent = '#' + res.id;
-    $('doneWarn').textContent = '✅ تم استلام البلاغ مع جميع المرفقات';
+    $('doneWarn').textContent = mediaFlush && mediaFlush.ok ? '✅ تم استلام البلاغ وربط المرفقات. يجري إرسال نسخة المكتب.' : '✅ تم إنشاء البلاغ وحفظ المرفقات. تعثر إرسال نسخة تيليجرام مؤقتاً وسيعاد الإرسال تلقائياً.';
     
-    if (!GUARD) { REQUEST_KEY = (crypto.randomUUID ? crypto.randomUUID().replace(/-/g, '') : (Date.now().toString(16) + Math.random().toString(16).slice(2)).slice(0, 32)); lsSet('mr_submit_key', REQUEST_KEY); }
-    photos = []; video = null; drawThumbs(); $('desc').value = ''; $('urgent').checked = false;
+    REQUEST_KEY = (crypto.randomUUID ? crypto.randomUUID().replace(/-/g, '') : (Date.now().toString(16) + Math.random().toString(16).slice(2)).slice(0, 32)); sessionSet('mr_submit_key', REQUEST_KEY);
+    await draftFilesClear(TEMP_KEY, VIDEO_TEMP_KEY); lsSet('mr_draft',{});
+    photos.forEach(p => { if (p.url) URL.revokeObjectURL(p.url); });
+    if (video && video.url) URL.revokeObjectURL(video.url);
+    photos = []; video = null; TEMP_KEY = 'tmp_' + (crypto.randomUUID ? crypto.randomUUID().replace(/-/g, '') : (Date.now().toString(36)+Math.random().toString(36).slice(2))); lsSet('mr_temp_key', TEMP_KEY); VIDEO_TEMP_KEY = 'tmp_' + (crypto.randomUUID ? crypto.randomUUID().replace(/-/g, '') : (Date.now().toString(36)+Math.random().toString(36).slice(2))) + '_v'; lsSet('mr_video_temp_key', VIDEO_TEMP_KEY); drawThumbs(); $('desc').value = ''; $('urgent').checked = false;
     $('urgentBox').classList.remove('on'); selType = ''; document.querySelectorAll('.type').forEach(x => x.classList.remove('on')); drawChips();
     if (!GUARD) { if (!ident) { manualOn = false; } show1('prof'); drawProf(); refreshSteps(); }
     
     show('doneView'); refreshMyBtn();
   }
-  function endSend(msg) { $('overlay').style.display = 'none'; $('sendBtn').disabled = false; $('sendBtn').textContent = 'إرسال البلاغ'; showErr(msg); }
+  function endSend(msg) { SEND_LOCK = false; $('overlay').style.display = 'none'; $('sendBtn').disabled = false; $('sendBtn').textContent = 'إرسال البلاغ'; showErr(msg); }
 
   function show(id) {
     ['formView', 'doneView', 'trackView'].forEach(v => $(v).classList.toggle('hidden', v !== id));
