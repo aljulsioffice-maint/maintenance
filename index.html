@@ -113,6 +113,9 @@
   .tabs2 .tabbtn { margin-bottom: 0; }
   .tabbtn.on { background: var(--pri, #0b6bcb); color: #fff; border-color: transparent; }
   .media-btns { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .media-btns.icons { display: flex; gap: 8px; }
+  .media-btns.icons .mbtn { flex: 1; min-width: 0; padding: 12px 0; }
+  .media-btns.icons .mbtn .ic { font-size: 30px; line-height: 1; }
   .mbtn { border: 2px dashed var(--accent); border-radius: 16px; background: var(--accent-soft); color: var(--accent);
     padding: 14px 6px; font: inherit; font-weight: 800; cursor: pointer; text-align: center; font-size: 15px; }
   .mbtn .ic { display: block; font-size: 28px; }
@@ -260,7 +263,7 @@
     <div class="card" id="probCard">
       <div class="sec" id="sec2"><div class="num">2</div><h2>وش المشكلة؟</h2></div>
       <div class="fld" id="f_loc"><label>وين المشكلة؟</label>
-        <div class="chips" style="flex-wrap:wrap"><button type="button" class="chip on" id="locIn" onclick="setLoc(false)">🚪 داخل شقتي</button><button type="button" class="chip" id="locOut" onclick="setLoc(true)">🏢 خارج الشقة (المبنى)</button></div>
+        <div class="chips" style="flex-wrap:wrap"><button type="button" class="chip on" id="locIn" onclick="setLoc(false)">🚪 داخل شقتي</button><button type="button" class="chip" id="locOut" onclick="setLoc(true)">🏢 خارج الشقة</button></div>
         <div class="em hidden" id="locHint" style="display:none">اختر النوع، واكتب وين مكان المشكلة (الدرج، الأسياب، الحوش، المصعد…)</div></div>
       <div class="fld" id="f_type"><div class="types" id="types"></div><div class="em">اختر نوع المشكلة</div></div>
       <label class="urgent" id="urgentBox">
@@ -278,14 +281,16 @@
 
     <div class="card">
       <div class="sec" id="sec3"><div class="num">3</div><h2 id="mediaH">صور أو فيديو <small>(اختياري)</small></h2></div>
-      <div class="media-btns">
-        <button class="mbtn big" type="button" onclick="document.getElementById('cameraPhotoIn').click()"><span class="ic">📷</span>تصوير صورة</button>
-        <button class="mbtn sec2" type="button" onclick="document.getElementById('cameraVideoIn').click()"><span class="ic">🎥</span>تصوير فيديو</button>
-        <button class="mbtn sec2" type="button" onclick="document.getElementById('mediaIn').click()"><span class="ic">🖼️</span>الاستديو — صور وفيديو</button>
+      <div class="media-btns icons">
+        <button class="mbtn" type="button" title="تصوير صورة" aria-label="تصوير صورة" onclick="document.getElementById('cameraPhotoIn').click()"><span class="ic">📷</span></button>
+        <button class="mbtn vid" type="button" title="تصوير فيديو" aria-label="تصوير فيديو" onclick="document.getElementById('cameraVideoIn').click()"><span class="ic">🎥</span></button>
+        <button class="mbtn" type="button" title="صور من الاستديو" aria-label="صور من الاستديو" onclick="document.getElementById('galleryPhotoIn').click()"><span class="ic">🖼️</span></button>
+        <button class="mbtn vid" type="button" title="فيديو من الاستديو" aria-label="فيديو من الاستديو" onclick="document.getElementById('galleryVideoIn').click()"><span class="ic">🎞️</span></button>
       </div>
       <input type="file" id="cameraPhotoIn" accept="image/*" capture="environment" class="hidden">
       <input type="file" id="cameraVideoIn" accept="video/*" capture="environment" class="hidden">
-      <input type="file" id="mediaIn" accept="image/*,video/*" multiple class="hidden">
+      <input type="file" id="galleryPhotoIn" accept="image/jpeg,image/png,image/webp,image/heic,image/heif" multiple class="hidden">
+      <input type="file" id="galleryVideoIn" accept="video/mp4,video/quicktime,video/webm,video/3gpp,video/x-m4v" class="hidden">
       <div class="thumbs" id="thumbs"></div>
       <div class="hint">حتى 4 صور، وفيديو واحد لا يزيد عن 30 ثانية. الصورة تسرّع الحل. المرفقات تُرفع فور اختيارها وتُحفظ لو أغلقت الصفحة.</div>
       <div id="uploadProgress" class="hint" style="color:var(--accent);font-weight:800;display:none;margin-top:8px"></div>
@@ -347,7 +352,7 @@
     elev: [{ t: 'المصعد معطّل' }, { t: 'باب المصعد لا يغلق' }],
     other: [{ t: 'باب المدخل' }, { t: 'البوابة' }, { t: 'الحوش' }],
   };
-  let locOut = false, chipSel = '';
+  let locOut = false, chipSel = [];
   const curQuick = () => (locOut ? QUICK_OUT : QUICK)[selType] || [];
   function setLoc(out) {
     locOut = !!out;
@@ -397,30 +402,28 @@
   function drawChips() {
     const list = curQuick();
     $('chips').classList.toggle('hidden', !list.length);
-    chipSel = '';
+    chipSel = [];
     paintChips();
     needSrc = false; srcMode = ''; $('f_src').classList.add('hidden'); $('srcSame').classList.remove('on'); $('srcUp').classList.remove('on'); $('srcRoof').classList.remove('on'); $('srcUnk').classList.remove('on'); $('srcApt').classList.add('hidden');
   }
   function paintChips() {
     const list = curQuick();
-    $('chips').innerHTML = list.map((c, i) => `<button type="button" class="chip${c.t === chipSel ? ' on' : ''}" onclick="addChip(${i})">${c.t}</button>`).join('');
+    $('chips').innerHTML = list.map((c, i) => `<button type="button" class="chip${chipSel.indexOf(c.t) >= 0 ? ' on' : ''}" onclick="addChip(${i})">${chipSel.indexOf(c.t) >= 0 ? '✓ ' : ''}${c.t}</button>`).join('');
   }
-  // اختيار واحد: يُنار، واختيار غيره يستبدل السابق (لا تتراكم)، والضغط عليه مرة ثانية يلغيه
+  // اختيار متعدد: كل عبارة تُنار وعليها ✓، والضغط عليها ثانية يلغيها. ما يكتبه المستخدم بيده يبقى كما هو
   function addChip(i) {
     const c = curQuick()[i]; if (!c) return;
-    const d = $('desc');
-    const parts = d.value.split('،').map(x => x.trim()).filter(x => x && x !== chipSel);   // احذف العبارة السابقة وأبقِ ما كتبه المستخدم بنفسه
-    const off = chipSel === c.t;
-    chipSel = off ? '' : c.t;
-    if (!off) parts.push(c.t);
-    d.value = parts.join('، ');
-    needSrc = !off && !!c.src;
-    if (!needSrc && !/تهريب|تسريب|تسرب|مكيف|نقط|سقف|سطح/.test(d.value)) { $('f_src').classList.add('hidden'); srcMode = ''; ['srcSame', 'srcUp', 'srcRoof', 'srcUnk'].forEach(k => $(k).classList.remove('on')); $('srcApt').classList.add('hidden'); }
+    const d = $('desc'), parts = d.value.split('،').map(x => x.trim()).filter(String), k = chipSel.indexOf(c.t);
+    if (k >= 0) { chipSel.splice(k, 1); d.value = parts.filter(x => x !== c.t).join('، '); }
+    else { chipSel.push(c.t); if (parts.indexOf(c.t) < 0) parts.push(c.t); d.value = parts.join('، '); }
+    const list = curQuick();
+    needSrc = chipSel.some(t => (list.filter(x => x.t === t)[0] || {}).src);
+    if (!needSrc && !/تهريب|تسريب|تسرب|مكيف|نقط|سقف|سطح/.test(d.value)) { $('f_src').classList.add('hidden'); srcMode = ''; ['srcSame', 'srcUp', 'srcRoof', 'srcUnk'].forEach(x => $(x).classList.remove('on')); $('srcApt').classList.add('hidden'); }
     if (needSrc) $('f_src').classList.remove('hidden');
     paintChips(); saveDraftText();
     $('f_desc').classList.remove('bad'); refreshSteps();
   }
-  $('desc').addEventListener('input', () => { if (chipSel && $('desc').value.indexOf(chipSel) < 0) { chipSel = ''; paintChips(); } });
+  $('desc').addEventListener('input', () => { const v = $('desc').value, n = chipSel.filter(t => v.indexOf(t) >= 0); if (n.length !== chipSel.length) { chipSel = n; paintChips(); } });
   // تهريب/مياه مكيف: هل المصدر شقتي أم الشقة اللي فوقي (ورقمها)
   function setSrc(m) {
     srcMode = m; $('srcSame').classList.toggle('on', m === 'same'); $('srcUp').classList.toggle('on', m === 'up'); $('srcRoof').classList.toggle('on', m === 'roof'); $('srcUnk').classList.toggle('on', m === 'unk');
@@ -509,7 +512,7 @@
   if (GUARD) {
     ['tenCard', 'probCard', 'tgBtn', 'shBtn'].forEach(k => { const e = $(k); if (e) e.classList.add('hidden'); });
     $('guardCard').classList.remove('hidden'); $('mediaH').textContent = 'الصورة';
-    document.querySelectorAll('.media-btns .mbtn').forEach((b, i) => { if (i > 1) b.classList.add('hidden'); });   // الحارس: صورة فقط بلا فيديو
+    document.querySelectorAll('.media-btns .mbtn.vid').forEach(b => b.classList.add('hidden'));   // الحارس: صورة فقط بلا فيديو
     $('gKinds').addEventListener('click', e => {
       const b = e.target.closest('.type'); if (!b) return;
       gKind = b.dataset.k;
@@ -622,7 +625,7 @@
     return '';
   }
   async function processPick(input) {
-    const files = Array.from(input.files || []), forced = input.id === 'cameraPhotoIn' ? 'image' : input.id === 'cameraVideoIn' ? 'video' : '';
+    const files = Array.from(input.files || []), forced = /PhotoIn$/.test(input.id) ? 'image' : /VideoIn$/.test(input.id) ? 'video' : '';
     input.value = '';
     if (!files.length) return;
     if (DRAFT_RESTORING) return showErr('انتظر لحظة — تُستعاد المرفقات المحفوظة.');
@@ -633,7 +636,7 @@
     }
     drawThumbs();
   }
-  ['cameraPhotoIn', 'cameraVideoIn', 'mediaIn'].forEach(id => $(id).addEventListener('change', e => processPick(e.currentTarget)));
+  ['cameraPhotoIn', 'cameraVideoIn', 'galleryPhotoIn', 'galleryVideoIn'].forEach(id => $(id).addEventListener('change', e => processPick(e.currentTarget)));
   async function restoreDraft() {
     try {
       const d = lsGet('mr_draft', {});
