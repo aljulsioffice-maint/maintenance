@@ -329,6 +329,10 @@
   const OFFICE_WA = '966572294942';
   const MAX_PHOTOS = 4, MAX_VIDEO_SEC = 30, MAX_VIDEO_MB = 45, CHUNK = 4 * 1024 * 1024;
   const TEMP_KEY = 'tmp_' + Math.random().toString(36).slice(2, 10);
+  // يبقى المفتاح نفسه عند إعادة المحاولة بعد انقطاع الشبكة لتفادي تكرار البلاغ.
+  let REQUEST_KEY = lsGet('mr_submit_key', '');
+  if (!/^[a-f0-9]{32}$/i.test(REQUEST_KEY)) { REQUEST_KEY = ''; }
+  if (!REQUEST_KEY) { REQUEST_KEY = (crypto.randomUUID ? crypto.randomUUID().replace(/-/g, '') : (Date.now().toString(16) + Math.random().toString(16).slice(2)).slice(0, 32)); lsSet('mr_submit_key', REQUEST_KEY); }
   let selType = '', photos = [], video = null, lastToken = '', gKind = '', needSrc = false, srcMode = '';
   const GUARD = (new URLSearchParams(location.search).get('g') || '').replace(/[^a-f0-9]/g, '').slice(0, 12);
 
@@ -596,7 +600,7 @@
       if (gKind === 'maint' && !photos.length && !video) return showErr('صوّر المشكلة');
       call = () => run('submitGuard', GUARD, gapt, gKind, photos.length + (video ? 1 : 0));
     } else {
-      f = { desc: $('desc').value.trim(), type: selType, urgent: $('urgent').checked, website: $('website').value, mediaCount: photos.length + (video ? 1 : 0), tmpKey: TEMP_KEY };
+      f = { desc: $('desc').value.trim(), type: selType, urgent: $('urgent').checked, website: $('website').value, mediaCount: photos.length + (video ? 1 : 0), tmpKey: TEMP_KEY, requestKey: REQUEST_KEY };
       if (ident) {
         f.lk = ident.lk; f.pick = ident.pick;
         if (ident.needPhone) { f.phone = toLatin($('phone2').value).trim(); if (!phoneOk(f.phone)) return bad('phone2'); }
@@ -627,6 +631,9 @@
     try { res = await call(); }
     catch (e) { return endSend('تعذر الإرسال، تأكد من الإنترنت وحاول مرة ثانية'); }
     if (!res || !res.ok) return endSend(res && res.msg ? res.msg : 'تعذر الإرسال');
+
+    // احفظ رابط المتابعة فور إنشاء البلاغ، حتى لو تعثر رفع الفيديو لاحقاً.
+    if (res.id && res.token) { const savedTokens = lsGet('mr_tokens', []); if (savedTokens.indexOf(res.token) < 0) { savedTokens.push(res.token); lsSet('mr_tokens', savedTokens); } }
     
     if (!GUARD) lsSet('mr_profile', ident ? { lk: ident.lk, pick: ident.pick, name: ident.name, bld: ident.bld, apt: ident.apt, needPhone: ident.needPhone, phone2: f.phone || '' } : { manual: true, name: f.name, bld: f.district, apt: f.apt, phone: f.phone });
     else { $('gapt').value = ''; $('gaptv').textContent = '—'; gKind = ''; document.querySelectorAll('#gKinds .type').forEach(x => x.classList.remove('on')); }
@@ -658,7 +665,6 @@
     progress('✅ تم رفع المرفقات، جاري الإرسال النهائي…', 95);
     fire('flushMedia', res.id, res.token);
     
-    if (res.id) { const t = lsGet('mr_tokens', []); t.push(res.token); lsSet('mr_tokens', t); }
     lastToken = res.token;
     $('tgBtn').href = 'https://wa.me/' + OFFICE_WA + '?text=' + encodeURIComponent('بلاغ صيانة رقم #' + res.id + ' — ' + (GUARD ? 'من حارس العمارة' : 'أرجو تأكيد الاستلام'));
     
@@ -669,6 +675,7 @@
     $('doneNum').textContent = '#' + res.id;
     $('doneWarn').textContent = '✅ تم استلام البلاغ مع جميع المرفقات';
     
+    if (!GUARD) { REQUEST_KEY = (crypto.randomUUID ? crypto.randomUUID().replace(/-/g, '') : (Date.now().toString(16) + Math.random().toString(16).slice(2)).slice(0, 32)); lsSet('mr_submit_key', REQUEST_KEY); }
     photos = []; video = null; drawThumbs(); $('desc').value = ''; $('urgent').checked = false;
     $('urgentBox').classList.remove('on'); selType = ''; document.querySelectorAll('.type').forEach(x => x.classList.remove('on')); drawChips();
     if (!GUARD) { if (!ident) { manualOn = false; } show1('prof'); drawProf(); refreshSteps(); }
