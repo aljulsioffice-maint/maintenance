@@ -96,7 +96,7 @@
   .b-قيد { background: var(--warn-soft); color: var(--warn); }
   .b-أنجزه { background: var(--wait-soft); color: var(--wait); }
   .b-تمت { background: var(--ok-soft); color: var(--ok); }
-  .b-مرفوض { background: var(--bad-soft); color: var(--bad); }
+  .b-مرفوض, .b-ملغي { background: var(--bad-soft); color: var(--bad); }
   .b-بانتظار { background: var(--ask-soft); color: var(--ask); }
   .urg { color: var(--bad); font-weight: 800; }
 
@@ -128,7 +128,7 @@
   .item .s { color: var(--mut); font-size: 13.5px; }
   .item .m { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; margin-top: 2px; }
   .item .r { grid-row: span 3; text-align: end; font-size: 12.5px; color: var(--mut); align-self: start; white-space: nowrap; }
-  .s-جديد { --sc: var(--new); } .s-قيد { --sc: #e8a317; } .s-أنجزه { --sc: var(--wait); } .s-تمت { --sc: var(--ok); } .s-مرفوض { --sc: var(--bad); } .s-بانتظار { --sc: var(--ask); }
+  .s-جديد { --sc: var(--new); } .s-قيد { --sc: #e8a317; } .s-أنجزه { --sc: var(--wait); } .s-تمت { --sc: var(--ok); } .s-مرفوض, .s-ملغي { --sc: var(--bad); } .s-بانتظار { --sc: var(--ask); }
   #detail { position: sticky; top: 76px; max-height: calc(100vh - 96px); overflow: auto; padding: 0; }
   #detail .dh { padding: 18px 20px 14px; background: linear-gradient(135deg, var(--pri-soft), transparent); border-bottom: 1px solid var(--bd); border-radius: var(--r) var(--r) 0 0; }
   #detail .dh h2 { margin: 0 0 6px; font-size: 21px; font-weight: 800; }
@@ -373,7 +373,7 @@
     finally { busy = false; }
   }
 
-  const isDone = s => s === 'تمت المعالجة' || s === 'مرفوض';
+  const isDone = s => s === 'تمت المعالجة' || s === 'مرفوض' || s === 'ملغي';
   const bcls = s => 'b-' + String(s).split(' ')[0];
   const scls = s => 's-' + String(s).split(' ')[0];
   function age(ts) {
@@ -491,6 +491,7 @@
           ${r.st !== 'بانتظار المستأجر' && r.st !== 'أنجزه الفني' ? '<button class="btn" onclick="act(\'photo\')">📷 اطلب صورة/فيديو</button>' : ''}
           <button class="btn" onclick="ask2('ask','❓ سؤال لصاحب البلاغ','اكتب سؤالك…')">❓ طلب معلومة</button>
           <button class="btn bad" onclick="ask2('reject','🚫 رفض الطلب','سبب الرفض (يصل لصاحب البلاغ)', true)">🚫 رفض</button>
+          <button class="btn bad" onclick="ask2('cancelreq','⛔ إلغاء الطلب','سبب الإلغاء (اختياري)', true)">⛔ إلغاء</button>
         </div>`}
       <h3>تعديل</h3>
       <div class="row"><button class="btn" onclick="editReq()">✏️ تعديل البيانات</button>${DATA.owner ? '<button class="btn bad" onclick="delReq()">🗑️ حذف الطلب</button>' : ''}</div>
