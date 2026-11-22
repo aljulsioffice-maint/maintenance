@@ -116,12 +116,12 @@
   .barfix .in { max-width: 540px; margin: 0 auto; }
   .subhint { text-align: center; font-size: 13.5px; color: var(--muted); font-weight: 700; margin-bottom: 8px; min-height: 18px; }
   .submit { width: 100%; border: 0; border-radius: 16px; background: linear-gradient(135deg, var(--brand2), var(--brand)); color: #fff; font: inherit;
-    font-size: 20px; font-weight: 800; padding: 16px; cursor: pointer; box-shadow: 0 8px 22px rgba(31,122,224,.35); }
+    font-size: 20px; font-weight: 800; padding: 16px; cursor: pointer; box-shadow: 0 8px 22px rgba(31,122,224,.35); transition: all .2s; }
   .submit:active { transform: translateY(1px); }
-  .submit:disabled { opacity: .6; box-shadow: none; }
+  .submit:disabled { opacity: .6; box-shadow: none; cursor: not-allowed; background: #888; }
   .err { background: var(--danger-soft); color: var(--danger); border-radius: 14px; padding: 12px 14px; margin-bottom: 14px; font-weight: 800; display: none; }
   .hp { position: absolute; width: 1px; height: 1px; overflow: hidden; opacity: 0; pointer-events: none; clip-path: inset(50%); }
-  .overlay { position: fixed; inset: 0; background: rgba(8, 16, 28, .6); display: none; align-items: center; justify-content: center; z-index: 20; padding: 16px; backdrop-filter: blur(3px); }
+  .overlay { position: fixed; inset: 0; background: rgba(8, 16, 28, .7); display: none; align-items: center; justify-content: center; z-index: 20; padding: 16px; backdrop-filter: blur(4px); }
   .overlay .box { background: var(--card); border-radius: 22px; padding: 26px; width: 100%; max-width: 340px; text-align: center; margin: 0; }
   .spin { width: 46px; height: 46px; border-radius: 50%; border: 5px solid var(--line); border-top-color: var(--accent); margin: 0 auto 12px; animation: sp 0.9s linear infinite; }
   @keyframes sp { to { transform: rotate(360deg); } }
@@ -243,7 +243,7 @@
       </div>
     </div>
 
-    <!-- الخطوة 2: الصور والفيديو (نُقلت للأعلى) -->
+    <!-- الخطوة 2: الصور والفيديو -->
     <div class="card" id="mediaCard">
       <div class="sec" id="sec2"><div class="num">2</div><h2 id="mediaH">صور أو فيديو <small>(اختياري)</small></h2></div>
       <div class="media-btns">
@@ -257,7 +257,6 @@
       <input type="file" id="videoCam" accept="video/*" capture="environment" class="hidden">
       <input type="file" id="videoIn" accept="video/*" class="hidden">
       <div class="thumbs" id="thumbs"></div>
-            <div class="thumbs" id="thumbs"></div>
       <div class="hint">حتى 4 صور، وفيديو واحد لا يزيد عن 30 ثانية. الصورة تسرّع الحل.</div>
       <div id="uploadProgress" class="hint" style="color:var(--accent); font-weight:800; display:none; margin-top:8px;"></div>
     </div>
@@ -444,24 +443,27 @@
 
   function refreshSteps() {
     if (GUARD) return;
-    // منع اعتبار الخطوة جاهزة إذا كانت هناك صور تُرفع
     const uploading = photos.some(p => p.uploading);
-    const s1 = profComplete(), s2 = !!(photos.length || video), s3 = !!selType && ($('desc').value.trim().length >= 3 || photos.length || video);
     
+    const s1 = profComplete(), s2 = !!(photos.length || video), s3 = !!selType && ($('desc').value.trim().length >= 3 || photos.length || video);
     [s1, s2, s3].forEach((ok, i) => { $('st' + (i + 1)).classList.toggle('ok', !!ok && !uploading); });
     ['sec1', 'sec2', 'sec3'].forEach((id, i) => $(id).classList.toggle('ok', !![s1, s2, s3][i] && !uploading));
     
     const n = [s1, s3].filter(Boolean).length;
     $('stLbl').textContent = uploading ? '⏳ جاري الرفع…' : (n === 2 ? 'جاهز للإرسال ✓' : (n + ' من 2'));
     $('subHint').textContent = uploading ? 'انتظر قليلاً حتى يتم رفع الصور' : (n === 2 ? 'ضغطة وحدة وتوصل للمكتب 👇' : (!s1 ? 'اكتب هويتك أو جوالك أول' : 'اختر نوع المشكلة واشرحها'));
+
+    // قفل الزر
+    const btn = $('sendBtn');
+    if (btn) btn.disabled = uploading;
   }
+  
   if (GUARD) { $('stepper').classList.add('hidden'); }
 
   refreshMyBtn();
   if (GUARD) {
     ['tenCard', 'probCard', 'tgBtn', 'shBtn', 'mediaCard'].forEach(k => { const e = $(k); if (e) e.classList.add('hidden'); });
     $('guardCard').classList.remove('hidden'); $('mediaH').textContent = 'الصورة';
-    // For guard, let's move the media card back to display or handle it
     $('guardCard').appendChild($('photoCam').parentNode); // dummy
     document.querySelectorAll('.media-btns .mbtn').forEach((b, i) => { if (i > 1) b.classList.add('hidden'); });
     $('gKinds').addEventListener('click', e => {
@@ -523,24 +525,27 @@
       v.onerror = () => res(0); v.src = URL.createObjectURL(file);
     });
   }
-    function drawThumbs() {
+  function drawThumbs() {
     const h = photos.map((p, i) => `<div class="thumb" style="${p.uploading ? 'opacity:0.5' : ''}">
       <img src="${p.url}">
       ${p.uploading ? '<div style="position:absolute;top:30%;left:30%;font-size:20px">⏳</div>' : '<div style="position:absolute;bottom:4px;right:4px;color:#fff;background:green;border-radius:50%;width:20px;height:20px;text-align:center;font-size:12px;">✓</div>'}
       <button onclick="rmPhoto(${i})">✕</button></div>`);
     if (video) h.push(`<div class="thumb"><video src="${video.url}" muted></video><button onclick="rmVideo()">✕</button></div>`);
     $('thumbs').innerHTML = h.join('');
-    $('f_desc').classList.remove('bad'); refreshSteps();
     
     // تحديث شريط التقدم
     const uploadingCount = photos.filter(p => p.uploading).length;
     const prog = $('uploadProgress');
-    if (uploadingCount > 0) {
-      prog.style.display = 'block';
-      prog.textContent = '⏳ جاري رفع ' + uploadingCount + ' صورة… يرجى الانتظار حتى يكتمل الرفع.';
-    } else {
-      prog.style.display = 'none';
+    if (prog) {
+      if (uploadingCount > 0) {
+        prog.style.display = 'block';
+        prog.textContent = '⏳ جاري رفع ' + uploadingCount + ' صورة… يرجى الانتظار حتى يكتمل الرفع.';
+      } else {
+        prog.style.display = 'none';
+      }
     }
+
+    $('f_desc').classList.remove('bad'); refreshSteps();
   }
   function rmPhoto(i) { photos.splice(i, 1); drawThumbs(); }
   function rmVideo() { video = null; drawThumbs(); }
@@ -572,12 +577,11 @@
 
   async function send() {
     showErr('');
-    // التأكد من عدم وجود صور لا تزال تُرفع
+    // قفل الإرسال إذا كانت هناك صور تُرفع
     if (photos.some(p => p.uploading)) {
       return showErr('⏳ يرجى الانتظار حتى تكتمل عملية رفع الصور قبل إرسال البلاغ.');
     }
     let f, call;
-    // ... باقي الكود
     if (GUARD) {
       const gapt = $('gapt').value.trim();
       if (!gKind) return showErr('اختر: وايت ماء أو وايت صرف أو صيانة');
@@ -612,43 +616,51 @@
     try { res = await call(); }
     catch (e) { return endSend('تعذر الإرسال، تأكد من الإنترنت وحاول مرة ثانية'); }
     if (!res || !res.ok) return endSend(res && res.msg ? res.msg : 'تعذر الإرسال');
+    
     if (!GUARD) lsSet('mr_profile', ident ? { lk: ident.lk, pick: ident.pick, name: ident.name, bld: ident.bld, apt: ident.apt, needPhone: ident.needPhone, phone2: f.phone || '' } : { manual: true, name: f.name, bld: f.district, apt: f.apt, phone: f.phone });
     else { $('gapt').value = ''; $('gaptv').textContent = '—'; gKind = ''; document.querySelectorAll('#gKinds .type').forEach(x => x.classList.remove('on')); }
 
-    const ph = photos.slice(), vd = video;
-    if (res.id) { const t = lsGet('mr_tokens', []); t.push(res.token); lsSet('mr_tokens', t); }
-    lastToken = res.token;
-    $('tgBtn').href = 'https://wa.me/' + OFFICE_WA + '?text=' + encodeURIComponent('بلاغ صيانة رقم #' + res.id + ' — ' + (GUARD ? 'من حارس العمارة' : 'أرجو تأكيد الاستلام'));
-    $('overlay').style.display = 'none'; $('sendBtn').disabled = false;
-    $('doneNum').textContent = '#' + res.id;
-    const hasMedia = !!(res.id && (ph.length || vd));
-    $('doneWarn').textContent = hasMedia ? '⏳ جاري رفع الفيديو… لا تغلق الصفحة' : '';
-    photos = []; video = null; drawThumbs(); $('desc').value = ''; $('urgent').checked = false;
-    $('urgentBox').classList.remove('on'); selType = ''; document.querySelectorAll('.type').forEach(x => x.classList.remove('on')); drawChips();
-    if (!GUARD) { if (!ident) { manualOn = false; } show1('prof'); drawProf(); refreshSteps(); }
-    show('doneView'); refreshMyBtn();
-    if (!hasMedia) return;
-
-    // رفع الفيديو (إن وجد) لأن الصور رُفعت مسبقاً
+    const vd = video;
+    
+    // لا تظهر شاشة النجاح ولا الرقم إلا بعد اكتمال الفيديو
     if (vd) {
-      let failed = 0, uploading = true;
-      const guard = e => { if (uploading) { e.preventDefault(); e.returnValue = ''; } };
-      window.addEventListener('beforeunload', guard);
+      progress('⏳ جاري رفع الفيديو (قد يستغرق دقيقة)…', 10);
+      let failed = 0;
       try {
         const st = await run('startVideo', res.id, res.token, vd.file.size, vd.file.type);
         if (!st.ok) throw new Error(st.msg);
         for (let off = 0; off < vd.file.size; off += CHUNK) {
           const b64 = await blobToB64(vd.file.slice(off, off + CHUNK));
           await run('uploadVideoChunk', st.key, off, b64);
-          $('doneWarn').textContent = '⏳ جاري رفع الفيديو (' + Math.round(100 * (off + b64.length) / vd.file.size) + '%)…';
+          progress('⏳ جاري رفع الفيديو (' + Math.round(100 * (off + b64.length) / vd.file.size) + '%)…', 10 + Math.round(80 * (off + b64.length) / vd.file.size));
         }
         await run('finishVideo', res.id, res.token, st.key);
       } catch (e) { failed++; }
-      uploading = false; window.removeEventListener('beforeunload', guard);
-      $('doneWarn').textContent = failed ? 'تعذر رفع الفيديو — البلاغ نفسه وصل.' : '✅ تم رفع المرفقات';
+      
+      if (failed) {
+        $('overlay').style.display = 'none';
+        $('sendBtn').disabled = false;
+        return showErr('تم إنشاء البلاغ، لكن تعذر رفع الفيديو. يمكنك متابعة الطلب وإرفاق الفيديو من صفحة "طلباتي".');
+      }
     }
-    
+
+    progress('✅ تم رفع المرفقات، جاري الإرسال النهائي…', 95);
     fire('flushMedia', res.id, res.token);
+    
+    if (res.id) { const t = lsGet('mr_tokens', []); t.push(res.token); lsSet('mr_tokens', t); }
+    lastToken = res.token;
+    $('tgBtn').href = 'https://wa.me/' + OFFICE_WA + '?text=' + encodeURIComponent('بلاغ صيانة رقم #' + res.id + ' — ' + (GUARD ? 'من حارس العمارة' : 'أرجو تأكيد الاستلام'));
+    
+    $('overlay').style.display = 'none'; $('sendBtn').disabled = false;
+    $('doneNum').textContent = '#' + res.id;
+    $('doneWarn').textContent = '✅ تم استلام البلاغ مع جميع المرفقات';
+    
+    photos = []; video = null; drawThumbs(); $('desc').value = ''; $('urgent').checked = false;
+    $('urgentBox').classList.remove('on'); selType = ''; document.querySelectorAll('.type').forEach(x => x.classList.remove('on')); drawChips();
+    if (!GUARD) { if (!ident) { manualOn = false; } show1('prof'); drawProf(); refreshSteps(); }
+    
+    // الآن فقط نعرض شاشة النجاح ورقم البلاغ
+    show('doneView'); refreshMyBtn();
   }
   function endSend(msg) { $('overlay').style.display = 'none'; $('sendBtn').disabled = false; showErr(msg); }
 
