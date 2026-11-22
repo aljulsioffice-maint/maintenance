@@ -496,6 +496,7 @@
           ${can('ask_tenant') ? `<button class="btn" onclick="ask2('ask','❓ سؤال لصاحب البلاغ','اكتب سؤالك…')">❓ طلب معلومة</button>` : ''}
           ${can('reject_request') ? `<button class="btn bad" onclick="ask2('reject','🚫 رفض الطلب','سبب الرفض (يصل لصاحب البلاغ)', true)">🚫 رفض</button>` : ''}
           ${can('cancel_request') ? `<button class="btn bad" onclick="ask2('cancelreq','⛔ إلغاء الطلب','سبب الإلغاء (اختياري)', true)">⛔ إلغاء</button>` : ''}
+          ${DATA.superAdmin && DATA.groupReady ? `<button class="btn" onclick="act('publishgroup')">📢 نشر للمجموعة</button>` : ''}
         </div>`}
       ${can('edit_request') || can('delete_request') ? `<h3>تعديل</h3>
       <div class="row">${can('edit_request') ? '<button class="btn" onclick="editReq()">✏️ تعديل البيانات</button>' : ''}${can('delete_request') ? '<button class="btn bad" onclick="delReq()">🗑️ حذف الطلب</button>' : ''}</div>` : ''}
@@ -632,7 +633,7 @@
     const t = TEAM, g = GUARDS, v = $('vteam');
     const rows = t.team.map((m, i) => { const self = m.row === t.meRow, own = m.role === 'مالك'; return `<tr class="${m.active ? '' : 'off'}">
         <td><b>${esc(m.name)}</b>${self ? ' <small>(أنت)</small>' : ''}<br><small style="color:var(--mut)">${esc(m.spec)}${m.phone ? ' · ' + esc(m.phone) : ''}</small></td>
-        <td>${own || self ? esc(m.role) : `<select onchange="setRole(${m.row}, this.value)"><option ${m.role === 'فني' ? 'selected' : ''}>فني</option><option ${m.role === 'أدمن' ? 'selected' : ''}>أدمن</option></select>`}</td>
+        <td>${own || self ? esc(m.role) : `<select onchange="setRole(${m.row}, this.value)"><option ${m.role === 'فني' ? 'selected' : ''}>فني</option><option ${m.role === 'أدمن' ? 'selected' : ''}>أدمن</option><option ${m.role === 'سوبر أدمن' ? 'selected' : ''}>سوبر أدمن</option></select>`}</td>
         <td style="white-space:nowrap">${own || self ? (m.active ? '✅' : '⏸') : `<button class="btn sm ${m.active ? '' : 'pri'}" onclick="setActive(${m.row}, '${m.active ? 'لا' : 'نعم'}')">${m.active ? '⏸ إيقاف' : '▶ تفعيل'}</button>`}
           ${m.role === 'أدمن' ? `<button class="btn sm" onclick="editPerms(${m.row})" title="الصلاحيات">🔐</button>` : ''}<button class="btn sm" onclick="editMember(${i})" title="تعديل">✏️</button>${own || self ? '' : `<button class="btn sm bad" onclick="delMember(${i})" title="حذف">🗑️</button>`}</td></tr>`; }).join('');
     const grows = g.guards.map((x, i) => `<tr class="${x.active ? '' : 'off'}">
