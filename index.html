@@ -179,6 +179,42 @@
   
   .stars { display: flex; gap: 4px; margin: 8px 0; }
   .star { border: 0; background: none; font-size: 32px; color: #e0a800; padding: 0 2px; line-height: 1; }
+
+  /* تجربة الحارس: تعليمات مصورة وأهداف لمس كبيرة */
+  .guard-guide{display:flex;align-items:center;justify-content:space-around;gap:5px;padding:12px 8px;background:var(--accent-soft);border-radius:18px;margin:12px 0 4px}
+  .guide-step{width:26%;min-width:0;display:flex;flex-direction:column;align-items:center;gap:2px}
+  .guide-step svg{width:58px;height:58px;max-width:100%}.guide-step span{font-size:23px;line-height:1.1}
+  .guide-arrow{font-size:25px;font-weight:900;color:var(--accent)}
+  .guard-guide-caption{display:grid;grid-template-columns:1fr 1fr 1fr;text-align:center;font-size:12px;font-weight:800;color:var(--muted);margin:0 0 16px}
+  .guard-scope-title{font-size:18px;font-weight:900;margin:10px 0}
+  .guard-scope{display:grid;grid-template-columns:1fr 1fr;gap:9px}
+  .scope-btn{min-height:118px;border:2px solid var(--line);border-radius:16px;background:var(--field);color:var(--text);font:inherit;padding:10px 6px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;cursor:pointer}
+  .scope-btn.active{border-color:var(--ok);background:var(--ok-soft);box-shadow:inset 0 0 0 1px var(--ok)}
+  .scope-btn .scope-emoji{font-size:34px;line-height:1.2}.scope-btn b{font-size:16px}.scope-btn small{font-size:12px;line-height:1.3;color:var(--muted);font-weight:600}
+  #guardAptPanel{margin-top:12px}.gdisp{font-size:28px;min-height:60px;padding:8px}
+  .guard-guide-caption span{white-space:nowrap}
+  @media(max-width:360px){.scope-btn b{font-size:14px}.scope-btn small{font-size:11px}.guide-step svg{width:48px;height:48px}}
+
+
+  /* تحسينات وضوح عامة */
+  body{font-size:18px;line-height:1.65;letter-spacing:0}
+  .wrap{max-width:600px}
+  .card{padding:20px;margin-bottom:16px;border-radius:20px}
+  .sec h2{font-size:20px}
+  label{font-size:16px;color:var(--text);margin-top:16px}
+  input[type=text],input[type=tel],textarea{min-height:54px;font-size:18px;border-width:1.8px}
+  textarea{min-height:108px}
+  button,a,input,textarea{touch-action:manipulation}
+  button:focus-visible,a:focus-visible,input:focus-visible,textarea:focus-visible{outline:3px solid var(--accent);outline-offset:3px}
+  .type{min-height:116px;font-size:17px}
+  .type .ic{width:58px;height:58px;font-size:32px}
+  .submit{min-height:58px;font-size:20px}
+  .mbtn{min-height:58px}
+  .hint{font-size:14px;line-height:1.55}
+  .overlay .box{max-width:380px}
+  .bar{height:12px}
+  @media(prefers-reduced-motion:reduce){*,*::before,*::after{scroll-behavior:auto!important;animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}}
+
 </style>
 </head>
 <body>
@@ -203,18 +239,28 @@
 
     <div class="card hidden" id="guardCard">
       <div class="sec"><div class="num">🛡️</div><h2 id="guardH">بلاغ من الحارس</h2></div>
-      <div class="types" id="gKinds">
-        <button type="button" class="type" data-k="water" style="--c:#1f7ae0"><span class="ic">💧🚚</span>وايت ماء</button>
-        <button type="button" class="type" data-k="sewage" style="--c:#8a5a2b"><span class="ic">🚽🚛</span>وايت صرف</button>
-        <button type="button" class="type" data-k="maint" style="--c:#7a4bd1;grid-column:1/-1"><span class="ic">🔧🪛</span>صيانة (صوّر المشكلة)</button>
+      <div class="guard-guide" role="img" aria-label="اختر نوع البلاغ، ثم صوّر المشكلة، ويمكنك تحديد شقة أو ترك البلاغ للمبنى بالكامل">
+        <div class="guide-step"><svg viewBox="0 0 64 64" aria-hidden="true"><path d="M8 28 32 8l24 20v28H8z" fill="#dcecff" stroke="#1769aa" stroke-width="3"/><path d="M22 56V38h20v18M18 29h8v8h-8zm20 0h8v8h-8z" fill="#fff" stroke="#1769aa" stroke-width="2"/></svg><span>🏢</span></div>
+        <div class="guide-arrow">➜</div>
+        <div class="guide-step"><svg viewBox="0 0 64 64" aria-hidden="true"><rect x="9" y="8" width="46" height="48" rx="8" fill="#e8f7ee" stroke="#16834a" stroke-width="3"/><circle cx="32" cy="25" r="9" fill="#fff" stroke="#16834a" stroke-width="3"/><path d="M19 49V42a13 13 0 0 1 26 0v7" fill="#fff" stroke="#16834a" stroke-width="3"/></svg><span>🚪</span></div>
+        <div class="guide-arrow">➜</div>
+        <div class="guide-step"><svg viewBox="0 0 64 64" aria-hidden="true"><path d="M8 20h12l5-7h15l5 7h11v34H8z" fill="#f0e9ff" stroke="#7044b8" stroke-width="3"/><circle cx="32" cy="36" r="11" fill="#fff" stroke="#7044b8" stroke-width="3"/><circle cx="32" cy="36" r="5" fill="#c7b2ee"/></svg><span>📷</span></div>
       </div>
-      <div class="gdisp">🚪 <span id="gaptv">—</span></div>
-      <input type="hidden" id="gapt" value="">
-      <div class="keypad" id="keypad">
-        <button type="button" data-k="1">1</button><button type="button" data-k="2">2</button><button type="button" data-k="3">3</button>
-        <button type="button" data-k="4">4</button><button type="button" data-k="5">5</button><button type="button" data-k="6">6</button>
-        <button type="button" data-k="7">7</button><button type="button" data-k="8">8</button><button type="button" data-k="9">9</button>
-        <button type="button" data-k="c">🗑️</button><button type="button" data-k="0">0</button><button type="button" data-k="b">⌫</button>
+      <div class="guard-guide-caption"><span>نوع الطلب</span><span>المبنى أو الشقة</span><span>صورة المشكلة</span></div>
+      <div class="guard-scope-title">📍 أين المشكلة؟</div>
+      <div class="guard-scope">
+        <button type="button" id="wholeBuildingBtn" class="scope-btn active" aria-pressed="true"><span class="scope-emoji">🏢</span><b>المبنى بالكامل</b><small>إذا لم تحدد شقة، نعتمد المبنى كله</small></button>
+        <button type="button" id="chooseApartmentBtn" class="scope-btn" aria-pressed="false"><span class="scope-emoji">🚪</span><b>شقة محددة</b><small>اضغط هنا إذا تعرف رقم الشقة</small></button>
+      </div>
+      <div id="guardAptPanel" class="hidden">
+        <div class="gdisp">🚪 <span id="gaptv">اختر رقم الشقة</span></div>
+        <input type="hidden" id="gapt" value="">
+        <div class="keypad" id="keypad">
+          <button type="button" data-k="1">1</button><button type="button" data-k="2">2</button><button type="button" data-k="3">3</button>
+          <button type="button" data-k="4">4</button><button type="button" data-k="5">5</button><button type="button" data-k="6">6</button>
+          <button type="button" data-k="7">7</button><button type="button" data-k="8">8</button><button type="button" data-k="9">9</button>
+          <button type="button" data-k="c">🗑️</button><button type="button" data-k="0">0</button><button type="button" data-k="b">⌫</button>
+        </div>
       </div>
     </div>
 
@@ -311,7 +357,7 @@
     <div class="spin"></div>
     <div style="font-weight:800;font-size:18px" id="ovText">جاري الإرسال…</div>
     <div class="bar"><i id="ovBar"></i></div>
-    <div class="hint">لا تغلق الصفحة</div>
+    <div class="hint" id="ovHint">نحفظ البلاغ والمرفقات بأمان. لا تغلق الصفحة حتى تظهر رسالة الاستلام.</div>
   </div>
 </div>
 
@@ -358,6 +404,7 @@
   if (!/^[a-f0-9]{32}$/i.test(REQUEST_KEY)) { REQUEST_KEY = ''; }
   if (!REQUEST_KEY) { REQUEST_KEY = (crypto.randomUUID ? crypto.randomUUID().replace(/-/g, '') : (Date.now().toString(16) + Math.random().toString(16).slice(2)).slice(0, 32)); sessionSet('mr_submit_key', REQUEST_KEY); }
   let selType = '', photos = [], video = null, lastToken = '', gKind = '', needSrc = false, srcMode = '';
+  let guardBuildingWide = true;
   let DRAFT_RESTORING = !DEMO_MODE;
   const GUARD = (new URLSearchParams(location.search).get('g') || '').replace(/[^a-f0-9]/g, '').slice(0, 12);
 
@@ -385,7 +432,7 @@
     try { const all=await draftFilesGetAll(), db=await draftDbOpen(); await new Promise((resolve,reject)=>{const tx=db.transaction('files','readwrite'), st=tx.objectStore('files');all.filter(x=>x.tempKey===photoKey||x.videoKey===videoKey).forEach(x=>st.delete(x.id));tx.oncomplete=resolve;tx.onerror=()=>reject(tx.error);});db.close(); } catch(e) {}
   }
   function persistDraftState() {
-    lsSet('mr_draft',{desc:$('desc').value,selType:selType,urgent:$('urgent').checked,srcMode:srcMode,needSrc:needSrc,srcApt:$('srcApt').value,name:$('name').value,bld:$('bld').value,apt:$('apt').value,phone:$('phone').value,phone2:$('phone2').value,gapt:$('gapt').value,gKind:gKind});
+    lsSet('mr_draft',{desc:$('desc').value,selType:selType,urgent:$('urgent').checked,srcMode:srcMode,needSrc:needSrc,srcApt:$('srcApt').value,name:$('name').value,bld:$('bld').value,apt:$('apt').value,phone:$('phone').value,phone2:$('phone2').value,gapt:$('gapt').value,gKind:gKind,guardBuildingWide:guardBuildingWide});
   }
   function restoreDraftState() {
     const d=lsGet('mr_draft',{}); if(!d||typeof d!=='object')return;
@@ -394,6 +441,7 @@
     if(d.urgent){$('urgent').checked=true;$('urgentBox').classList.add('on');}
     if(d.srcMode){srcMode=d.srcMode;needSrc=!!d.needSrc;$('f_src').classList.remove('hidden');$('srcSame').classList.toggle('on',srcMode==='same');$('srcUp').classList.toggle('on',srcMode==='up');$('srcApt').classList.toggle('hidden',srcMode!=='up');}
     if(d.gKind){gKind=d.gKind;document.querySelectorAll('#gKinds .type').forEach(x=>x.classList.toggle('on',x.dataset.k===gKind));}
+    if(d.guardBuildingWide===false || d.gapt){setGuardScope('apt');}else{setGuardScope('building');}
     refreshSteps();
   }
 
@@ -549,20 +597,34 @@
       document.querySelectorAll('#gKinds .type').forEach(x => x.classList.toggle('on', x === b));
       $('mediaH').innerHTML = gKind === 'maint' ? 'صورة المشكلة <small>(مطلوبة)</small>' : 'صورة <small>(اختيارية)</small>';
     });
-    $('sendBtn').textContent = '📤 إرسال';
-    $('subHint').textContent = 'اختر النوع، اكتب رقم الشقة، ثم أرسل';
+    $('sendBtn').textContent = '📤 إرسال البلاغ';
+    $('subHint').textContent = 'اختر نوع الطلب ثم أرسل — الشقة اختيارية';
+    $('wholeBuildingBtn').addEventListener('click', () => setGuardScope('building'));
+    $('chooseApartmentBtn').addEventListener('click', () => setGuardScope('apt'));
     $('keypad').addEventListener('click', e => {
       const b = e.target.closest('button'); if (!b) return;
       let v = $('gapt').value; const k = b.dataset.k;
       if (k === 'b') v = v.slice(0, -1); else if (k === 'c') v = ''; else if (v.length < 4) v += k;
-      $('gapt').value = v; $('gaptv').textContent = v || '—'; persistDraftState();
+      $('gapt').value = v; $('gaptv').textContent = v || 'لم تحدد شقة — للمبنى بالكامل'; persistDraftState();
     });
+    setGuardScope('building');
     run('guardInfo', GUARD).then(r => {
       if (r && r.ok) $('guardH').textContent = 'حارس عمارة ' + r.building;
       else { $('formView').innerHTML = '<div class="card"><h2>⚠️</h2>' + ((r && r.msg) || 'الرابط غير صالح') + '</div>'; }
     }).catch(() => {});
   } else refreshSteps();
   if (TRACK && !GUARD) { const t = lsGet('mr_tokens', []); if (t.indexOf(TRACK) < 0) { t.push(TRACK); lsSet('mr_tokens', t); } showTrack(); }
+
+  function setGuardScope(scope) {
+    guardBuildingWide = scope !== 'apt';
+    const whole = $('wholeBuildingBtn'), unit = $('chooseApartmentBtn'), panel = $('guardAptPanel');
+    if (whole) { whole.classList.toggle('active', guardBuildingWide); whole.setAttribute('aria-pressed', guardBuildingWide ? 'true' : 'false'); }
+    if (unit) { unit.classList.toggle('active', !guardBuildingWide); unit.setAttribute('aria-pressed', !guardBuildingWide ? 'true' : 'false'); }
+    if (panel) panel.classList.toggle('hidden', guardBuildingWide);
+    if (guardBuildingWide) { $('gapt').value = ''; $('gaptv').textContent = 'المبنى بالكامل'; }
+    else $('gaptv').textContent = $('gapt').value || 'اختر رقم الشقة';
+    persistDraftState();
+  }
 
   function refreshMyBtn() { $('myBtn').classList.toggle('hidden', !lsGet('mr_tokens', []).length && !TRACK); }
 
@@ -725,7 +787,7 @@
     if (GUARD) {
       const gapt = $('gapt').value.trim();
       if (!gKind) return showErr('اختر: وايت ماء أو وايت صرف أو صيانة');
-      if (!gapt) return showErr('اكتب رقم الشقة');
+      // رقم الشقة اختياري؛ تركه فارغاً يعني أن البلاغ للمبنى بالكامل.
       if (gKind === 'maint' && !photos.length && !video) return showErr('صوّر المشكلة');
       call = () => run('submitGuard', GUARD, gapt, gKind, photos.length + (video ? 1 : 0), TEMP_KEY, REQUEST_KEY);
     } else {
@@ -755,7 +817,7 @@
     $('sendBtn').disabled = true; 
     $('sendBtn').textContent = '⏳ جاري معالجة البلاغ…';
     $('overlay').style.display = 'flex'; 
-    progress('جاري إنشاء البلاغ…', 5);
+    progress('جاري تسجيل البلاغ وربط الملفات المحفوظة…', 20);
     
     let res;
     try { res = await call(); }
@@ -766,14 +828,14 @@
     if (res.id && res.token) { const savedTokens = lsGet('mr_tokens', []); if (savedTokens.indexOf(res.token) < 0) { savedTokens.push(res.token); lsSet('mr_tokens', savedTokens); } }
     
     if (!GUARD) lsSet('mr_profile', ident ? { lk: ident.lk, pick: ident.pick, name: ident.name, bld: ident.bld, apt: ident.apt, needPhone: ident.needPhone, phone2: f.phone || '' } : { manual: true, name: f.name, bld: f.district, apt: f.apt, phone: f.phone });
-    else { $('gapt').value = ''; $('gaptv').textContent = '—'; gKind = ''; document.querySelectorAll('#gKinds .type').forEach(x => x.classList.remove('on')); }
+    else { $('gapt').value = ''; $('gaptv').textContent = 'المبنى بالكامل'; gKind = ''; document.querySelectorAll('#gKinds .type').forEach(x => x.classList.remove('on')); setGuardScope('building'); }
 
     // جميع المرفقات رُفعت مسبقاً؛ ربطها بالبلاغ يتم داخل الخادم عند الإنشاء.
 
-    progress('✅ تم رفع المرفقات، جاري الإرسال النهائي…', 95);
-    let mediaFlush = {ok:true,pending:0};
-    try { mediaFlush = await run('flushMedia', res.id, res.token); } catch (e) { mediaFlush = {ok:false,pending:photos.length + (video ? 1 : 0)}; }
-    
+    progress('✅ تم حفظ البلاغ والمرفقات. تجهيز إشعار المكتب بالخلفية…', 100);
+    // المرفقات أصبحت محفوظة في Drive ومربوطة بالبلاغ؛ لا ننتظر تيليجرام كي لا يظل المستخدم عالقاً.
+    // إذا أُغلقت الصفحة، يعيد المشغّل الخلفي إرسال العناصر المعلقة.
+    fire('dispatchRequest', res.id, res.token);
     lastToken = res.token;
     $('tgBtn').href = 'https://wa.me/' + OFFICE_WA + '?text=' + encodeURIComponent('بلاغ صيانة رقم #' + res.id + ' — ' + (GUARD ? 'من حارس العمارة' : 'أرجو تأكيد الاستلام'));
     
@@ -783,7 +845,7 @@
     $('sendBtn').textContent = 'إرسال البلاغ';
     
     $('doneNum').textContent = '#' + res.id;
-    $('doneWarn').textContent = mediaFlush && mediaFlush.ok ? '✅ تم استلام البلاغ وربط المرفقات. يجري إرسال نسخة المكتب.' : '✅ تم إنشاء البلاغ وحفظ المرفقات. تعثر إرسال نسخة تيليجرام مؤقتاً وسيعاد الإرسال تلقائياً.';
+    $('doneWarn').textContent = '✅ تم حفظ البلاغ والمرفقات. إرسال نسخة المكتب والإشعارات يتم في الخلفية، ولا تحتاج إلى إبقاء الصفحة مفتوحة.';
     
     REQUEST_KEY = (crypto.randomUUID ? crypto.randomUUID().replace(/-/g, '') : (Date.now().toString(16) + Math.random().toString(16).slice(2)).slice(0, 32)); sessionSet('mr_submit_key', REQUEST_KEY);
     await draftFilesClear(TEMP_KEY, VIDEO_TEMP_KEY); lsSet('mr_draft',{});
