@@ -97,16 +97,7 @@
   .b-أنجزه { background: var(--wait-soft); color: var(--wait); }
   .b-تمت { background: var(--ok-soft); color: var(--ok); }
   .b-مرفوض { background: var(--bad-soft); color: var(--bad); }
-  .b-ملغي { background: var(--soft); color: var(--mut); }
   .b-بانتظار { background: var(--ask-soft); color: var(--ask); }
-  .s-ملغي { --sc: var(--mut); }
-  .super-tag { display:inline-flex;align-items:center;gap:5px;padding:4px 10px;border-radius:999px;background:var(--pri-soft);color:var(--pri);font-weight:800;font-size:12px;margin-inline-start:6px; }
-  .track-card { border:1px solid var(--bd);border-radius:16px;padding:14px;background:var(--card);box-shadow:var(--shadow);margin:10px 0; }
-  .track-map { width:100%;height:230px;border:0;border-radius:12px;background:var(--soft);margin-top:10px; }
-  .perm-grid { display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:8px; }
-  .perm-row { display:flex;align-items:center;gap:10px;padding:10px;border:1px solid var(--bd);border-radius:12px;background:var(--soft);font-weight:700; }
-  .perm-row input { width:19px;height:19px;accent-color:var(--pri); }
-
   .urg { color: var(--bad); font-weight: 800; }
 
   /* ===== الطلبات ===== */
@@ -132,8 +123,7 @@
   .item::before { content: ''; position: absolute; inset-inline-start: 0; top: 12px; bottom: 12px; width: 4px; border-radius: 4px; background: var(--sc, var(--bd)); }
   .item:hover { border-color: var(--pri); transform: translateY(-1px); }
   .item.sel { border-color: var(--pri); background: var(--pri-soft); }
-  .item .av { grid-row: span 3; width: 46px; height: 46px; border-radius: 14px; background: var(--soft); display: grid; place-items: center; font-size: 24px; overflow:hidden; }
-  .item .av img { width:100%;height:100%;object-fit:cover;display:block; }
+  .item .av { grid-row: span 3; width: 46px; height: 46px; border-radius: 14px; background: var(--soft); display: grid; place-items: center; font-size: 24px; }
   .item .t { font-weight: 800; font-size: 16px; }
   .item .s { color: var(--mut); font-size: 13.5px; }
   .item .m { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; margin-top: 2px; }
@@ -216,8 +206,7 @@
       <button class="tab on" id="tab_req" onclick="setTab('req')"><span class="ico">📋</span><span>الطلبات</span><span class="cnt hidden" id="cntOpen"></span></button>
       <button class="tab" id="tab_vis" onclick="setTab('vis')"><span class="ico">📅</span><span>المواعيد</span></button>
       <button class="tab" id="tab_rat" onclick="setTab('rat')"><span class="ico">⭐</span><span>التقييمات</span></button>
-      <button class="tab" id="tab_rep" onclick="setTab('rep')"><span class="ico">📊</span><span>لوحة المؤشرات</span></button>
-      <button class="tab" id="tab_trk" onclick="setTab('trk')"><span class="ico">📍</span><span>تتبع الفني</span></button>
+      <button class="tab" id="tab_rep" onclick="setTab('rep')"><span class="ico">📊</span><span>الإحصاءات</span></button>
       <button class="tab" id="tab_team" onclick="setTab('team')"><span class="ico">👥</span><span>الفريق</span></button>
       <button class="tab" id="tab_dir" onclick="setTab('dir')"><span class="ico">🏢</span><span>العمائر</span></button>
       <button class="tab" id="tab_set" onclick="setTab('set')"><span class="ico">⚙️</span><span>الإعدادات</span></button>
@@ -244,7 +233,7 @@
       <div class="chipsbar" id="stats"></div>
       <div class="wrap">
         <div id="list">
-          <div class="tools"><input id="q" placeholder="🔎 ابحث: رقم الطلب، اسم، عمارة، شقة، فني…" oninput="draw()"><button class="btn pri" id="newReqBtn" onclick="newReq()" style="margin-inline-start:8px">➕ طلب جديد</button></div>
+          <div class="tools"><input id="q" placeholder="🔎 ابحث: رقم الطلب، اسم، عمارة، شقة، فني…" oninput="draw()"><button class="btn pri" onclick="newReq()" style="margin-inline-start:8px">➕ طلب جديد</button></div>
           <div id="items"></div>
         </div>
         <div id="detail" class="panel"><div class="empty">👈 اختر طلباً من القائمة لعرض تفاصيله</div></div>
@@ -254,7 +243,6 @@
     <div id="vvis" class="page" style="display:none"></div>
     <div id="vrat" class="page" style="display:none"></div>
     <div id="vrep" class="page" style="display:none"></div>
-    <div id="vtrk" class="page" style="display:none"></div>
     <div id="vteam" class="page" style="display:none"></div>
     <div id="vdir" class="page" style="display:none"></div>
     <div id="vset" class="page" style="display:none"></div>
@@ -274,13 +262,10 @@
   const $ = id => document.getElementById(id);
   const esc = s => String(s == null ? '' : s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
   const TYPE_LIST = ['سباكة', 'كهرباء', 'مصعد', 'أخرى', 'وايت ماء', 'وايت صرف صحي'];
-  const TITLES = { req: 'الطلبات', rat: 'تقييمات الفنيين', vis: 'جدول المواعيد', rep: 'لوحة المؤشرات', trk: 'موقع الفنيين', team: 'الفريق والصلاحيات', dir: 'العمائر والمستأجرون', set: 'تحكم السوبر أدمن' };
+  const TITLES = { req: 'الطلبات', rat: 'تقييمات الفنيين', vis: 'جدول المواعيد', rep: 'الإحصاءات', team: 'الفريق والحراس', dir: 'العمائر والمستأجرون', set: 'الإعدادات والميزات' };
   let KEY = '', DATA = null, FILTER = 'open', SEL = '', DETAIL = null, busy = false, TAB = 'req', BLDS = null;
-  let TEAM = null, GUARDS = null, TENROWS = [], TRACK_ITEMS = [];
+  let TEAM = null, GUARDS = null, TENROWS = [];
   const IMG = {};
-  const hasPerm = k => !!(DATA && (DATA.superAdmin || (DATA.perms && DATA.perms[k])));
-  function canTab(t) { return t==='req' ? hasPerm('view_requests') : t==='rep' || t==='rat' ? hasPerm('view_dashboard') : t==='vis' ? (hasPerm('view_requests') && hasPerm('manage_visits')) : t==='trk' ? hasPerm('view_tracking') : t==='team' ? hasPerm('view_team') : t==='dir' ? hasPerm('view_buildings') : t==='set' ? !!(DATA && DATA.superAdmin) : false; }
-
 
   try {
     const m = /[#&]k=([a-f0-9]{24,64})/.exec(location.hash);
@@ -303,7 +288,7 @@
   function toast(t) { const e = $('toast'); e.textContent = t; e.classList.add('on'); clearTimeout(toast.t); toast.t = setTimeout(() => e.classList.remove('on'), 2800); }
   // تنفيذ عملية بالخادم مع رسالة نجاح/فشل. يرجع النتيجة أو false
   async function call(op, id, arg, okMsg) {
-    try { const r = await api(op, id, arg); if (!r.ok) { toast(r.msg || 'تعذّر'); return false; } if (r.approvalPending) toast('📨 أُرسل طلب التعديل للسوبر أدمن للموافقة'); else if (okMsg !== '') toast(okMsg || '✅ تم'); return r; }
+    try { const r = await api(op, id, arg); if (!r.ok) { toast(r.msg || 'تعذّر'); return false; } if (okMsg !== '') toast(okMsg || '✅ تم'); return r; }
     catch (e) { toast('تعذّر: ' + e.message); return false; }
   }
   const skel = n => Array.from({ length: n }, () => '<div class="skel"></div>').join('');
@@ -337,11 +322,10 @@
 
   // ---------- التبويبات ----------
   function setTab(t) {
-    if (!canTab(t)) { toast('⛔ ليس لديك صلاحية هذه الصفحة'); return; }
     TAB = t; $('ttl').textContent = TITLES[t];
-    ['req', 'vis', 'rat', 'rep', 'trk', 'team', 'dir', 'set'].forEach(k => { if ($('tab_' + k)) $('tab_' + k).classList.toggle('on', k === t); if ($('v' + k)) $('v' + k).style.display = k === t ? '' : 'none'; });
+    ['req', 'vis', 'rat', 'rep', 'team', 'dir', 'set'].forEach(k => { $('tab_' + k).classList.toggle('on', k === t); $('v' + k).style.display = k === t ? '' : 'none'; });
     window.scrollTo({ top: 0 });
-    if (t === 'rep') loadReport(); if (t === 'trk') loadTracking(); if (t === 'team') loadTeam(); if (t === 'dir') loadDir(); if (t === 'set') loadSet(); if (t === 'vis') drawVisits(); if (t === 'rat') loadRatings();
+    if (t === 'rep') loadReport(); if (t === 'team') loadTeam(); if (t === 'dir') loadDir(); if (t === 'set') loadSet(); if (t === 'vis') drawVisits(); if (t === 'rat') loadRatings();
   }
   // ---------- تقييمات الفنيين ----------
   async function loadRatings() {
@@ -379,22 +363,17 @@
       const r = await api('list');
       if (!r.ok) { $('app').style.display = 'none'; $('gate').style.display = 'block'; $('gateMsg').textContent = r.msg || 'الرابط غير صالح'; return; }
       DATA = r; $('gate').style.display = 'none'; $('app').style.display = 'block';
-      if ($('newReqBtn')) $('newReqBtn').classList.toggle('hidden', !hasPerm('create_request'));
-      const tabOrder = ['req','rep','vis','trk','rat','team','dir','set'];
-      ['req','vis','rat','rep','trk','team','dir','set'].forEach(k => { const el=$('tab_'+k); if(el) el.classList.toggle('hidden', !canTab(k)); });
-      let changedTab = false;
-      if (!canTab(TAB)) { TAB = tabOrder.find(canTab) || ''; changedTab = true; }
-      $('me').innerHTML = '👤 ' + esc(r.me) + (r.systemOwner ? '<span class="super-tag">👑 مالك النظام</span>' : r.superAdmin ? '<span class="super-tag">🛡️ سوبر أدمن</span>' : ''); $('upd').textContent = 'آخر تحديث ' + r.at.slice(11);
-      if (canTab('req')) draw();
-      if (!TAB) { $('app').style.display='none'; $('gate').style.display='block'; $('gateMsg').textContent='لا توجد صلاحيات مفعّلة لهذا الحساب. تواصل مع السوبر أدمن.'; return; }
-      if (changedTab) setTab(TAB);
-      else { if (TAB === 'vis') drawVisits(); if (SEL && canTab('req') && (manual || DETAIL)) openReq(SEL, true); }
-      if (manual && TAB === 'rep') loadReport(); if (manual && TAB === 'team') loadTeam(); if (manual && TAB === 'dir') loadDir(); if (manual && TAB === 'trk') loadTracking();
+      ['team', 'dir', 'set'].forEach(k => $('tab_' + k).classList.toggle('hidden', !r.owner));   // الفريق والعمائر للمالك فقط
+      if (!r.owner && (TAB === 'team' || TAB === 'dir' || TAB === 'set')) setTab('req');
+      $('me').textContent = '👤 ' + r.me; $('upd').textContent = 'آخر تحديث ' + r.at.slice(11);
+      draw(); if (TAB === 'vis') drawVisits();
+      if (SEL && (manual || DETAIL)) openReq(SEL, true);
+      if (manual && TAB === 'rep') loadReport(); if (manual && TAB === 'team') loadTeam(); if (manual && TAB === 'dir') loadDir();
     } catch (e) { if (manual) toast('تعذّر التحميل: ' + e.message); }
     finally { busy = false; }
   }
 
-  const isDone = s => s === 'تمت المعالجة' || s === 'مرفوض' || s === 'ملغي';
+  const isDone = s => s === 'تمت المعالجة' || s === 'مرفوض';
   const bcls = s => 'b-' + String(s).split(' ')[0];
   const scls = s => 's-' + String(s).split(' ')[0];
   function age(ts) {
@@ -403,7 +382,7 @@
     return m < 60 ? 'قبل ' + Math.max(m, 1) + ' د' : m < 1440 ? 'قبل ' + Math.floor(m / 60) + ' س' : 'قبل ' + Math.floor(m / 1440) + ' يوم';
   }
   const hfmt = h => h >= 48 ? Math.floor(h / 24) + ' يوم' : h + ' ساعة';
-  const place = r => r.bld ? (r.apt && r.apt !== 'المبنى بالكامل' ? r.bld + ' — شقة ' + r.apt : r.bld + ' — المبنى بالكامل') : (r.dis ? 'حي ' + r.dis + ' — ' : '') + r.apt;
+  const place = r => r.bld ? r.bld + ' — ' + r.apt : (r.dis ? 'حي ' + r.dis + ' — ' : '') + r.apt;
 
   const FILTERS = [
     ['open', 'مفتوحة', r => !isDone(r.st)], ['new', 'جديدة', r => r.st === 'جديد'], ['wip', 'قيد المعالجة', r => r.st === 'قيد المعالجة'],
@@ -430,26 +409,12 @@
     if (FILTER !== 'closed' && FILTER !== 'all') list = list.slice().sort((a, b) => (b.urg - a.urg) || (Number(a.id) - Number(b.id)));
     $('items').innerHTML = list.length ? list.map(r => `
       <div class="item ${scls(r.st)} ${SEL === r.id ? 'sel' : ''}" onclick="openReq('${esc(r.id)}')">
-        <div class="av" data-bld-thumb="${esc(r.bld || '')}">${esc(r.icon)}</div>
+        <div class="av">${esc(r.icon)}</div>
         <div class="t">#${esc(r.id)} · ${esc(place(r))} ${r.urg ? '<span class="urg">🔴</span>' : ''}</div>
         <div class="s">${esc(r.type)} · ${esc(r.tenant || r.name)}</div>
-        <div class="m"><span class="badge ${bcls(r.st)}">${esc(r.st)}</span>${r.availableAll ? '<span class="badge b-تمت">👥 متاح للأدمنية</span>' : DATA.superAdmin ? '<span class="badge b-بانتظار">🔒 خاص</span>' : ''}${r.tech ? '<span class="s">👷 ' + esc(r.tech) + '</span>' : ''}${r.media ? '<span class="s">📎 ' + r.media + '</span>' : ''}</div>
+        <div class="m"><span class="badge ${bcls(r.st)}">${esc(r.st)}</span>${r.tech ? '<span class="s">👷 ' + esc(r.tech) + '</span>' : ''}${r.media ? '<span class="s">📎 ' + r.media + '</span>' : ''}</div>
         <div class="r">${esc(age(r.ts))}</div>
       </div>`).join('') : '<div class="empty">🎉 لا توجد طلبات هنا</div>';
-    loadRequestBuildingThumbs();
-  }
-  const REQUEST_BLD_IMAGES = {};
-  async function loadRequestBuildingThumbs() {
-    if (!hasPerm('view_buildings')) return;
-    const els = Array.from(document.querySelectorAll('#items [data-bld-thumb]'));
-    const names = [...new Set(els.map(e => e.getAttribute('data-bld-thumb')).filter(Boolean))].slice(0, 24);
-    for (const name of names) {
-      if (!REQUEST_BLD_IMAGES[name]) {
-        try { const im = await api('bphoto', name, ''); if (im && im.ok && im.b64) REQUEST_BLD_IMAGES[name] = 'data:' + im.mime + ';base64,' + im.b64; else REQUEST_BLD_IMAGES[name] = ''; } catch(e) { REQUEST_BLD_IMAGES[name] = ''; }
-      }
-      const src = REQUEST_BLD_IMAGES[name];
-      if (src) document.querySelectorAll('#items [data-bld-thumb]').forEach(el => { if (el.getAttribute('data-bld-thumb') === name && !el.querySelector('img')) el.innerHTML = `<img src="${src}" alt="">`; });
-    }
   }
   function setFilter(f) { FILTER = f; draw(); }
 
@@ -482,53 +447,55 @@
   }
 
   function drawDetail() {
-    const r = DETAIL.req, done = isDone(r.st), files = r.files || [];
-    const canPhone = hasPerm('view_phone'), canAssign = hasPerm('assign_tech'), canStatus = hasPerm('update_status');
-    const canVisit = hasPerm('manage_visits'), canWithdraw = hasPerm('withdraw_tech'), canCancel = hasPerm('cancel_request'), canAsk = hasPerm('ask_tenant'), canReject = hasPerm('reject_request');
-    const canMedia = hasPerm('manage_media'), canEdit = hasPerm('edit_request'), canDelete = hasPerm('delete_request');
-    const canForward = hasPerm('forward_request') && !!r.availableAll;
-    const wa = canPhone && r.waPhone ? `<a class="btn ok" target="_blank" rel="noopener" href="https://wa.me/${esc(r.waPhone)}">💬 واتساب</a><a class="btn" href="tel:+${esc(r.waPhone)}">📞 اتصال</a>` : '';
+    const r = DETAIL.req, done = isDone(r.st);
+    const wa = r.waPhone ? `<a class="btn ok" target="_blank" rel="noopener" href="https://wa.me/${esc(r.waPhone)}">💬 واتساب</a><a class="btn" href="tel:+${esc(r.waPhone)}">📞 اتصال</a>` : '';
     const techOpts = '<option value="">— اختر الفني —</option>' + DATA.techs.map(t => `<option value="${esc(t.row)}">${esc(t.name)}${t.spec ? ' — ' + esc(t.spec) : ''}</option>`).join('');
-    const mediaIds = r.links.map(u => { const m = /\/d\/([\w-]{15,})/.exec(u) || /[?&]id=([\w-]{15,})/.exec(u); return m ? m[1] : ''; });
-    const leak = r.leakSource || r.leakLocation || r.leakDetail;
-    const assignedTrack = r.track && r.lat && r.lng ? `<div class="panel" style="margin:12px 0"><b>📍 موقع الفني المباشر</b><div class="hint">آخر تحديث: ${esc(r.locAt || '—')} · دقة تقريبية ${esc(r.accuracy || '—')} م</div><a class="btn pri" target="_blank" rel="noopener" href="https://www.google.com/maps?q=${encodeURIComponent(r.lat+','+r.lng)}">🗺️ فتح موقع الفني على الخريطة</a></div>` : '';
+    const files = r.files || [];
     $('detail').innerHTML = `
       <button class="btn back" onclick="closeDetail()">→ رجوع للقائمة</button>
-      <div class="dh"><h2>${esc(r.icon)} طلب #${esc(r.id)} ${r.urg ? '<span class="urg">🔴 عاجل</span>' : ''}</h2>
+      <div class="dh">
+        <h2>${esc(r.icon)} طلب #${esc(r.id)} ${r.urg ? '<span class="urg">🔴 عاجل</span>' : ''}</h2>
         <span class="badge ${bcls(r.st)}">${esc(r.st)}</span> ${r.ts2 ? '<span class="badge b-قيد">' + esc(r.ts2) + '</span>' : ''} <span style="color:var(--mut);font-size:13.5px;margin-inline-start:6px">${esc(r.ts)}</span>
       </div>
       <div class="db">
       <div class="kv">
-        <div>النوع</div><div>${esc(r.type)}</div><div>المكان</div><div><b>${esc(place(r))}</b></div>
-        <div>المبلّغ</div><div>${esc(r.name)}</div><div>المستأجر</div><div>${esc(r.tenant || '—')} <small style="color:var(--mut)">${esc(r.match)}</small></div>
-        ${canPhone ? `<div>الجوال</div><div dir="ltr" style="text-align:end">${esc(r.phone || '—')}</div>` : ''}
+        <div>النوع</div><div>${esc(r.type)}</div>
+        <div>المكان</div><div><b>${esc(place(r))}</b></div>
+        <div>المبلّغ</div><div>${esc(r.name)}</div>
+        <div>المستأجر</div><div>${esc(r.tenant || '—')} <small style="color:var(--mut)">${esc(r.match)}</small></div>
+        <div>الجوال</div><div dir="ltr" style="text-align:end">${esc(r.phone || '—')}</div>
         <div>الفني</div><div>${r.tech ? '👷 ' + esc(r.tech) : '—'}</div>
-        ${r.src ? `<div>شقة المصدر</div><div>⬆️ شقة ${esc(r.src)}</div>` : ''}
-        ${leak ? `<div>مصدر التسرب</div><div>💧 ${esc(r.leakSource || 'غير محدد')}</div><div>موقع التسرب</div><div>📍 ${esc(r.leakLocation || '—')}${r.leakDetail ? ' — ' + esc(r.leakDetail) : ''}</div>` : ''}
+        ${r.src ? `<div>المصدر</div><div>⬆️ شقة ${esc(r.src)}</div>` : ''}
       </div>
-      <h3>📝 وصف البلاغ</h3><div class="desc">${esc(r.fullDesc) || '—'}</div>
+      <div class="desc">${esc(r.fullDesc) || '—'}</div>
       ${r.question ? `<h3>❓ سؤال الإدارة</h3><div class="desc">${esc(r.question)}${r.reply ? '<hr style="border:0;border-top:1px solid var(--bd)">💬 ' + esc(r.reply) : ''}</div>` : ''}
-      ${r.note ? `<h3>🗒 ملاحظة الإغلاق</h3><div class="desc">${esc(r.note)}</div>` : ''}${r.reason ? `<h3>🚫 سبب القرار</h3><div class="desc">${esc(r.reason)}</div>` : ''}
-      ${(r.links.length || r.after || canMedia) ? `<h3>📎 المرفقات</h3>
-        <div class="thumbs">${files.map((f, i) => `<div style="position:relative"><div class="th" data-fid="${esc(f)}" onclick="openThumb(${i})">⏳</div>${canMedia && mediaIds[i] ? `<button class="btn sm bad" style="margin-top:4px;width:100%" onclick="deleteReqMedia('${esc(mediaIds[i])}')">🗑️ حذف</button>` : ''}</div>`).join('')}</div>
-        <div class="row">${r.links.map((u, i) => `<a class="btn sm" target="_blank" rel="noopener" href="${esc(u)}">فتح مرفق ${i + 1}</a>`).join('')}${r.after ? `<a class="btn sm" target="_blank" rel="noopener" href="${esc(r.after)}">✅ صورة بعد الإصلاح</a>` : ''}</div>
-        ${canMedia ? `<div class="row"><input type="file" id="reqMediaFile" accept="image/*,video/mp4,video/quicktime,video/webm" class="inp" style="max-width:260px"><button class="btn pri" onclick="uploadReqMedia()">➕ إضافة صورة / فيديو</button></div>` : ''}` : ''}
+      ${r.note ? `<h3>🗒 ملاحظة الإغلاق</h3><div class="desc">${esc(r.note)}</div>` : ''}${r.reason ? `<h3>🚫 سبب الرفض</h3><div class="desc">${esc(r.reason)}</div>` : ''}
+      ${r.links.length || r.after ? `<h3>📎 المرفقات</h3>
+        <div class="thumbs">${files.map((f, i) => `<div class="th" data-fid="${esc(f)}" onclick="openThumb(${i})">⏳</div>`).join('')}</div>
+        <div class="row">${r.links.map((u, i) => `<a class="btn sm" target="_blank" rel="noopener" href="${esc(u)}">فتح مرفق ${i + 1} في Drive</a>`).join('')}${r.after ? `<a class="btn sm" target="_blank" rel="noopener" href="${esc(r.after)}">✅ صورة بعد الإصلاح</a>` : ''}</div>` : ''}
       <div class="row">${wa}</div>
       ${r.vis ? `<h3>📅 موعد الزيارة</h3><div class="desc"><b>${esc(r.vis)}${r.vdate ? ' — ' + esc(r.vdate) : ''}</b></div>` : ''}
-      ${assignedTrack}
-      ${DATA.superAdmin ? (r.availableAll ? `<div class="panel" style="margin:12px 0;background:var(--ok-soft)"><b>✅ متاح لجميع الأدمنية</b><div class="hint">أتيح بواسطة ${esc(r.availableBy || 'الإدارة')} · ${esc(r.availableAt || '')}. أُرسل تنبيه جديد إلى الأدمنية المفعّل لهم عرض البلاغات.</div></div>` : `<div class="panel" style="margin:12px 0;background:var(--warn-soft)"><b>🔒 البلاغ خاص بالمالك والسوبر أدمن</b><div class="hint">لن يظهر لأي أدمن عادي قبل السماح. عند الضغط سيظهر في قائمة طلباتهم ويصلهم تنبيه كبلاغ جديد.</div><button class="btn pri" style="margin-top:8px" onclick="shareSelectedWithAdmins()">👥 إتاحة للجميع وإرسال التنبيه</button></div>`) : (r.availableAll ? `<span class="badge b-تمت">👥 متاح لجميع الأدمنية</span>` : `<span class="badge b-بانتظار">🔒 خاص بالإدارة العليا</span>`)}
-      <h3>إجراءات الإدارة</h3>
-      ${!done ? `<div class="row">
-        ${canAssign ? `<select id="techSel" style="flex:1;min-width:150px">${techOpts}</select><button class="btn pri" onclick="assign()">👷 ${r.tech ? 'تغيير الفني' : 'تعيين فني'}</button>` : ''}
-        ${r.tech && canWithdraw ? `<button class="btn" onclick="withdrawReq()">↩️ سحب من الفني</button>` : ''}
-      </div>` : ''}
-      ${done ? (canStatus ? `<div class="row"><button class="btn pri" onclick="act('reopen')">♻️ إعادة فتح</button></div>` : '') : `
-        ${canStatus ? `<div class="row">${r.st === 'جديد' ? '<button class="btn" onclick="act(\'wip\')">⏳ قيد المعالجة</button>' : ''}${r.st === 'أنجزه الفني' ? '<button class="btn ok" onclick="ask2(\'close\',\'✅ تأكيد الإغلاق\',\'ملاحظة الإغلاق (اختياري)\',true)">✅ تأكيد الإغلاق</button><button class="btn" onclick="act(\'back\')">↩️ إرجاع للفني</button>' : '<button class="btn ok" onclick="ask2(\'close\',\'✅ إغلاق الطلب\',\'ملاحظة الإغلاق (اختياري)\',true)">✅ إغلاق</button>'}</div>` : ''}
-        ${hasPerm('change_urgent') ? `<div class="row"><button class="btn" onclick="act('urgent')">${r.urg ? '⚪ اجعله عادي' : '🔴 اجعله عاجل'}</button></div>` : ''}
-        ${canVisit ? `<div class="row"><button class="btn pri" onclick="visitForm()">📅 ${r.vis ? 'إعادة جدولة' : 'تحديد موعد زيارة'}</button>${r.vis ? '<button class="btn" onclick="visitWait()">⏸ إرجاع للانتظار</button>' : ''}</div>` : ''}
-        ${(canAsk || canReject || canCancel) ? `<div class="row">${canAsk && r.st !== 'بانتظار المستأجر' && r.st !== 'أنجزه الفني' ? '<button class="btn" onclick="act(\'photo\')">📷 اطلب صورة/فيديو</button><button class="btn" onclick="ask2(\'ask\',\'❓ سؤال لصاحب البلاغ\',\'اكتب سؤالك…\')">❓ طلب معلومة</button>' : ''}${canReject ? '<button class="btn bad" onclick="ask2(\'reject\',\'🚫 رفض البلاغ\',\'سبب القرار (يصل لصاحب البلاغ)\',true)">🚫 رفض</button>' : ''}${canCancel ? '<button class="btn bad" onclick="ask2(\'cancelreq\',\'⛔ إلغاء البلاغ\',\'سبب الإلغاء\',true)">⛔ إلغاء</button>' : ''}</div>` : ''}`}
-      ${(canEdit || canDelete || canForward) ? `<h3>تحكم إضافي</h3><div class="row">${canEdit ? '<button class="btn" onclick="editReq()">✏️ تعديل البيانات</button>' : ''}${canDelete ? '<button class="btn bad" onclick="delReq()">🗑️ حذف نهائي</button>' : ''}${canForward ? '<button class="btn pri" onclick="forwardToAdmin()">📨 تحويل لأدمن</button>' : ''}</div>` : ''}
-      <h3>🕓 سجل العمليات</h3><div class="log">${DETAIL.logs.map(l => `<div><b>${esc(l.e)}</b> ${l.d ? '— ' + esc(l.d) : ''}<small>${esc(l.t)} · ${esc(l.by)}</small></div>`).reverse().join('') || '—'}</div>
+      <h3>إجراءات</h3>
+      ${done ? `<div class="row"><button class="btn pri" onclick="act('reopen')">♻️ إعادة فتح</button></div>` : `
+        <div class="row">
+          <select id="techSel" style="flex:1;min-width:150px">${techOpts}</select>
+          <button class="btn pri" onclick="assign()">👷 ${r.tech ? 'تغيير الفني' : 'تعيين'}</button>
+        </div>
+        <div class="row">
+          ${r.st === 'جديد' ? '<button class="btn" onclick="act(\'wip\')">⏳ قيد المعالجة</button>' : ''}
+          ${r.st === 'أنجزه الفني' ? '<button class="btn ok" onclick="ask2(\'close\',\'✅ تأكيد الإغلاق\',\'ملاحظة الإغلاق (اختياري)\',true)">✅ تأكيد الإغلاق</button><button class="btn" onclick="act(\'back\')">↩️ إرجاع للفني</button>' : '<button class="btn ok" onclick="ask2(\'close\',\'✅ إغلاق الطلب\',\'ملاحظة الإغلاق (اختياري)\',true)">✅ إغلاق</button>'}
+          <button class="btn" onclick="act('urgent')">${r.urg ? '⚪ اجعله عادي' : '🔴 اجعله عاجل'}</button>
+        </div>
+        <div class="row"><button class="btn pri" onclick="visitForm()">📅 ${r.vis ? 'إعادة جدولة' : 'تحديد موعد زيارة'}</button>${r.vis ? '<button class="btn" onclick="visitWait()">⏸ إرجاع للانتظار</button>' : ''}</div>
+        <div class="row">
+          ${r.st !== 'بانتظار المستأجر' && r.st !== 'أنجزه الفني' ? '<button class="btn" onclick="act(\'photo\')">📷 اطلب صورة/فيديو</button>' : ''}
+          <button class="btn" onclick="ask2('ask','❓ سؤال لصاحب البلاغ','اكتب سؤالك…')">❓ طلب معلومة</button>
+          <button class="btn bad" onclick="ask2('reject','🚫 رفض الطلب','سبب الرفض (يصل لصاحب البلاغ)', true)">🚫 رفض</button>
+        </div>`}
+      <h3>تعديل</h3>
+      <div class="row"><button class="btn" onclick="editReq()">✏️ تعديل البيانات</button>${DATA.owner ? '<button class="btn bad" onclick="delReq()">🗑️ حذف الطلب</button>' : ''}</div>
+      <h3>🕓 السجل</h3>
+      <div class="log">${DETAIL.logs.map(l => `<div><b>${esc(l.e)}</b> ${l.d ? '— ' + esc(l.d) : ''}<small>${esc(l.t)} · ${esc(l.by)}</small></div>`).reverse().join('') || '—'}</div>
       </div>`;
   }
 
@@ -558,34 +525,7 @@
     const r = await call(op, SEL, arg);
     if (r) { await load(false); await openReq(SEL, true); }
   }
-  async function shareSelectedWithAdmins() {
-    if (!DATA || !DATA.superAdmin) return toast('إتاحة البلاغ للجميع لمالك النظام والسوبر أدمن فقط');
-    if (DETAIL && DETAIL.req && DETAIL.req.availableAll) return toast('البلاغ متاح بالفعل للأدمنية');
-    confirmBox('👥 إتاحة البلاغ لجميع الأدمنية', 'سيظهر البلاغ في قائمة كل أدمن لديه صلاحية عرض البلاغات، وسيصله تنبيه خاص كأنه بلاغ جديد مع المرفقات. هل تريد المتابعة؟', async () => {
-      const r=await call('shareall',SEL,'','✅ أصبح البلاغ متاحًا للجميع');
-      if(r) { toast(r.message || '✅ تمت الإتاحة'); await load(false); await openReq(SEL,true); }
-    }, 'إتاحة للجميع');
-  }
   function assign() { const v = $('techSel').value; if (!v) { toast('اختر الفني أولاً'); return; } act('assign', v); }
-  function withdrawReq() { confirmBox('↩️ سحب البلاغ من الفني', 'سيُزال التكليف الحالي ويعود البلاغ إلى قائمة الانتظار.', () => act('withdraw'), 'سحب'); }
-  async function uploadReqMedia() {
-    const input=$('reqMediaFile'), f=input && input.files && input.files[0]; if(!f) return toast('اختر صورة أو فيديو');
-    if(f.size > 5.5*1024*1024) return toast('الحد الأقصى 5.5 ميجابايت للمرفق من لوحة الويب');
-    try {
-      let b64, mime=f.type || 'image/jpeg';
-      if(mime.indexOf('image/')===0) b64=await compressImg(f); else b64=await new Promise((resolve,reject)=>{const r=new FileReader();r.onload=()=>resolve(String(r.result).split(',')[1]);r.onerror=reject;r.readAsDataURL(f);});
-      const r=await api('addmedia',SEL,JSON.stringify({b64:b64,mime:mime,name:f.name}));
-      if(!r || r.ok===false) throw new Error((r&&r.msg)||'تعذر إضافة المرفق');
-      toast(r.approvalPending ? '📨 أُرسل طلب إضافة المرفق للسوبر أدمن للموافقة' : '✅ أُضيف المرفق');
-      await load(false);await openReq(SEL,true);
-    } catch(e){toast('تعذر رفع المرفق: '+e.message);}
-  }
-  function deleteReqMedia(fid) { confirmBox('🗑️ حذف المرفق','قد يتطلب الحذف موافقة السوبر أدمن قبل تطبيقه.',async()=>{const r=await api('deletemedia',SEL,fid);if(r&&r.ok!==false){toast(r.approvalPending?'📨 أُرسل طلب الحذف للسوبر أدمن للموافقة':'✅ حُذف المرفق');await load(false);await openReq(SEL,true);}else toast((r&&r.msg)||'تعذر حذف المرفق');},'حذف المرفق'); }
-  async function forwardToAdmin() {
-    try { const r=await api('admins'); if(!r.admins.length) return toast('لا يوجد أدمن نشط');
-      openForm('📨 تحويل البلاغ #'+SEL,[{label:'الأدمن المستلم',type:'select',v:r.admins[0].id,opts:r.admins.map(x=>[x.id,x.name])}],async v=>{if(await call('forward',SEL,v[0],'✅ تم تحويل البلاغ')){await load(false);await openReq(SEL,true);}},'تحويل');
-    } catch(e){toast('تعذر تحميل قائمة الأدمنية');}
-  }
   function ask2(op, title, ph, optional) {
     openForm(title, [{ type: 'textarea', label: ph, v: '', ph }], ([v]) => { if (!optional && v.length < 2) { toast('اكتب النص'); return; } return act(op, v); }, 'تأكيد');
   }
@@ -645,7 +585,6 @@
         <div class="stat ${s.overdue3 ? 'red' : ''}"><b>${s.overdue3}</b><span>متأخرة ٣ أيام فأكثر</span></div>
         <div class="stat"><b>${s.closed}</b><span>مغلقة</span></div>
         <div class="stat"><b>${s.rejected}</b><span>مرفوضة</span></div>
-        <div class="stat"><b>${s.cancelled || 0}</b><span>ملغاة</span></div>
         <div class="stat ${s.urgent ? 'red' : ''}"><b>${s.urgent}</b><span>عاجلة</span></div>
         <div class="stat"><b>${s.avgAssign ? hfmt(s.avgAssign) : '—'}</b><span>متوسط وقت التعيين</span></div>
         <div class="stat"><b>${s.avgClose ? hfmt(s.avgClose) : '—'}</b><span>متوسط زمن الإغلاق</span></div>
@@ -681,28 +620,16 @@
   async function loadTeam() {
     const v = $('vteam'); v.innerHTML = skel(4);
     try {
-      TEAM = await api('team');
-      GUARDS = DATA.superAdmin ? await api('guards') : {guards:[],blds:[]};
-      BLDS = null; drawTeam();
+      const [t, g] = await Promise.all([api('team'), api('guards')]); TEAM = t; GUARDS = g; BLDS = null; drawTeam();
     } catch (e) { v.innerHTML = '<div class="empty">تعذّر التحميل</div>'; }
   }
   function drawTeam() {
-    const t = TEAM, g = GUARDS || {guards:[],blds:[]}, v = $('vteam');
-    const canManageTeam = !!DATA.superAdmin;
-    const rows = t.team.map((m, i) => {
-      const self = m.row === t.meRow, own = !!m.systemOwner || m.role === 'مالك النظام' || m.role === 'مالك';
-      const superMember = !!m.superAdmin || m.role === 'سوبر أدمن';
-      const canManageSuper = !!DATA.systemOwner;
-      const protectedMember = own || (superMember && !canManageSuper) || self;
-      const roleOptions = ['فني','أدمن'].concat(DATA.systemOwner ? ['سوبر أدمن'] : []);
-      const roleCell = !canManageTeam ? esc(m.role) : protectedMember ? (own ? '👑 مالك النظام' : superMember ? '🛡️ سوبر أدمن' : esc(m.role)) : `<select onchange="setRole(${m.row}, this.value)">${roleOptions.map(role=>`<option value="${role}" ${m.role===role?'selected':''}>${role}</option>`).join('')}</select>`;
-      const actions = !canManageTeam ? '' : `${protectedMember ? (m.active ? '✅' : '⏸') : `<button class="btn sm ${m.active ? '' : 'pri'}" onclick="setActive(${m.row}, '${m.active ? 'لا' : 'نعم'}')">${m.active ? '⏸ إيقاف' : '▶ تفعيل'}</button>`}
-          ${!own && !self && (!superMember || canManageSuper) ? `<button class="btn sm" onclick="editMember(${i})" title="تعديل">✏️</button><button class="btn sm bad" onclick="delMember(${i})" title="حذف">🗑️</button>` : ''}
-          ${m.role==='أدمن' ? `<button class="btn sm pri" onclick="editAdminPerms('${esc(m.name)}','${esc(m.row)}')">🔐 الصلاحيات</button>` : ''}`;
-      return `<tr class="${m.active ? '' : 'off'}">
-        <td><b>${esc(m.name)}</b>${self ? ' <small>(أنت)</small>' : ''}<br><small style="color:var(--mut)">${own ? '👑 مالك النظام' : superMember ? '🛡️ سوبر أدمن' : esc(m.spec)}${m.phone ? ' · ' + esc(m.phone) : ''}</small></td>
-        <td>${roleCell}</td><td style="white-space:nowrap">${actions}</td></tr>`;
-    }).join('');
+    const t = TEAM, g = GUARDS, v = $('vteam');
+    const rows = t.team.map((m, i) => { const self = m.row === t.meRow, own = m.role === 'مالك'; return `<tr class="${m.active ? '' : 'off'}">
+        <td><b>${esc(m.name)}</b>${self ? ' <small>(أنت)</small>' : ''}<br><small style="color:var(--mut)">${esc(m.spec)}${m.phone ? ' · ' + esc(m.phone) : ''}</small></td>
+        <td>${own || self ? esc(m.role) : `<select onchange="setRole(${m.row}, this.value)"><option ${m.role === 'فني' ? 'selected' : ''}>فني</option><option ${m.role === 'أدمن' ? 'selected' : ''}>أدمن</option></select>`}</td>
+        <td style="white-space:nowrap">${own || self ? (m.active ? '✅' : '⏸') : `<button class="btn sm ${m.active ? '' : 'pri'}" onclick="setActive(${m.row}, '${m.active ? 'لا' : 'نعم'}')">${m.active ? '⏸ إيقاف' : '▶ تفعيل'}</button>`}
+          <button class="btn sm" onclick="editMember(${i})" title="تعديل">✏️</button>${own || self ? '' : `<button class="btn sm bad" onclick="delMember(${i})" title="حذف">🗑️</button>`}</td></tr>`; }).join('');
     const grows = g.guards.map((x, i) => `<tr class="${x.active ? '' : 'off'}">
         <td><b>🛡️ ${esc(x.name)}</b><br><small style="color:var(--mut)">${esc(x.bld)}${x.phone ? ' · ' + esc(x.phone) : ''}</small></td>
         <td style="white-space:nowrap"><button class="btn sm" onclick="copyLink('${esc(x.link)}')">🔗</button>
@@ -712,17 +639,16 @@
     v.innerHTML = `<div class="grid2" style="margin-top:0">
       <div class="panel"><b>👥 الفريق</b>
         <table><tr><th>الاسم</th><th>الدور</th><th></th></tr>${rows}</table>
-        <div style="color:var(--mut);font-size:13px;margin-top:10px">${canManageTeam ? 'عضو جديد: يرسل /start للبوت وتوافق عليه من تليجرام.' : 'عرض فقط — إدارة الأعضاء وتغيير الصلاحيات لمالك النظام والسوبر أدمن.'}</div>
-        ${DATA.systemOwner ? `<div style="border-top:1px solid var(--bd);margin-top:16px;padding-top:14px"><b>➕ إضافة سوبر أدمن</b><div class="hint">هذه الصلاحية لمالك النظام فقط. اطلب من الشخص بدء البوت أولاً، ثم أدخل Telegram ID والاسم.</div><div class="row"><input class="inp" id="superName" placeholder="اسم السوبر أدمن" style="flex:1;min-width:130px"><input class="inp" id="superId" placeholder="Telegram ID" inputmode="numeric" dir="ltr" style="width:160px"></div><button class="btn pri" onclick="addSuperAdmin()">🛡️ إضافة سوبر أدمن</button></div>` : ''}
-      </div>
-      ${DATA.superAdmin ? `<div class="panel"><b>🛡️ حراس العمائر</b>
+        <div style="color:var(--mut);font-size:13px;margin-top:10px">عضو جديد: يرسل /start للبوت وتوافق عليه من تليجرام.</div></div>
+      <div class="panel"><b>🛡️ حراس العمائر</b>
         <table><tr><th>الحارس</th><th>رابطه</th><th></th></tr>${grows || '<tr><td colspan="3">لا يوجد</td></tr>'}</table>
         <h3>➕ حارس جديد</h3>
-        <div class="row"><input class="inp" id="gName" placeholder="الاسم" style="flex:1;min-width:120px"><input class="inp" id="gPhone" placeholder="الجوال (اختياري)" inputmode="tel" dir="ltr" style="width:150px"></div>
-        <div class="row"><select id="gBld" style="flex:1">${g.blds.map(b => `<option>${esc(b)}</option>`).join('')}</select><button class="btn pri" onclick="addGuard()">إضافة</button></div>
-      </div>` : ''}</div>`;
+        <div class="row"><input class="inp" id="gName" placeholder="الاسم" style="flex:1;min-width:120px">
+          <input class="inp" id="gPhone" placeholder="الجوال (اختياري)" inputmode="tel" dir="ltr" style="width:150px"></div>
+        <div class="row"><select id="gBld" style="flex:1">${g.blds.map(b => `<option>${esc(b)}</option>`).join('')}</select>
+          <button class="btn pri" onclick="addGuard()">إضافة</button></div>
+      </div></div>`;
   }
-
   const setRole = async (row, role) => { if (await call('setrole', row + '|' + role, '', '✅ تغيّر الدور وأُبلغ العضو')) loadTeam(); };
   const setActive = async (row, v) => { if (await call('setactive', row + '|' + v)) loadTeam(); };
   const setGuard = async (row, v) => { if (await call('setguard', row + '|' + v)) loadTeam(); };
@@ -750,35 +676,6 @@
     confirmBox('🗑️ حذف الحارس ' + x.name, 'يُحذف الحارس ويتوقف رابطه نهائياً. (للإيقاف المؤقت استخدم ⏸).', async () => { if (await call('delguard', x.row, '', '🗑️ حُذف الحارس')) loadTeam(); }, 'حذف');
   }
   function copyLink(u) { try { navigator.clipboard.writeText(u).then(() => toast('🔗 نُسخ رابط الحارس'), () => prompt('انسخ الرابط:', u)); } catch (e) { prompt('انسخ الرابط:', u); } }
-  async function editAdminPerms(name, row) {
-    const member = TEAM.team.find(x=>String(x.row)===String(row)); if(!member || !member.id) return toast('لم يتم العثور على معرف الأدمن');
-    try {
-      const r=await api('perms', member.id);
-      if(!r || !r.target || !Array.isArray(r.defs)) return toast((r && r.msg) || 'لم يتم تحميل الصلاحيات');
-      $('mTitle').textContent='🔐 صلاحيات '+r.target.name;
-      $('mBody').innerHTML='<div class="hint" style="margin-bottom:10px">حدد الصلاحيات المسموحة لهذا الأدمن. الخيارات غير المحددة تظل متوقفة.</div><div class="perm-grid">'+r.defs.map(x=>`<label class="perm-row"><input type="checkbox" data-perm="${esc(x.key)}" ${x.on?'checked':''}><span>${esc(x.label)}</span></label>`).join('')+'</div>';
-      $('mOk').textContent='حفظ جميع الصلاحيات'; $('mOk').disabled=false; $('mOk').onclick=async()=>{
-        const btn=$('mOk'), boxes=[...$('mBody').querySelectorAll('[data-perm]')], values={};
-        boxes.forEach(b=>{values[b.dataset.perm]=!!b.checked;});
-        btn.disabled=true; btn.textContent='جارٍ الحفظ…';
-        try {
-          const saved=await api('saveperms', r.target.id, JSON.stringify(values));
-          if(!saved || saved.ok!==true || saved.verified!==true || saved.count!==r.defs.length) throw new Error((saved && saved.msg) || 'لم يؤكد الخادم حفظ جميع الصلاحيات الـ'+r.defs.length);
-          let menuNote='';
-          try { const menu=await api('refreshmenu',r.target.id); if(!menu || menu.ok!==true) menuNote=' (تم الحفظ، تعذر تحديث أزرار تيليجرام)'; }
-          catch(e){ menuNote=' (تم الحفظ، تعذر تحديث أزرار تيليجرام)'; }
-          closeModal(); toast('✅ حُفظت وتأكدت '+saved.count+' صلاحية للأدمن '+r.target.name+menuNote); await loadTeam();
-        } catch(e) { toast('❌ لم يكتمل حفظ الصلاحيات: '+e.message); btn.disabled=false; btn.textContent='حفظ جميع الصلاحيات'; }
-      }; $('modal').classList.add('on');
-    } catch(e){toast('تعذر تحميل الصلاحيات: '+e.message);}
-  }
-  async function addSuperAdmin() {
-    const id=$('superId') ? $('superId').value.trim() : '', name=$('superName') ? $('superName').value.trim() : '';
-    if(!/^\d{5,20}$/.test(id)) { toast('أدخل Telegram ID صحيحاً'); return; }
-    const r=await call('addsuper',id,name,'✅ تم تسجيل السوبر أدمن');
-    if(r) { toast(r.message || (r.delivered ? '✅ تم إرسال دعوة السوبر أدمن' : '✅ سُجل الحساب؛ عليه إرسال /start للبوت')); await loadTeam(); }
-  }
-
 
   // ---------- العمائر والمستأجرون ----------
   async function loadDir() {
@@ -788,12 +685,12 @@
       <div class="panel"><b>🏢 العمائر (من «التواصل العام»)</b>
         <div style="color:var(--mut);font-size:13px;margin:0 0 10px">رابط الموقع (خرائط جوجل) يظهر للفني بزر 📍 على بطاقة الطلب.</div>
         <table><tr><th>العمارة</th><th>الوحدات</th><th>رابط الموقع</th><th>الصورة</th></tr>
-        ${blds.map((b, i) => `<tr><td><b>${esc(b.name)}</b></td><td>${b.units}</td><td>${DATA.superAdmin ? `<div class="row" style="margin:0;flex-wrap:nowrap"><input class="inp" id="mp${i}" style="width:100%;min-width:150px;padding:6px 8px" dir="ltr" placeholder="https://maps.app.goo.gl/…" value="${esc(b.url)}" onkeydown="if(event.key==='Enter')saveMap(${i}, this.value)"><button class="btn sm pri" onclick="saveMap(${i}, $('mp${i}').value)">💾 حفظ</button></div>` : (b.url ? `<a class="btn sm" target="_blank" href="${esc(b.url)}">📍 الموقع</a>` : '—')}</td>
-          <td style="white-space:nowrap">${DATA.superAdmin ? `<input type="file" id="bf${i}" accept="image/*" class="hidden" onchange="uploadBld(${i})">${b.photo ? `<span id="bt${i}" onclick="viewBld(${i})" style="display:inline-block;width:64px;height:64px;border-radius:10px;background:var(--soft);vertical-align:middle;margin-inline-end:6px;overflow:hidden;cursor:zoom-in;text-align:center;line-height:64px">⏳</span>` : ''}<button class="btn sm" onclick="$('bf${i}').click()">${b.photo ? '🔁 تغيير' : '📷 رفع'}</button>${b.photo ? ' <button class="btn sm" onclick="delBld(' + i + ')">🗑️</button>' : ''}` : (b.photo ? '🖼️ موجودة' : '—')}</td></tr>`).join('')}</table></div>
-      ${hasPerm('view_buildings') ? `<div class="panel"><b>🔎 المستأجرون${hasPerm('view_phone') ? ' وأرقام التواصل' : ''}</b>
-        <div class="row" style="margin-top:0"><input class="inp" id="tq" placeholder="${hasPerm('view_phone') ? 'اسم، عمارة، شقة أو جوال…' : 'اسم، عمارة أو شقة…'}" style="flex:1" onkeydown="if(event.key==='Enter')searchTen()"><button class="btn pri" onclick="searchTen()">بحث</button></div>
-        <div style="color:var(--mut);font-size:13px">${DATA.superAdmin ? 'الأرقام المضافة هنا تبقى بعد كل مزامنة. الرقم الأساسي من مصدر البيانات لا يُحذف من هنا.' : (hasPerm('view_phone') ? 'عرض أرقام التواصل متاح حسب صلاحيتك.' : 'الأرقام مخفية لأن صلاحية عرض أرقام التواصل غير مفعلة.')}</div>
-        <div id="tenBox" style="margin-top:10px"></div></div>` : ''}</div>`;
+        ${blds.map((b, i) => `<tr><td><b>${esc(b.name)}</b></td><td>${b.units}</td><td><div class="row" style="margin:0;flex-wrap:nowrap"><input class="inp" id="mp${i}" style="width:100%;min-width:150px;padding:6px 8px" dir="ltr" placeholder="https://maps.app.goo.gl/…" value="${esc(b.url)}" onkeydown="if(event.key==='Enter')saveMap(${i}, this.value)"><button class="btn sm pri" onclick="saveMap(${i}, $('mp${i}').value)">💾 حفظ</button></div></td>
+          <td style="white-space:nowrap"><input type="file" id="bf${i}" accept="image/*" class="hidden" onchange="uploadBld(${i})">${b.photo ? `<span id="bt${i}" onclick="viewBld(${i})" style="display:inline-block;width:64px;height:64px;border-radius:10px;background:var(--soft);vertical-align:middle;margin-inline-end:6px;overflow:hidden;cursor:zoom-in;text-align:center;line-height:64px">⏳</span>` : ''}<button class="btn sm" onclick="$('bf${i}').click()">${b.photo ? '🔁 تغيير' : '📷 رفع'}</button>${b.photo ? ' <button class="btn sm" onclick="delBld(' + i + ')">🗑️</button>' : ''}</td></tr>`).join('')}</table></div>
+      <div class="panel"><b>🔎 المستأجرون وأرقامهم</b>
+        <div class="row" style="margin-top:0"><input class="inp" id="tq" placeholder="اسم، عمارة، شقة أو جوال…" style="flex:1" onkeydown="if(event.key==='Enter')searchTen()"><button class="btn pri" onclick="searchTen()">بحث</button></div>
+        <div style="color:var(--mut);font-size:13px">الأرقام المضافة هنا تبقى بعد كل مزامنة. الرقم الأساسي من مصدر البيانات لا يُحذف من هنا.</div>
+        <div id="tenBox" style="margin-top:10px"></div></div></div>`;
     loadBThumbs();
   }
   const BIMG = {};
@@ -803,7 +700,6 @@
     return (BIMG[n] = 'data:' + r.mime + ';base64,' + r.b64);
   }
   async function loadBThumbs() {
-    if (!hasPerm('view_buildings')) return;
     for (let i = 0; i < BLDS.length; i++) {
       if (!BLDS[i].photo) continue;
       const el = $('bt' + i); if (!el) continue;
@@ -827,36 +723,11 @@
     catch (e) { toast('تعذّر رفع الصورة'); }
   }
   function delBld(i) { confirmBox('🗑️ حذف الصورة', 'حذف صورة ' + BLDS[i].name + '؟', async () => { if (await call('setbphoto', BLDS[i].name, '', '🗑️ حُذفت الصورة')) loadDir(); }, 'حذف'); }
-  async function loadTracking() {
-    const v=$('vtrk'); v.innerHTML=skel(3);
-    try { const r=await api('track'); TRACK_ITEMS=r.items||[];
-      v.innerHTML=`<div class="panel"><b>📍 تتبع الفنيين أثناء التوجه</b><div class="hint">لا يبدأ التتبع إلا بعد ضغط الفني زر «في الطريق» وموافقته على مشاركة الموقع من هاتفه. تتوقف المشاركة عند بدء العمل أو انتهاء التكليف.</div>
-      ${TRACK_ITEMS.length ? TRACK_ITEMS.map(x=>`<div class="track-card"><div class="row" style="margin:0"><b>👷 ${esc(x.tech||'فني')}</b><span class="badge b-قيد">🚗 في الطريق</span><spacer></spacer><b>#${esc(x.id)}</b></div><div style="margin-top:6px">🏢 ${esc(x.bld||'')} ${x.apt?'— شقة '+esc(x.apt):''}<br>🛠️ ${esc(x.type||'')}<br><small style="color:var(--mut)">آخر إشارة: ${esc(x.at||'')} · دقة ${esc(x.accuracy||'—')} م</small></div>
-      <a class="btn pri" style="margin-top:8px" target="_blank" rel="noopener" href="https://www.google.com/maps?q=${encodeURIComponent(x.lat+','+x.lng)}">🗺️ فتح الموقع على الخريطة</a>
-      <iframe class="track-map" loading="lazy" referrerpolicy="no-referrer-when-downgrade" src="https://www.openstreetmap.org/export/embed.html?bbox=${(Number(x.lng)-0.006).toFixed(6)}%2C${(Number(x.lat)-0.004).toFixed(6)}%2C${(Number(x.lng)+0.006).toFixed(6)}%2C${(Number(x.lat)+0.004).toFixed(6)}&layer=mapnik&marker=${x.lat}%2C${x.lng}"></iframe></div>`).join('') : '<div class="empty">لا يوجد فني يشارك موقعه الآن 🚗</div>'}
-      <div class="hint">يتم تحديث هذه الصفحة تلقائيًا كل 15 ثانية أثناء فتحها.</div></div>`;
-    } catch(e) { v.innerHTML='<div class="empty">تعذّر تحميل المواقع أو لا تملك صلاحية المشاهدة</div>'; }
-  }
   async function loadSet() {
     const v = $('vset'); v.innerHTML = skel(3);
-    try {
-      const [r,d,ap,approvalList] = await Promise.all([api('feat'),api('delivery'),api('approvalmode'),api('approvals')]);
-      v.innerHTML = `<div class="panel"><b>📨 مسار إتاحة البلاغات</b><div class="stat" style="margin-top:10px"><b>👑 مالك النظام + 🛡️ السوبر أدمن أولاً</b><span>يصل كل بلاغ جديد لهم فقط، ويُحفظ في عمود «متاح للجميع» بقيمة «لا» افتراضيًا.</span></div><div class="hint" style="margin-top:10px">من تفاصيل البلاغ اضغط «إتاحة للجميع». تتحول قيمة العمود إلى «نعم»، ويظهر البلاغ في لوحات الأدمنية الذين يملكون صلاحية عرض البلاغات، ويرسل لهم البوت بطاقة جديدة وتنبيهًا خاصًا مع المرفقات. يعيد النظام محاولة التنبيهات التي تعذّر إرسالها.</div></div>
-      <div class="panel" style="margin-top:16px"><b>🔐 اعتماد تغييرات الأدمن والفني</b><label style="display:flex;align-items:center;gap:10px;padding:12px 4px"><input type="checkbox" ${ap.required?'checked':''} onchange="setApprovalMode(this.checked)" style="width:20px;height:20px"><span>يجب موافقة السوبر أدمن قبل اعتماد إضافة أو حذف مرفق يطلبه الأدمن أو الفني</span></label>
-      <div class="hint">عند الإيقاف تُطبّق التعديلات مباشرة لمن يملك صلاحية المرفقات.</div><b style="display:block;margin-top:12px">📥 طلبات تنتظر موافقتك (${approvalList.list.length})</b>
-      ${approvalList.list.length ? approvalList.list.map(x=>`<div class="track-card"><div><b>#${esc(x.requestId)} · ${esc(x.operation)}</b><div class="hint">${esc(x.name||'مرفق')} · من ${esc(x.by)} · ${esc(x.date)}</div>${x.url?`<a class="btn sm" target="_blank" rel="noopener" href="${esc(x.url)}">📎 معاينة المرفق</a>`:''}</div><div class="row"><button class="btn ok" onclick="decideApproval(${x.row},'approve')">✅ اعتماد</button><button class="btn bad" onclick="decideApproval(${x.row},'reject')">❌ رفض</button><a class="btn" onclick="goReq('${esc(x.requestId)}')">فتح البلاغ</a></div></div>`).join('') : '<div class="empty">لا توجد تغييرات معلقة ✅</div>'}</div>
-      <div class="panel" style="margin-top:16px"><b>🎛️ تشغيل وإيقاف ميزات النظام</b><div class="hint" style="margin:6px 0 10px">إيقاف الميزة يوقف استقبالها أو عملها دون حذف بياناتها.</div>
+    const r = await call('feat', '', '', ''); if (!r) { v.innerHTML = '<div class="empty">تعذّر التحميل</div>'; return; }
+    v.innerHTML = `<div class="panel"><b>🎛️ الميزات</b><div class="hint" style="margin:6px 0 10px">فعّل أو ألغِ أي ميزة. الإلغاء يوقفها فوراً بدون حذف شيء.</div>
       ${r.feats.map(f => `<label style="display:flex;align-items:center;gap:10px;padding:12px 4px;border-top:1px solid var(--bd);cursor:pointer"><input type="checkbox" ${f.on ? 'checked' : ''} onchange="toggleFeat('${f.key}', this)" style="width:20px;height:20px"><span style="font-weight:700">${esc(f.label)}</span></label>`).join('')}</div>`;
-    } catch(e) { v.innerHTML='<div class="empty">تعذّر تحميل الإعدادات</div>'; }
-  }
-  async function setDeliveryMode() { const r=await call('setdelivery','','superadmins_only','✅ البلاغات تصل للسوبر أدمن أولاً'); if(!r) loadSet(); }
-
-  async function setApprovalMode(on) { const r=await call('setapprovalmode','',on?'on':'off',on?'✅ تفعيل الموافقات':'✅ إيقاف الموافقات'); if(!r) loadSet(); }
-  async function decideApproval(row, decision) {
-    const label=decision==='approve'?'اعتماد التعديل':'رفض التعديل';
-    confirmBox('🔐 '+label,'سيُسجل القرار في سجل العمليات. هل تريد المتابعة؟',async()=>{
-      const r=await call('decideapproval',row,JSON.stringify({decision:decision,note:''}),decision==='approve'?'✅ تم اعتماد التعديل':'❌ تم رفض التعديل'); if(r) loadSet();
-    },label);
   }
   async function toggleFeat(k, el) { const want = el.checked; if (!(await call('setfeat', k, want ? 'on' : 'off', want ? '✅ فُعّلت' : '⛔ أُلغيت'))) el.checked = !want; }
   async function searchTen() {
@@ -867,8 +738,8 @@
   function drawTen(total) {
     $('tenBox').innerHTML = `<div style="color:var(--mut);font-size:13px">${total} نتيجة${total > TENROWS.length ? ' (أول ' + TENROWS.length + ')' : ''}</div>
       <table>${TENROWS.map((t, i) => `<tr><td><b>${esc(t.name)}</b><br><small style="color:var(--mut)">${esc(t.bld)} — شقة ${esc(t.apt)} · ${esc(t.src)}</small></td>
-        <td><span class="chip">${esc(t.phone || '—')}</span>${String(t.more).split(/\s+/).filter(Boolean).map(p => `<span class="chip">${esc(p)}${DATA.superAdmin ? `<button title="حذف" onclick="delPhone(${i}, '${esc(p)}')">✕</button>` : ''}</span>`).join('')}
-          ${DATA.superAdmin ? `<button class="btn sm" onclick="addPhone(${i})">➕ رقم</button>` : ''}</td></tr>`).join('') || '<tr><td>لا نتائج</td></tr>'}</table>`;
+        <td><span class="chip">${esc(t.phone || '—')}</span>${String(t.more).split(/\s+/).filter(Boolean).map(p => `<span class="chip">${esc(p)}<button title="حذف" onclick="delPhone(${i}, '${esc(p)}')">✕</button></span>`).join('')}
+          <button class="btn sm" onclick="addPhone(${i})">➕ رقم</button></td></tr>`).join('') || '<tr><td>لا نتائج</td></tr>'}</table>`;
   }
   function addPhone(i) {
     const t = TENROWS[i];
@@ -880,8 +751,7 @@
   }
 
   $('items').innerHTML = skel(5);
-  load(true);
-  setInterval(() => { if (!document.hidden && TAB === 'req' && !$('modal').classList.contains('on')) load(false); if(!document.hidden && TAB==='trk') loadTracking(); }, 15000);
+  load(true); setInterval(() => { if (!document.hidden && TAB === 'req' && !$('modal').classList.contains('on')) load(false); }, 30000);
 </script>
 </body>
 </html>
