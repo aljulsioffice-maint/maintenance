@@ -99,6 +99,10 @@
   .urgent small { display: block; font-weight: 500; color: var(--muted); font-size: 13px; }
 
   .media-btns { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  /* Keep file inputs in the accessibility tree; visible labels activate the native picker directly on iOS/Android. */
+  .file-picker-input { position:absolute !important; width:1px !important; height:1px !important; padding:0 !important; margin:-1px !important; overflow:hidden !important; clip:rect(0,0,0,0) !important; clip-path:inset(50%) !important; white-space:nowrap !important; border:0 !important; opacity:0 !important; }
+  .media-actions > .media-action { margin:0; }
+  .media-actions > label.media-action { -webkit-user-select:none; user-select:none; }
   .media-actions .media-action { min-height: 104px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 7px; border: 1.5px solid var(--line); border-radius: 16px; background: var(--accent-soft); color: var(--accent); padding: 12px 8px; font: inherit; font-weight: 800; cursor: pointer; text-align: center; font-size: 15px; }
   .media-actions .media-action .ic { display: block; font-size: 36px; line-height: 1.15; margin: 0; }
   .media-actions .media-action.gallery { grid-column: 1 / -1; min-height: 78px; background: var(--field); border-style: dashed; }
@@ -322,19 +326,19 @@
     <div class="card" id="mediaCard">
       <div class="sec" id="sec2"><div class="num">2</div><h2 id="mediaH">📷 صور المشكلة أو 🎥 فيديو <small>(اختياري)</small></h2></div>
       <div class="media-btns media-actions">
-        <button class="mbtn media-action" type="button" onclick="document.getElementById('cameraPhotoIn').click()" aria-label="فتح الكاميرا لتصوير صورة">
+        <label class="mbtn media-action" for="cameraPhotoIn" aria-label="فتح الكاميرا لتصوير صورة">
           <span class="ic">📷</span><span>تصوير صورة</span>
-        </button>
-        <button class="mbtn media-action" type="button" onclick="document.getElementById('cameraVideoIn').click()" aria-label="فتح الكاميرا لتسجيل فيديو">
+        </label>
+        <label class="mbtn media-action" for="cameraVideoIn" aria-label="فتح الكاميرا لتسجيل فيديو">
           <span class="ic">🎥</span><span>تصوير فيديو</span>
-        </button>
-        <button class="mbtn media-action gallery" type="button" onclick="document.getElementById('mediaIn').click()" aria-label="اختيار صور أو فيديو من الاستديو">
-          <span class="ic">🖼️</span><span>اختيار من الاستديو (صور وفيديو)</span>
-        </button>
+        </label>
+        <label class="mbtn media-action gallery" for="mediaIn" aria-label="فتح الاستديو لاختيار صور وفيديو">
+          <span class="ic">🖼️</span><span>فتح الاستديو — صور وفيديو</span>
+        </label>
       </div>
-      <input type="file" id="cameraPhotoIn" accept="image/*" capture="environment" class="hidden">
-      <input type="file" id="cameraVideoIn" accept="video/*" capture="environment" class="hidden">
-      <input type="file" id="mediaIn" accept="image/*,video/*" multiple class="hidden">
+      <input type="file" id="cameraPhotoIn" accept="image/*" capture="environment" class="file-picker-input">
+      <input type="file" id="cameraVideoIn" accept="video/*" capture="environment" class="file-picker-input">
+      <input type="file" id="mediaIn" accept="image/*,video/*" multiple class="file-picker-input">
       <div class="thumbs" id="thumbs"></div>
       <div class="hint">التصوير يفتح الكاميرا مباشرة. ومن الاستديو يمكنك اختيار الصور والفيديو معًا. الحد: 4 صور وفيديو واحد بمدة لا تتجاوز 30 ثانية.</div>
       <div id="uploadProgress" class="hint" style="color:var(--accent); font-weight:800; display:none; margin-top:8px;"></div>
@@ -759,6 +763,26 @@
     await uploadVideoFile(selectedVideo, videoKey);
   }
 
+  function mediaFileKind(file) {
+    const mime = String(file && file.type || '').toLowerCase();
+    const name = String(file && file.name || '').toLowerCase();
+    if (mime.indexOf('image/') === 0) return 'image';
+    if (mime.indexOf('video/') === 0) return 'video';
+    if (/\.(jpe?g|png|webp|gif|heic|heif|avif)$/i.test(name)) return 'image';
+    if (/\.(mp4|mov|m4v|webm|3gp|mkv|avi)$/i.test(name)) return 'video';
+    return '';
+  }
+  function normalizedMediaFile(file, kind) {
+    if (file.type) return file;
+    const name = String(file.name || '').toLowerCase();
+    let mime = kind === 'video' ? 'video/mp4' : 'image/jpeg';
+    if (/\.mov$/i.test(name)) mime = 'video/quicktime';
+    else if (/\.webm$/i.test(name)) mime = 'video/webm';
+    else if (/\.png$/i.test(name)) mime = 'image/png';
+    else if (/\.webp$/i.test(name)) mime = 'image/webp';
+    try { return new File([file], file.name || ('upload.' + (kind === 'video' ? 'mp4' : 'jpg')), {type:mime,lastModified:file.lastModified || Date.now()}); }
+    catch (e) { return file; }
+  }
   async function processMediaInput(input) {
     const files = Array.from(input.files || []);
     const forcedKind = input.id === 'cameraPhotoIn' ? 'image' : input.id === 'cameraVideoIn' ? 'video' : '';
@@ -766,12 +790,12 @@
     if (!files.length) return;
     if (DRAFT_RESTORING) { showErr('انتظر حتى تكتمل استعادة المرفقات المحفوظة.'); return; }
     // نعالج الملفات بالتتابع لمنع تداخل مفاتيح الرفع.
-    for (const f of files) {
-      const isImage = /^image\//i.test(f.type || '') || forcedKind === 'image';
-      const isVideo = /^video\//i.test(f.type || '') || forcedKind === 'video';
-      if (isImage) await handlePickedImage(f);
-      else if (isVideo) await handlePickedVideo(f);
-      else showErr('نوع الملف غير مدعوم. اختر صورة أو فيديو.');
+    for (const raw of files) {
+      const kind = forcedKind || mediaFileKind(raw);
+      if (!kind) { showErr('نوع الملف غير مدعوم. اختر صورة أو فيديو.'); continue; }
+      const f = normalizedMediaFile(raw, kind);
+      if (kind === 'image') await handlePickedImage(f);
+      else await handlePickedVideo(f);
     }
     drawThumbs(); refreshSteps();
   }
@@ -1008,14 +1032,14 @@
         `<span class="${r.step > i + 1 || r.step === 3 ? 'ok' : r.step === i + 1 ? 'on' : ''}">${s}</span>`).join('') + '</div>';
       const rej = r.status === 'مرفوض' ? `<div class="box rej"><b>🚫 تعذّر تنفيذ الطلب</b>${r.reason ? '<div>السبب: ' + esc(r.reason) + '</div>' : ''}</div>` : '';
       const askMedia = r.status === 'بانتظار ردك' && r.media ? `<div class="box ask"><b>📷 الإدارة تطلب صورة أو فيديو:</b><div>${esc(r.question)}</div>
-        <input type="file" id="mfPhoto${esc(r.id)}" accept="image/*" capture="environment" class="hidden" onchange="sendMore('${esc(r.id)}','${esc(r.token)}','photo')">
-        <input type="file" id="mfVideo${esc(r.id)}" accept="video/*" capture="environment" class="hidden" onchange="sendMore('${esc(r.id)}','${esc(r.token)}','video')">
-        <input type="file" id="mfGallery${esc(r.id)}" accept="image/*,video/*" multiple class="hidden" onchange="sendMore('${esc(r.id)}','${esc(r.token)}','gallery')">
         <div class="media-btns media-actions">
-          <button class="mbtn media-action" type="button" onclick="document.getElementById('mfPhoto${esc(r.id)}').click()"><span class="ic">📷</span><span>تصوير صورة</span></button>
-          <button class="mbtn media-action" type="button" onclick="document.getElementById('mfVideo${esc(r.id)}').click()"><span class="ic">🎥</span><span>تصوير فيديو</span></button>
-          <button class="mbtn media-action gallery" type="button" onclick="document.getElementById('mfGallery${esc(r.id)}').click()"><span class="ic">🖼️</span><span>اختيار من الاستديو</span></button>
-        </div><div class="hint" id="ms${esc(r.id)}"></div></div>` : '';
+          <label class="mbtn media-action" for="mfPhoto${esc(r.id)}"><span class="ic">📷</span><span>تصوير صورة</span></label>
+          <label class="mbtn media-action" for="mfVideo${esc(r.id)}"><span class="ic">🎥</span><span>تصوير فيديو</span></label>
+          <label class="mbtn media-action gallery" for="mfGallery${esc(r.id)}"><span class="ic">🖼️</span><span>فتح الاستديو — صور وفيديو</span></label>
+        </div>
+        <input type="file" id="mfPhoto${esc(r.id)}" accept="image/*" capture="environment" class="file-picker-input" onchange="sendMore('${esc(r.id)}','${esc(r.token)}','photo')">
+        <input type="file" id="mfVideo${esc(r.id)}" accept="video/*" capture="environment" class="file-picker-input" onchange="sendMore('${esc(r.id)}','${esc(r.token)}','video')">
+        <input type="file" id="mfGallery${esc(r.id)}" accept="image/*,video/*" multiple class="file-picker-input" onchange="sendMore('${esc(r.id)}','${esc(r.token)}','gallery')"><div class="hint" id="ms${esc(r.id)}"></div></div>` : '';
       const ask = askMedia || (r.status === 'بانتظار ردك' ? `<div class="box ask"><b>❓ الإدارة تسأل:</b><div>${esc(r.question)}</div>
         <textarea id="rp${esc(r.id)}" placeholder="اكتب ردك هنا…"></textarea>
         <button class="submit" onclick="sendReply('${esc(r.id)}','${esc(r.token)}')">إرسال الرد</button></div>` : '');
@@ -1052,8 +1076,9 @@
     const input = $(inputId), files = [...(input ? input.files : [])], st = $('ms' + id);
     if (!files.length) return;
     if (input) input.value = '';
-    const pics = files.filter(f => /^image\//.test(f.type || '') || (source === 'photo' && !f.type)).slice(0, MAX_PHOTOS);
-    const vid = files.find(f => /^video\//.test(f.type || '')) || (source === 'video' ? files[0] : null);
+    const normalized = files.map(f => normalizedMediaFile(f, source === 'photo' ? 'image' : source === 'video' ? 'video' : mediaFileKind(f)));
+    const pics = normalized.filter(f => mediaFileKind(f) === 'image').slice(0, MAX_PHOTOS);
+    const vid = normalized.find(f => mediaFileKind(f) === 'video') || (source === 'video' ? normalized[0] : null);
     const total = pics.length + (vid ? 1 : 0);
     if (!total) { st.textContent = 'اختر صورة أو فيديو'; return; }
     uploadingMore = true;
