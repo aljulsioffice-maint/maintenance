@@ -233,7 +233,7 @@
       <div class="chipsbar" id="stats"></div>
       <div class="wrap">
         <div id="list">
-          <div class="tools"><input id="q" placeholder="🔎 ابحث: رقم الطلب، اسم، عمارة، شقة، فني…" oninput="draw()"><button class="btn pri" onclick="newReq()" style="margin-inline-start:8px">➕ طلب جديد</button></div>
+          <div class="tools"><input id="q" placeholder="🔎 ابحث: رقم الطلب، اسم، عمارة، شقة، فني…" oninput="draw()"><button class="btn pri" id="newReqBtn" onclick="newReq()" style="margin-inline-start:8px">➕ طلب جديد</button></div>
           <div id="items"></div>
         </div>
         <div id="detail" class="panel"><div class="empty">👈 اختر طلباً من القائمة لعرض تفاصيله</div></div>
@@ -363,9 +363,12 @@
       const r = await api('list');
       if (!r.ok) { $('app').style.display = 'none'; $('gate').style.display = 'block'; $('gateMsg').textContent = r.msg || 'الرابط غير صالح'; return; }
       DATA = r; $('gate').style.display = 'none'; $('app').style.display = 'block';
-      ['team', 'dir', 'set'].forEach(k => $('tab_' + k).classList.toggle('hidden', !r.owner));   // الفريق والعمائر للمالك فقط
+      ['team', 'dir', 'set'].forEach(k => $('tab_' + k).classList.toggle('hidden', !r.owner));
+      ['vis', 'rat', 'rep'].forEach(k => $('tab_' + k).classList.toggle('hidden', !can('view_dashboard')));
+      if (!can('view_dashboard') && ['vis', 'rat', 'rep'].includes(TAB)) setTab('req');   // الفريق والعمائر للمالك فقط
       if (!r.owner && (TAB === 'team' || TAB === 'dir' || TAB === 'set')) setTab('req');
       $('me').textContent = '👤 ' + r.me; $('upd').textContent = 'آخر تحديث ' + r.at.slice(11);
+      $('newReqBtn').classList.toggle('hidden', !can('create_request'));
       draw(); if (TAB === 'vis') drawVisits();
       if (SEL && (manual || DETAIL)) openReq(SEL, true);
       if (manual && TAB === 'rep') loadReport(); if (manual && TAB === 'team') loadTeam(); if (manual && TAB === 'dir') loadDir();
@@ -373,6 +376,7 @@
     finally { busy = false; }
   }
 
+  const can = k => !DATA || !DATA.perms || DATA.perms[k] !== false;
   const isDone = s => s === 'تمت المعالجة' || s === 'مرفوض' || s === 'ملغي';
   const bcls = s => 'b-' + String(s).split(' ')[0];
   const scls = s => 's-' + String(s).split(' ')[0];
@@ -477,24 +481,24 @@
       ${r.vis ? `<h3>📅 موعد الزيارة</h3><div class="desc"><b>${esc(r.vis)}${r.vdate ? ' — ' + esc(r.vdate) : ''}</b></div>` : ''}
       <h3>إجراءات</h3>
       ${done ? `<div class="row"><button class="btn pri" onclick="act('reopen')">♻️ إعادة فتح</button></div>` : `
-        <div class="row">
+        ${can('assign_tech') ? `<div class="row">
           <select id="techSel" style="flex:1;min-width:150px">${techOpts}</select>
           <button class="btn pri" onclick="assign()">👷 ${r.tech ? 'تغيير الفني' : 'تعيين'}</button>
-        </div>
+        </div>` : ''}
         <div class="row">
-          ${r.st === 'جديد' ? '<button class="btn" onclick="act(\'wip\')">⏳ قيد المعالجة</button>' : ''}
-          ${r.st === 'أنجزه الفني' ? '<button class="btn ok" onclick="ask2(\'close\',\'✅ تأكيد الإغلاق\',\'ملاحظة الإغلاق (اختياري)\',true)">✅ تأكيد الإغلاق</button><button class="btn" onclick="act(\'back\')">↩️ إرجاع للفني</button>' : '<button class="btn ok" onclick="ask2(\'close\',\'✅ إغلاق الطلب\',\'ملاحظة الإغلاق (اختياري)\',true)">✅ إغلاق</button>'}
-          <button class="btn" onclick="act('urgent')">${r.urg ? '⚪ اجعله عادي' : '🔴 اجعله عاجل'}</button>
+          ${r.st === 'جديد' && can('update_status') ? '<button class="btn" onclick="act(\'wip\')">⏳ قيد المعالجة</button>' : ''}
+          ${!can('update_status') ? '' : r.st === 'أنجزه الفني' ? '<button class="btn ok" onclick="ask2(\'close\',\'✅ تأكيد الإغلاق\',\'ملاحظة الإغلاق (اختياري)\',true)">✅ تأكيد الإغلاق</button><button class="btn" onclick="act(\'back\')">↩️ إرجاع للفني</button>' : '<button class="btn ok" onclick="ask2(\'close\',\'✅ إغلاق الطلب\',\'ملاحظة الإغلاق (اختياري)\',true)">✅ إغلاق</button>'}
+          ${can('change_urgent') ? `<button class="btn" onclick="act('urgent')">${r.urg ? '⚪ اجعله عادي' : '🔴 اجعله عاجل'}</button>` : ''}
         </div>
-        <div class="row"><button class="btn pri" onclick="visitForm()">📅 ${r.vis ? 'إعادة جدولة' : 'تحديد موعد زيارة'}</button>${r.vis ? '<button class="btn" onclick="visitWait()">⏸ إرجاع للانتظار</button>' : ''}</div>
+        ${can('manage_visits') ? `<div class="row"><button class="btn pri" onclick="visitForm()">📅 ${r.vis ? 'إعادة جدولة' : 'تحديد موعد زيارة'}</button>${r.vis && can('withdraw_tech') ? '<button class="btn" onclick="visitWait()">⏸ إرجاع للانتظار</button>' : ''}</div>` : ''}
         <div class="row">
-          ${r.st !== 'بانتظار المستأجر' && r.st !== 'أنجزه الفني' ? '<button class="btn" onclick="act(\'photo\')">📷 اطلب صورة/فيديو</button>' : ''}
-          <button class="btn" onclick="ask2('ask','❓ سؤال لصاحب البلاغ','اكتب سؤالك…')">❓ طلب معلومة</button>
-          <button class="btn bad" onclick="ask2('reject','🚫 رفض الطلب','سبب الرفض (يصل لصاحب البلاغ)', true)">🚫 رفض</button>
-          <button class="btn bad" onclick="ask2('cancelreq','⛔ إلغاء الطلب','سبب الإلغاء (اختياري)', true)">⛔ إلغاء</button>
+          ${can('ask_tenant') && r.st !== 'بانتظار المستأجر' && r.st !== 'أنجزه الفني' ? '<button class="btn" onclick="act(\'photo\')">📷 اطلب صورة/فيديو</button>' : ''}
+          ${can('ask_tenant') ? `<button class="btn" onclick="ask2('ask','❓ سؤال لصاحب البلاغ','اكتب سؤالك…')">❓ طلب معلومة</button>` : ''}
+          ${can('reject_request') ? `<button class="btn bad" onclick="ask2('reject','🚫 رفض الطلب','سبب الرفض (يصل لصاحب البلاغ)', true)">🚫 رفض</button>` : ''}
+          ${can('cancel_request') ? `<button class="btn bad" onclick="ask2('cancelreq','⛔ إلغاء الطلب','سبب الإلغاء (اختياري)', true)">⛔ إلغاء</button>` : ''}
         </div>`}
-      <h3>تعديل</h3>
-      <div class="row"><button class="btn" onclick="editReq()">✏️ تعديل البيانات</button>${DATA.owner ? '<button class="btn bad" onclick="delReq()">🗑️ حذف الطلب</button>' : ''}</div>
+      ${can('edit_request') || can('delete_request') ? `<h3>تعديل</h3>
+      <div class="row">${can('edit_request') ? '<button class="btn" onclick="editReq()">✏️ تعديل البيانات</button>' : ''}${can('delete_request') ? '<button class="btn bad" onclick="delReq()">🗑️ حذف الطلب</button>' : ''}</div>` : ''}
       <h3>🕓 السجل</h3>
       <div class="log">${DETAIL.logs.map(l => `<div><b>${esc(l.e)}</b> ${l.d ? '— ' + esc(l.d) : ''}<small>${esc(l.t)} · ${esc(l.by)}</small></div>`).reverse().join('') || '—'}</div>
       </div>`;
@@ -630,7 +634,7 @@
         <td><b>${esc(m.name)}</b>${self ? ' <small>(أنت)</small>' : ''}<br><small style="color:var(--mut)">${esc(m.spec)}${m.phone ? ' · ' + esc(m.phone) : ''}</small></td>
         <td>${own || self ? esc(m.role) : `<select onchange="setRole(${m.row}, this.value)"><option ${m.role === 'فني' ? 'selected' : ''}>فني</option><option ${m.role === 'أدمن' ? 'selected' : ''}>أدمن</option></select>`}</td>
         <td style="white-space:nowrap">${own || self ? (m.active ? '✅' : '⏸') : `<button class="btn sm ${m.active ? '' : 'pri'}" onclick="setActive(${m.row}, '${m.active ? 'لا' : 'نعم'}')">${m.active ? '⏸ إيقاف' : '▶ تفعيل'}</button>`}
-          <button class="btn sm" onclick="editMember(${i})" title="تعديل">✏️</button>${own || self ? '' : `<button class="btn sm bad" onclick="delMember(${i})" title="حذف">🗑️</button>`}</td></tr>`; }).join('');
+          ${m.role === 'أدمن' ? `<button class="btn sm" onclick="editPerms(${m.row})" title="الصلاحيات">🔐</button>` : ''}<button class="btn sm" onclick="editMember(${i})" title="تعديل">✏️</button>${own || self ? '' : `<button class="btn sm bad" onclick="delMember(${i})" title="حذف">🗑️</button>`}</td></tr>`; }).join('');
     const grows = g.guards.map((x, i) => `<tr class="${x.active ? '' : 'off'}">
         <td><b>🛡️ ${esc(x.name)}</b><br><small style="color:var(--mut)">${esc(x.bld)}${x.phone ? ' · ' + esc(x.phone) : ''}</small></td>
         <td style="white-space:nowrap"><button class="btn sm" onclick="copyLink('${esc(x.link)}')">🔗</button>
@@ -649,6 +653,15 @@
         <div class="row"><select id="gBld" style="flex:1">${g.blds.map(b => `<option>${esc(b)}</option>`).join('')}</select>
           <button class="btn pri" onclick="addGuard()">إضافة</button></div>
       </div></div>`;
+  }
+  async function editPerms(row) {
+    const r = await call('perms', row, '', ''); if (!r) return;
+    $('mTitle').textContent = '🔐 صلاحيات ' + r.name;
+    $('mBody').innerHTML = `<div class="row" style="margin:0 0 6px"><button class="btn sm" onclick="document.querySelectorAll('.pcb').forEach(c=>c.checked=true)">✅ تفعيل الكل</button><button class="btn sm" onclick="document.querySelectorAll('.pcb').forEach(c=>c.checked=false)">⛔ إيقاف الكل</button></div>`
+      + r.perms.map(p => `<label style="display:flex;align-items:center;gap:10px;padding:9px 2px;border-top:1px solid var(--bd);cursor:pointer"><input type="checkbox" class="pcb" data-k="${esc(p.key)}" ${p.on ? 'checked' : ''} style="width:19px;height:19px"><span>${esc(p.label)}</span></label>`).join('');
+    $('mOk').textContent = 'حفظ';
+    $('mOk').onclick = async () => { const ch = {}; document.querySelectorAll('.pcb').forEach(c => { ch[c.dataset.k] = c.checked; }); closeModal(); await call('setperms', row, JSON.stringify(ch), '✅ حُفظت الصلاحيات'); };
+    $('modal').classList.add('on');
   }
   const setRole = async (row, role) => { if (await call('setrole', row + '|' + role, '', '✅ تغيّر الدور وأُبلغ العضو')) loadTeam(); };
   const setActive = async (row, v) => { if (await call('setactive', row + '|' + v)) loadTeam(); };
