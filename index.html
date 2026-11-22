@@ -276,17 +276,16 @@
     <div class="card">
       <div class="sec" id="sec3"><div class="num">3</div><h2 id="mediaH">صور أو فيديو <small>(اختياري)</small></h2></div>
       <div class="media-btns">
-        <button class="mbtn big" type="button" onclick="document.getElementById('photoCam').click()"><span class="ic">📷</span>صوّر المشكلة الآن</button>
-        <button class="mbtn sec2" type="button" onclick="document.getElementById('photoIn').click()"><span class="ic">🖼️</span>من الاستوديو</button>
-        <button class="mbtn sec2" type="button" onclick="document.getElementById('videoCam').click()"><span class="ic">🎥</span>فيديو الآن</button>
-        <button class="mbtn sec2" type="button" onclick="document.getElementById('videoIn').click()"><span class="ic">🎞️</span>فيديو من الاستوديو</button>
+        <button class="mbtn big" type="button" onclick="document.getElementById('cameraPhotoIn').click()"><span class="ic">📷</span>تصوير صورة</button>
+        <button class="mbtn sec2" type="button" onclick="document.getElementById('cameraVideoIn').click()"><span class="ic">🎥</span>تصوير فيديو</button>
+        <button class="mbtn sec2" type="button" onclick="document.getElementById('mediaIn').click()"><span class="ic">🖼️</span>الاستديو — صور وفيديو</button>
       </div>
-      <input type="file" id="photoCam" accept="image/*" capture="environment" class="hidden">
-      <input type="file" id="photoIn" accept="image/*" multiple class="hidden">
-      <input type="file" id="videoCam" accept="video/*" capture="environment" class="hidden">
-      <input type="file" id="videoIn" accept="video/*" class="hidden">
+      <input type="file" id="cameraPhotoIn" accept="image/*" capture="environment" class="hidden">
+      <input type="file" id="cameraVideoIn" accept="video/*" capture="environment" class="hidden">
+      <input type="file" id="mediaIn" accept="image/*,video/*" multiple class="hidden">
       <div class="thumbs" id="thumbs"></div>
-      <div class="hint">حتى 4 صور، وفيديو واحد لا يزيد عن 30 ثانية. الصورة تسرّع الحل.</div>
+      <div class="hint">حتى 4 صور، وفيديو واحد لا يزيد عن 30 ثانية. الصورة تسرّع الحل. المرفقات تُرفع فور اختيارها وتُحفظ لو أغلقت الصفحة.</div>
+      <div id="uploadProgress" class="hint" style="color:var(--accent);font-weight:800;display:none;margin-top:8px"></div>
     </div>
 
     <div class="hp" aria-hidden="true"><input type="text" id="website" tabindex="-1" autocomplete="off"></div>
@@ -500,23 +499,120 @@
 
   function refreshMyBtn() { $('myBtn').classList.toggle('hidden', !lsGet('mr_tokens', []).length && !TRACK); }
 
-  // ---------- الوسائط ----------
-  ['photoIn', 'photoCam'].forEach(id => $(id).addEventListener('change', e => {
-    const files = Array.from(e.target.files || []);
-    for (const f of files) {
-      if (photos.length >= MAX_PHOTOS) { showErr('الحد ' + MAX_PHOTOS + ' صور'); break; }
-      photos.push({ file: f, url: URL.createObjectURL(f) });
+  // ---------- الوسائط: رفع فوري مؤقت + مسودة محلية ----------
+  // المستأجر: كل صورة/فيديو يُرفع لمجلد مؤقت فور اختياره، والمسودة تُحفظ على الجهاز (تسلم من إغلاق الصفحة). الحارس: يبقى الرفع بعد الإرسال.
+  const newKey = sfx => 'tmp_' + (crypto.randomUUID ? crypto.randomUUID().replace(/-/g, '') : (Date.now().toString(36) + Math.random().toString(36).slice(2))) + (sfx || '');
+  let TEMP_KEY = lsGet('mr_temp_key', ''), VIDEO_TEMP_KEY = lsGet('mr_video_temp_key', '');
+  if (!/^tmp_[a-z0-9_-]{12,60}$/i.test(TEMP_KEY)) { TEMP_KEY = newKey(); lsSet('mr_temp_key', TEMP_KEY); }
+  if (!/^tmp_[a-z0-9_-]{12,60}$/i.test(VIDEO_TEMP_KEY)) { VIDEO_TEMP_KEY = newKey('_v'); lsSet('mr_video_temp_key', VIDEO_TEMP_KEY); }
+  let DRAFT_RESTORING = !GUARD;
+  function dbOpen() {
+    return new Promise((res, rej) => { try { const q = indexedDB.open('maintenance-draft-v2', 1); q.onupgradeneeded = () => { if (!q.result.objectStoreNames.contains('files')) q.result.createObjectStore('files', { keyPath: 'id' }); }; q.onsuccess = () => res(q.result); q.onerror = () => rej(q.error); } catch (e) { rej(e); } });
+  }
+  async function dbPut(kind, cid, file) {
+    try {
+      const db = await dbOpen(), rec = { id: kind + ':' + cid, kind: kind, key: kind === 'photo' ? TEMP_KEY : VIDEO_TEMP_KEY, name: file.name, type: file.type, lastModified: file.lastModified, blob: file };
+      await new Promise((res, rej) => { const tx = db.transaction('files', 'readwrite'); tx.objectStore('files').put(rec); tx.oncomplete = res; tx.onerror = () => rej(tx.error); }); db.close();
+    } catch (e) {}
+  }
+  async function dbDel(kind, cid) {
+    try { const db = await dbOpen(); await new Promise((res, rej) => { const tx = db.transaction('files', 'readwrite'); tx.objectStore('files').delete(kind + ':' + cid); tx.oncomplete = res; tx.onerror = () => rej(tx.error); }); db.close(); } catch (e) {}
+  }
+  async function dbAll() {
+    try { const db = await dbOpen(); const a = await new Promise((res, rej) => { const q = db.transaction('files', 'readonly').objectStore('files').getAll(); q.onsuccess = () => res(q.result || []); q.onerror = () => rej(q.error); }); db.close(); return a; } catch (e) { return []; }
+  }
+  async function dbClear() {
+    try { const all = await dbAll(), db = await dbOpen(); await new Promise((res, rej) => { const tx = db.transaction('files', 'readwrite'), st = tx.objectStore('files'); all.forEach(x => st.delete(x.id)); tx.oncomplete = res; tx.onerror = () => rej(tx.error); }); db.close(); } catch (e) {}
+  }
+  function saveDraftText() { if (!GUARD) lsSet('mr_draft', { desc: $('desc').value, urgent: $('urgent').checked }); }
+  async function retryRun(fn, ...args) {
+    let last;
+    for (let i = 0; i < 3; i++) { try { return await run(fn, ...args); } catch (e) { last = e; if (i < 2) await new Promise(r => setTimeout(r, 700 * Math.pow(2, i))); } }
+    throw last || new Error('تعذر الاتصال بالخادم');
+  }
+
+  async function addPhoto(f, restoredId) {
+    if (photos.length >= MAX_PHOTOS) { showErr('الحد الأقصى ' + MAX_PHOTOS + ' صور'); return; }
+    const p = { file: f, url: URL.createObjectURL(f), clientId: restoredId || newKey().slice(4), uploading: !GUARD };
+    photos.push(p); drawThumbs();
+    if (GUARD) return;
+    try {
+      if (!restoredId) await dbPut('photo', p.clientId, f);
+      const r = await retryRun('uploadTempPhoto', await compress(f), TEMP_KEY, p.clientId);
+      if (!r || !r.ok) throw new Error((r && r.msg) || 'upload');
+      p.uploading = false;
+      if (p.cancelled) run('removeTempPhoto', TEMP_KEY, 0, p.clientId).catch(() => {});
+    } catch (e) {
+      p.uploading = false; p.error = true; showErr('تعذر رفع إحدى الصور — احذفها وأعد اختيارها.');
     }
-    e.target.value = ''; drawThumbs();
-  }));
-  ['videoIn', 'videoCam'].forEach(id => $(id).addEventListener('change', async e => {
-    const f = e.target.files && e.target.files[0]; e.target.value = '';
-    if (!f) return;
+    drawThumbs();
+  }
+  async function addVideo(f, restored) {
+    if (video) return showErr('يوجد فيديو بالفعل — احذفه من المعاينة لإضافة غيره.');
     const dur = await videoDuration(f);
     if (dur > MAX_VIDEO_SEC + 1) return showErr('الفيديو أطول من ' + MAX_VIDEO_SEC + ' ثانية — صوّر مقطعاً أقصر');
     if (f.size > MAX_VIDEO_MB * 1024 * 1024) return showErr('حجم الفيديو كبير — صوّر مقطعاً أقصر');
-    video = { file: f, url: URL.createObjectURL(f) }; drawThumbs();
-  }));
+    if (!restored && !GUARD) { VIDEO_TEMP_KEY = newKey('_v'); lsSet('mr_video_temp_key', VIDEO_TEMP_KEY); }
+    const v = { file: f, url: URL.createObjectURL(f), uploading: !GUARD, progress: 0 };
+    video = v; drawThumbs();
+    if (GUARD) return;
+    if (!restored) await dbPut('video', 'video', f);
+    await uploadVideoTemp(v, VIDEO_TEMP_KEY);
+  }
+  async function uploadVideoTemp(v, key) {
+    const f = v.file;
+    try {
+      const st = await retryRun('startTempVideo', key, f.size, f.type || 'video/mp4');
+      if (!st || !st.ok || (!st.key && !st.complete)) throw new Error((st && st.msg) || 'start');
+      let off = Number(st.nextOffset || 0);
+      while (!st.complete && off < f.size) {
+        const end = Math.min(off + CHUNK, f.size), part = await retryRun('uploadVideoChunk', st.key, off, await blobToB64(f.slice(off, end)));
+        if (!part || !part.ok) throw new Error('chunk');
+        const nx = Number(part.nextOffset); off = Number.isFinite(nx) && nx > off ? nx : end;
+        v.progress = Math.min(99, Math.round(off * 100 / f.size)); if (video === v) drawThumbs();
+      }
+      if (!st.complete) { const d = await retryRun('finishTempVideo', key, st.key); if (!d || !d.ok) throw new Error('finish'); }
+      if (video !== v || v.cancelled) { run('removeTempVideo', key).catch(() => {}); return; }
+      v.uploading = false; v.progress = 100;
+    } catch (e) {
+      if (video === v) { v.uploading = false; v.error = true; showErr('تعذر رفع الفيديو — احذفه وأعد اختياره.'); }
+    }
+    drawThumbs();
+  }
+  function mediaKind(f) {
+    const m = String(f.type || '').toLowerCase(), n = String(f.name || '').toLowerCase();
+    if (m.indexOf('image/') === 0 || /\.(jpe?g|png|webp|gif|heic|heif|avif)$/.test(n)) return 'image';
+    if (m.indexOf('video/') === 0 || /\.(mp4|mov|m4v|webm|3gp|mkv|avi)$/.test(n)) return 'video';
+    return '';
+  }
+  async function processPick(input) {
+    const files = Array.from(input.files || []), forced = input.id === 'cameraPhotoIn' ? 'image' : input.id === 'cameraVideoIn' ? 'video' : '';
+    input.value = '';
+    if (!files.length) return;
+    if (DRAFT_RESTORING) return showErr('انتظر لحظة — تُستعاد المرفقات المحفوظة.');
+    for (const f of files) {   // بالتتابع: يمنع تداخل الرفع
+      const k = forced || mediaKind(f);
+      if (!k) { showErr('نوع الملف غير مدعوم — اختر صورة أو فيديو.'); continue; }
+      if (k === 'image') await addPhoto(f); else await addVideo(f);
+    }
+    drawThumbs();
+  }
+  ['cameraPhotoIn', 'cameraVideoIn', 'mediaIn'].forEach(id => $(id).addEventListener('change', e => processPick(e.currentTarget)));
+  async function restoreDraft() {
+    try {
+      const d = lsGet('mr_draft', {});
+      if (d && d.desc && !$('desc').value) $('desc').value = d.desc;
+      if (d && d.urgent) { $('urgent').checked = true; $('urgentBox').classList.add('on'); }
+      const all = await dbAll();
+      for (const r of all.filter(x => x.kind === 'photo' && x.key === TEMP_KEY).slice(0, MAX_PHOTOS)) await addPhoto(new File([r.blob], r.name || 'p.jpg', { type: r.type, lastModified: r.lastModified }), r.id.slice(6));
+      const rv = all.filter(x => x.kind === 'video' && x.key === VIDEO_TEMP_KEY)[0];
+      if (rv) await addVideo(new File([rv.blob], rv.name || 'v.mp4', { type: rv.type, lastModified: rv.lastModified }), true);
+    } catch (e) { console.warn('draft restore', e); }
+  }
+  if (!GUARD) {
+    setTimeout(() => restoreDraft().finally(() => { DRAFT_RESTORING = false; drawThumbs(); }), 150);
+    $('desc').addEventListener('input', saveDraftText); $('urgent').addEventListener('change', saveDraftText);
+  }
   function videoDuration(file) {
     return new Promise(res => {
       const v = document.createElement('video'); v.preload = 'metadata';
@@ -525,13 +621,19 @@
     });
   }
   function drawThumbs() {
-    const h = photos.map((p, i) => `<div class="thumb"><img src="${p.url}"><button onclick="rmPhoto(${i})">✕</button></div>`);
-    if (video) h.push(`<div class="thumb"><video src="${video.url}" muted></video><button onclick="rmVideo()">✕</button></div>`);
+    const badge = x => x.uploading ? '<div style="position:absolute;top:30%;left:30%;font-size:20px">⏳</div>' : (GUARD ? '' : `<div style="position:absolute;bottom:4px;right:4px;color:#fff;background:${x.error ? '#b91c1c' : 'green'};border-radius:50%;width:20px;height:20px;text-align:center;font-size:12px">${x.error ? '!' : '✓'}</div>`);
+    const h = photos.map((p, i) => `<div class="thumb" style="${p.uploading ? 'opacity:.5' : ''}"><img src="${p.url}">${badge(p)}<button onclick="rmPhoto(${i})">✕</button></div>`);
+    if (video) h.push(`<div class="thumb" style="${video.uploading ? 'opacity:.55' : ''}"><video src="${video.url}" muted></video>${video.uploading ? `<span style="position:absolute;inset:0;display:grid;place-items:center;color:#fff;background:#0008;font-size:12px;font-weight:800">${video.progress || 0}%</span>` : badge(video)}<button onclick="rmVideo()">✕</button></div>`);
     $('thumbs').innerHTML = h.join('');
+    const up = photos.filter(p => p.uploading).length + (video && video.uploading ? 1 : 0), pr = $('uploadProgress');
+    if (pr) { pr.style.display = up ? 'block' : 'none'; pr.textContent = '⏳ جاري رفع ' + up + ' مرفق… انتظر قبل الإرسال'; }
     $('f_desc').classList.remove('bad'); refreshSteps();
   }
-  function rmPhoto(i) { photos.splice(i, 1); drawThumbs(); }
-  function rmVideo() { video = null; drawThumbs(); }
+  function rmPhoto(i) { const p = photos[i]; if (!p) return; p.cancelled = true; photos.splice(i, 1); if (!GUARD) { run('removeTempPhoto', TEMP_KEY, 0, p.clientId).catch(() => {}); dbDel('photo', p.clientId); } drawThumbs(); }
+  function rmVideo() {
+    const old = video; if (old) { old.cancelled = true; if (!GUARD) { run('removeTempVideo', VIDEO_TEMP_KEY).catch(() => {}); dbDel('video', 'video'); } }
+    video = null; if (!GUARD) { VIDEO_TEMP_KEY = newKey('_v'); lsSet('mr_video_temp_key', VIDEO_TEMP_KEY); } drawThumbs();
+  }
 
   async function compress(file) {
     const url = URL.createObjectURL(file);
@@ -573,7 +675,9 @@
       if (gKind === 'maint' && !photos.length && !video) return showErr('صوّر المشكلة');
       call = () => run('submitGuard', GUARD, gScope === 'apt' ? gapt : '', gKind, photos.length + (video ? 1 : 0));
     } else {
-      f = { desc: $('desc').value.trim(), type: selType, urgent: $('urgent').checked, website: $('website').value, mediaCount: photos.length + (video ? 1 : 0) };
+      if (photos.some(p => p.uploading) || (video && video.uploading)) return showErr('انتظر اكتمال رفع المرفقات ثم أرسل');
+      if (photos.some(p => p.error) || (video && video.error)) return showErr('بعض المرفقات لم تُرفع — احذفها (✕) وأعد اختيارها');
+      f = { desc: $('desc').value.trim(), type: selType, urgent: $('urgent').checked, website: $('website').value, mediaCount: photos.length + (video ? 1 : 0), tmpKey: photos.length ? TEMP_KEY : '', videoTmpKey: video ? VIDEO_TEMP_KEY : '' };
       if (ident) {
         f.lk = ident.lk; f.pick = ident.pick;
         if (ident.needPhone) { f.phone = toLatin($('phone2').value).trim(); if (!phoneOk(f.phone)) return bad('phone2'); }
@@ -605,7 +709,10 @@
     else { setGScope('bld'); gKind = ''; document.querySelectorAll('#gKinds .type').forEach(x => x.classList.remove('on')); }
 
     // رقم البلاغ يظهر فوراً؛ المرفقات تكمل رفعها بالخلفية وتظهر حالتها بشاشة «تم الاستلام»
-    const ph = photos.slice(), vd = video;
+    const ph = GUARD ? photos.slice() : [], vd = GUARD ? video : null;   // المستأجر رُفعت مرفقاته مسبقاً؛ الحارس يرفع بعد الإرسال
+    const preUp = !GUARD && !!(photos.length || video);
+    if (!GUARD) { TEMP_KEY = newKey(); lsSet('mr_temp_key', TEMP_KEY); VIDEO_TEMP_KEY = newKey('_v'); lsSet('mr_video_temp_key', VIDEO_TEMP_KEY); lsSet('mr_draft', {}); dbClear(); }
+    if (preUp && res.id) fire('flushMedia', res.id, res.token);
     if (res.id) { const t = lsGet('mr_tokens', []); t.push(res.token); lsSet('mr_tokens', t); }
     lastToken = res.token;
     $('tgBtn').href = 'https://wa.me/' + OFFICE_WA + '?text=' + encodeURIComponent('بلاغ صيانة رقم #' + res.id + ' — ' + (GUARD ? 'من حارس العمارة' : 'أرجو تأكيد الاستلام'));
