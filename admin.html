@@ -516,7 +516,7 @@
       <div class="row">${wa}</div>
       ${r.vis ? `<h3>📅 موعد الزيارة</h3><div class="desc"><b>${esc(r.vis)}${r.vdate ? ' — ' + esc(r.vdate) : ''}</b></div>` : ''}
       ${assignedTrack}
-      ${DATA.superAdmin && DATA.groupReady ? `<div class="row"><button class="btn pri" ${r.groupPublished ? 'disabled' : ''} onclick="publishSelectedToGroup()">📣 ${r.groupPublished ? 'تم نشر البلاغ للمجموعة' : 'نشر البلاغ للمجموعة'}</button></div>` : ''}
+      ${DATA.superAdmin && DATA.groupReady ? `<div class="row"><button class="btn pri" ${r.groupPublished ? 'disabled' : ''} onclick="publishSelectedToGroup()">📢 ${r.groupPublished ? 'أُتيح للأدمنية' : 'إتاحة البلاغ للأدمنية'}</button></div><div class="hint">لا يظهر البلاغ للأدمنية العاديين إلا بعد ضغط هذا الزر. المجموعة: ${esc(DATA.groupTitle || 'مجموعة الأدمنية')}</div>` : ''}
       <h3>إجراءات الإدارة</h3>
       ${!done ? `<div class="row">
         ${canAssign ? `<select id="techSel" style="flex:1;min-width:150px">${techOpts}</select><button class="btn pri" onclick="assign()">👷 ${r.tech ? 'تغيير الفني' : 'تعيين فني'}</button>` : ''}
@@ -562,7 +562,7 @@
     if (!DATA || !DATA.superAdmin) return toast('النشر للمجموعة للسوبر أدمن فقط');
     if (DETAIL && DETAIL.req && DETAIL.req.groupPublished) return toast('هذا البلاغ منشور بالفعل في المجموعة');
     const r=await call('publishgroup',SEL,'','✅ تم نشر البلاغ في المجموعة');
-    if(r) { await load(false); await openReq(SEL,true); }
+    if(r) { toast('📢 أصبح البلاغ متاحاً للأدمنية في المجموعة'); await load(false); await openReq(SEL,true); }
   }
   function assign() { const v = $('techSel').value; if (!v) { toast('اختر الفني أولاً'); return; } act('assign', v); }
   function withdrawReq() { confirmBox('↩️ سحب البلاغ من الفني', 'سيُزال التكليف الحالي ويعود البلاغ إلى قائمة الانتظار.', () => act('withdraw'), 'سحب'); }
@@ -839,7 +839,7 @@
     const v = $('vset'); v.innerHTML = skel(3);
     try {
       const [r,d,ap,approvalList] = await Promise.all([api('feat'),api('delivery'),api('approvalmode'),api('approvals')]);
-      v.innerHTML = `<div class="panel"><b>📨 مسار البلاغات الجديدة</b><div class="stat" style="margin-top:10px"><b>👑 مالك النظام + 🛡️ السوبر أدمن</b><span>كل بلاغ جديد يصل إليهم أولاً. لا يصل تلقائياً للأدمن العادي.</span></div><div class="hint" style="margin-top:10px">بعد مراجعة البلاغ، يستطيع السوبر أدمن نشره في مجموعة البلاغات أو اتخاذ الإجراء بنفسه أو تحويله لأدمن محدد. ${d.groupReady ? 'المجموعة المرتبطة: '+esc(d.groupTitle || 'مجموعة النشر') : 'لم تُربط مجموعة النشر بعد؛ أرسل الأمر /setgroup داخل المجموعة بواسطة مالك النظام.'}</div></div>
+      v.innerHTML = `<div class="panel"><b>📨 مسار البلاغات الجديدة</b><div class="stat" style="margin-top:10px"><b>👑 مالك النظام + 🛡️ السوبر أدمن</b><span>كل بلاغ جديد يصل إليهم أولاً. لا يصل تلقائياً للأدمن العادي.</span></div><div class="hint" style="margin-top:10px">بعد مراجعة البلاغ، يستطيع السوبر أدمن نشره في مجموعة البلاغات أو اتخاذ الإجراء بنفسه أو تحويله لأدمن محدد. ${d.groupReady ? 'مجموعة الأدمنية المرتبطة: '+esc(d.groupTitle || 'مجموعة الأدمنية') : 'لم تُربط مجموعة الأدمنية بعد؛ أرسل مالك النظام الأمر /setgroup من داخل المجموعة.'}</div></div>
       <div class="panel" style="margin-top:16px"><b>🔐 اعتماد تغييرات الأدمن والفني</b><label style="display:flex;align-items:center;gap:10px;padding:12px 4px"><input type="checkbox" ${ap.required?'checked':''} onchange="setApprovalMode(this.checked)" style="width:20px;height:20px"><span>يجب موافقة السوبر أدمن قبل اعتماد إضافة أو حذف مرفق يطلبه الأدمن أو الفني</span></label>
       <div class="hint">عند الإيقاف تُطبّق التعديلات مباشرة لمن يملك صلاحية المرفقات.</div><b style="display:block;margin-top:12px">📥 طلبات تنتظر موافقتك (${approvalList.list.length})</b>
       ${approvalList.list.length ? approvalList.list.map(x=>`<div class="track-card"><div><b>#${esc(x.requestId)} · ${esc(x.operation)}</b><div class="hint">${esc(x.name||'مرفق')} · من ${esc(x.by)} · ${esc(x.date)}</div>${x.url?`<a class="btn sm" target="_blank" rel="noopener" href="${esc(x.url)}">📎 معاينة المرفق</a>`:''}</div><div class="row"><button class="btn ok" onclick="decideApproval(${x.row},'approve')">✅ اعتماد</button><button class="btn bad" onclick="decideApproval(${x.row},'reject')">❌ رفض</button><a class="btn" onclick="goReq('${esc(x.requestId)}')">فتح البلاغ</a></div></div>`).join('') : '<div class="empty">لا توجد تغييرات معلقة ✅</div>'}</div>
