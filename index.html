@@ -450,12 +450,20 @@
     ['sec1', 'sec2', 'sec3'].forEach((id, i) => $(id).classList.toggle('ok', !![s1, s2, s3][i] && !uploading));
     
     const n = [s1, s3].filter(Boolean).length;
+    
     $('stLbl').textContent = uploading ? '⏳ جاري الرفع…' : (n === 2 ? 'جاهز للإرسال ✓' : (n + ' من 2'));
     $('subHint').textContent = uploading ? 'انتظر قليلاً حتى يتم رفع الصور' : (n === 2 ? 'ضغطة وحدة وتوصل للمكتب 👇' : (!s1 ? 'اكتب هويتك أو جوالك أول' : 'اختر نوع المشكلة واشرحها'));
 
-    // قفل الزر
     const btn = $('sendBtn');
-    if (btn) btn.disabled = uploading;
+    if (btn) {
+      if (uploading) {
+        btn.disabled = true;
+        btn.textContent = '⏳ انتظر.. جاري رفع المرفقات';
+      } else {
+        btn.disabled = false;
+        btn.textContent = 'إرسال البلاغ';
+      }
+    }
   }
   
   if (GUARD) { $('stepper').classList.add('hidden'); }
@@ -464,7 +472,7 @@
   if (GUARD) {
     ['tenCard', 'probCard', 'tgBtn', 'shBtn', 'mediaCard'].forEach(k => { const e = $(k); if (e) e.classList.add('hidden'); });
     $('guardCard').classList.remove('hidden'); $('mediaH').textContent = 'الصورة';
-    $('guardCard').appendChild($('photoCam').parentNode); // dummy
+    $('guardCard').appendChild($('photoCam').parentNode);
     document.querySelectorAll('.media-btns .mbtn').forEach((b, i) => { if (i > 1) b.classList.add('hidden'); });
     $('gKinds').addEventListener('click', e => {
       const b = e.target.closest('.type'); if (!b) return;
@@ -489,7 +497,7 @@
 
   function refreshMyBtn() { $('myBtn').classList.toggle('hidden', !lsGet('mr_tokens', []).length && !TRACK); }
 
-  // الرفع المسبق للصور (الخلفية)
+  // الرفع المسبق للصور
   ['photoIn', 'photoCam'].forEach(id => $(id).addEventListener('change', async e => {
     const files = Array.from(e.target.files || []);
     for (const f of files) {
@@ -533,7 +541,6 @@
     if (video) h.push(`<div class="thumb"><video src="${video.url}" muted></video><button onclick="rmVideo()">✕</button></div>`);
     $('thumbs').innerHTML = h.join('');
     
-    // تحديث شريط التقدم
     const uploadingCount = photos.filter(p => p.uploading).length;
     const prog = $('uploadProgress');
     if (prog) {
@@ -577,7 +584,7 @@
 
   async function send() {
     showErr('');
-    // قفل الإرسال إذا كانت هناك صور تُرفع
+    // الزر مقفول مسبقاً، لكن نضع هذا كاحتياط
     if (photos.some(p => p.uploading)) {
       return showErr('⏳ يرجى الانتظار حتى تكتمل عملية رفع الصور قبل إرسال البلاغ.');
     }
@@ -611,7 +618,11 @@
       call = () => run('submitRequest', f);
     }
 
-    $('sendBtn').disabled = true; $('overlay').style.display = 'flex'; progress('جاري الإرسال…', 5);
+    $('sendBtn').disabled = true; 
+    $('sendBtn').textContent = '⏳ جاري معالجة البلاغ…';
+    $('overlay').style.display = 'flex'; 
+    progress('جاري إنشاء البلاغ…', 5);
+    
     let res;
     try { res = await call(); }
     catch (e) { return endSend('تعذر الإرسال، تأكد من الإنترنت وحاول مرة ثانية'); }
@@ -622,7 +633,6 @@
 
     const vd = video;
     
-    // لا تظهر شاشة النجاح ولا الرقم إلا بعد اكتمال الفيديو
     if (vd) {
       progress('⏳ جاري رفع الفيديو (قد يستغرق دقيقة)…', 10);
       let failed = 0;
@@ -640,6 +650,7 @@
       if (failed) {
         $('overlay').style.display = 'none';
         $('sendBtn').disabled = false;
+        $('sendBtn').textContent = 'إرسال البلاغ';
         return showErr('تم إنشاء البلاغ، لكن تعذر رفع الفيديو. يمكنك متابعة الطلب وإرفاق الفيديو من صفحة "طلباتي".');
       }
     }
@@ -651,7 +662,10 @@
     lastToken = res.token;
     $('tgBtn').href = 'https://wa.me/' + OFFICE_WA + '?text=' + encodeURIComponent('بلاغ صيانة رقم #' + res.id + ' — ' + (GUARD ? 'من حارس العمارة' : 'أرجو تأكيد الاستلام'));
     
-    $('overlay').style.display = 'none'; $('sendBtn').disabled = false;
+    $('overlay').style.display = 'none'; 
+    $('sendBtn').disabled = false; 
+    $('sendBtn').textContent = 'إرسال البلاغ';
+    
     $('doneNum').textContent = '#' + res.id;
     $('doneWarn').textContent = '✅ تم استلام البلاغ مع جميع المرفقات';
     
@@ -659,10 +673,9 @@
     $('urgentBox').classList.remove('on'); selType = ''; document.querySelectorAll('.type').forEach(x => x.classList.remove('on')); drawChips();
     if (!GUARD) { if (!ident) { manualOn = false; } show1('prof'); drawProf(); refreshSteps(); }
     
-    // الآن فقط نعرض شاشة النجاح ورقم البلاغ
     show('doneView'); refreshMyBtn();
   }
-  function endSend(msg) { $('overlay').style.display = 'none'; $('sendBtn').disabled = false; showErr(msg); }
+  function endSend(msg) { $('overlay').style.display = 'none'; $('sendBtn').disabled = false; $('sendBtn').textContent = 'إرسال البلاغ'; showErr(msg); }
 
   function show(id) {
     ['formView', 'doneView', 'trackView'].forEach(v => $(v).classList.toggle('hidden', v !== id));
