@@ -384,7 +384,7 @@
       ['req','vis','rat','rep','trk','team','dir','set'].forEach(k => { const el=$('tab_'+k); if(el) el.classList.toggle('hidden', !canTab(k)); });
       let changedTab = false;
       if (!canTab(TAB)) { TAB = tabOrder.find(canTab) || ''; changedTab = true; }
-      $('me').innerHTML = '👤 ' + esc(r.me) + (r.superAdmin ? '<span class="super-tag">👑 سوبر أدمن</span>' : ''); $('upd').textContent = 'آخر تحديث ' + r.at.slice(11);
+      $('me').innerHTML = '👤 ' + esc(r.me) + (r.systemOwner ? '<span class="super-tag">👑 مالك النظام</span>' : r.superAdmin ? '<span class="super-tag">🛡️ سوبر أدمن</span>' : ''); $('upd').textContent = 'آخر تحديث ' + r.at.slice(11);
       if (canTab('req')) draw();
       if (!TAB) { $('app').style.display='none'; $('gate').style.display='block'; $('gateMsg').textContent='لا توجد صلاحيات مفعّلة لهذا الحساب. تواصل مع السوبر أدمن.'; return; }
       if (changedTab) setTab(TAB);
@@ -516,6 +516,7 @@
       <div class="row">${wa}</div>
       ${r.vis ? `<h3>📅 موعد الزيارة</h3><div class="desc"><b>${esc(r.vis)}${r.vdate ? ' — ' + esc(r.vdate) : ''}</b></div>` : ''}
       ${assignedTrack}
+      ${DATA.superAdmin && DATA.groupReady ? `<div class="row"><button class="btn pri" ${r.groupPublished ? 'disabled' : ''} onclick="publishSelectedToGroup()">📣 ${r.groupPublished ? 'تم نشر البلاغ للمجموعة' : 'نشر البلاغ للمجموعة'}</button></div>` : ''}
       <h3>إجراءات الإدارة</h3>
       ${!done ? `<div class="row">
         ${canAssign ? `<select id="techSel" style="flex:1;min-width:150px">${techOpts}</select><button class="btn pri" onclick="assign()">👷 ${r.tech ? 'تغيير الفني' : 'تعيين فني'}</button>` : ''}
@@ -556,6 +557,12 @@
   async function act(op, arg) {
     const r = await call(op, SEL, arg);
     if (r) { await load(false); await openReq(SEL, true); }
+  }
+  async function publishSelectedToGroup() {
+    if (!DATA || !DATA.superAdmin) return toast('النشر للمجموعة للسوبر أدمن فقط');
+    if (DETAIL && DETAIL.req && DETAIL.req.groupPublished) return toast('هذا البلاغ منشور بالفعل في المجموعة');
+    const r=await call('publishgroup',SEL,'','✅ تم نشر البلاغ في المجموعة');
+    if(r) { await load(false); await openReq(SEL,true); }
   }
   function assign() { const v = $('techSel').value; if (!v) { toast('اختر الفني أولاً'); return; } act('assign', v); }
   function withdrawReq() { confirmBox('↩️ سحب البلاغ من الفني', 'سيُزال التكليف الحالي ويعود البلاغ إلى قائمة الانتظار.', () => act('withdraw'), 'سحب'); }
@@ -679,11 +686,21 @@
   }
   function drawTeam() {
     const t = TEAM, g = GUARDS || {guards:[],blds:[]}, v = $('vteam');
-    const rows = t.team.map((m, i) => { const self = m.row === t.meRow, own = m.role === 'مالك'; return `<tr class="${m.active ? '' : 'off'}">
-        <td><b>${esc(m.name)}</b>${self ? ' <small>(أنت)</small>' : ''}<br><small style="color:var(--mut)">${esc(m.spec)}${m.phone ? ' · ' + esc(m.phone) : ''}</small></td>
-        <td>${!DATA.superAdmin || own || self ? (own ? '👑 سوبر أدمن' : esc(m.role)) : `<select onchange="setRole(${m.row}, this.value)"><option ${m.role === 'فني' ? 'selected' : ''}>فني</option><option ${m.role === 'أدمن' ? 'selected' : ''}>أدمن</option></select>`}</td>
-        <td style="white-space:nowrap">${!DATA.superAdmin || own || self ? (m.active ? '✅' : '⏸') : `<button class="btn sm ${m.active ? '' : 'pri'}" onclick="setActive(${m.row}, '${m.active ? 'لا' : 'نعم'}')">${m.active ? '⏸ إيقاف' : '▶ تفعيل'}</button>`}
-          ${DATA.superAdmin ? `<button class="btn sm" onclick="editMember(${i})" title="تعديل">✏️</button>${own || self ? '' : `<button class="btn sm bad" onclick="delMember(${i})" title="حذف">🗑️</button>`}${m.role==='أدمن' ? `<button class="btn sm pri" onclick="editAdminPerms('${esc(m.name)}','${esc(m.row)}')">🔐 الصلاحيات</button>` : ''}` : ''}</td></tr>`; }).join('');
+    const canManageTeam = !!DATA.superAdmin;
+    const rows = t.team.map((m, i) => {
+      const self = m.row === t.meRow, own = !!m.systemOwner || m.role === 'مالك النظام' || m.role === 'مالك';
+      const superMember = !!m.superAdmin || m.role === 'سوبر أدمن';
+      const canManageSuper = !!DATA.systemOwner;
+      const protectedMember = own || (superMember && !canManageSuper) || self;
+      const roleOptions = ['فني','أدمن'].concat(DATA.systemOwner ? ['سوبر أدمن'] : []);
+      const roleCell = !canManageTeam ? esc(m.role) : protectedMember ? (own ? '👑 مالك النظام' : superMember ? '🛡️ سوبر أدمن' : esc(m.role)) : `<select onchange="setRole(${m.row}, this.value)">${roleOptions.map(role=>`<option value="${role}" ${m.role===role?'selected':''}>${role}</option>`).join('')}</select>`;
+      const actions = !canManageTeam ? '' : `${protectedMember ? (m.active ? '✅' : '⏸') : `<button class="btn sm ${m.active ? '' : 'pri'}" onclick="setActive(${m.row}, '${m.active ? 'لا' : 'نعم'}')">${m.active ? '⏸ إيقاف' : '▶ تفعيل'}</button>`}
+          ${!own && !self && (!superMember || canManageSuper) ? `<button class="btn sm" onclick="editMember(${i})" title="تعديل">✏️</button><button class="btn sm bad" onclick="delMember(${i})" title="حذف">🗑️</button>` : ''}
+          ${m.role==='أدمن' ? `<button class="btn sm pri" onclick="editAdminPerms('${esc(m.name)}','${esc(m.row)}')">🔐 الصلاحيات</button>` : ''}`;
+      return `<tr class="${m.active ? '' : 'off'}">
+        <td><b>${esc(m.name)}</b>${self ? ' <small>(أنت)</small>' : ''}<br><small style="color:var(--mut)">${own ? '👑 مالك النظام' : superMember ? '🛡️ سوبر أدمن' : esc(m.spec)}${m.phone ? ' · ' + esc(m.phone) : ''}</small></td>
+        <td>${roleCell}</td><td style="white-space:nowrap">${actions}</td></tr>`;
+    }).join('');
     const grows = g.guards.map((x, i) => `<tr class="${x.active ? '' : 'off'}">
         <td><b>🛡️ ${esc(x.name)}</b><br><small style="color:var(--mut)">${esc(x.bld)}${x.phone ? ' · ' + esc(x.phone) : ''}</small></td>
         <td style="white-space:nowrap"><button class="btn sm" onclick="copyLink('${esc(x.link)}')">🔗</button>
@@ -693,16 +710,17 @@
     v.innerHTML = `<div class="grid2" style="margin-top:0">
       <div class="panel"><b>👥 الفريق</b>
         <table><tr><th>الاسم</th><th>الدور</th><th></th></tr>${rows}</table>
-        <div style="color:var(--mut);font-size:13px;margin-top:10px">عضو جديد: يرسل /start للبوت وتوافق عليه من تليجرام.</div></div>
+        <div style="color:var(--mut);font-size:13px;margin-top:10px">${canManageTeam ? 'عضو جديد: يرسل /start للبوت وتوافق عليه من تليجرام.' : 'عرض فقط — إدارة الأعضاء وتغيير الصلاحيات لمالك النظام والسوبر أدمن.'}</div>
+        ${DATA.systemOwner ? `<div style="border-top:1px solid var(--bd);margin-top:16px;padding-top:14px"><b>➕ إضافة سوبر أدمن</b><div class="hint">هذه الصلاحية لمالك النظام فقط. اطلب من الشخص بدء البوت أولاً، ثم أدخل Telegram ID والاسم.</div><div class="row"><input class="inp" id="superName" placeholder="اسم السوبر أدمن" style="flex:1;min-width:130px"><input class="inp" id="superId" placeholder="Telegram ID" inputmode="numeric" dir="ltr" style="width:160px"></div><button class="btn pri" onclick="addSuperAdmin()">🛡️ إضافة سوبر أدمن</button></div>` : ''}
+      </div>
       ${DATA.superAdmin ? `<div class="panel"><b>🛡️ حراس العمائر</b>
         <table><tr><th>الحارس</th><th>رابطه</th><th></th></tr>${grows || '<tr><td colspan="3">لا يوجد</td></tr>'}</table>
         <h3>➕ حارس جديد</h3>
-        <div class="row"><input class="inp" id="gName" placeholder="الاسم" style="flex:1;min-width:120px">
-          <input class="inp" id="gPhone" placeholder="الجوال (اختياري)" inputmode="tel" dir="ltr" style="width:150px"></div>
-        <div class="row"><select id="gBld" style="flex:1">${g.blds.map(b => `<option>${esc(b)}</option>`).join('')}</select>
-          <button class="btn pri" onclick="addGuard()">إضافة</button></div>
+        <div class="row"><input class="inp" id="gName" placeholder="الاسم" style="flex:1;min-width:120px"><input class="inp" id="gPhone" placeholder="الجوال (اختياري)" inputmode="tel" dir="ltr" style="width:150px"></div>
+        <div class="row"><select id="gBld" style="flex:1">${g.blds.map(b => `<option>${esc(b)}</option>`).join('')}</select><button class="btn pri" onclick="addGuard()">إضافة</button></div>
       </div>` : ''}</div>`;
   }
+
   const setRole = async (row, role) => { if (await call('setrole', row + '|' + role, '', '✅ تغيّر الدور وأُبلغ العضو')) loadTeam(); };
   const setActive = async (row, v) => { if (await call('setactive', row + '|' + v)) loadTeam(); };
   const setGuard = async (row, v) => { if (await call('setguard', row + '|' + v)) loadTeam(); };
@@ -731,19 +749,34 @@
   }
   function copyLink(u) { try { navigator.clipboard.writeText(u).then(() => toast('🔗 نُسخ رابط الحارس'), () => prompt('انسخ الرابط:', u)); } catch (e) { prompt('انسخ الرابط:', u); } }
   async function editAdminPerms(name, row) {
-    const member = TEAM.team.find(x=>String(x.row)===String(row)); if(!member) return;
+    const member = TEAM.team.find(x=>String(x.row)===String(row)); if(!member || !member.id) return toast('لم يتم العثور على معرف الأدمن');
     try {
-      const r=await api('perms',member.id || member.telegramId || row); // row is only a fallback; backend accepts Telegram ID
-      if(!r.target) return toast('لم يتم العثور على الأدمن');
+      const r=await api('perms', member.id);
+      if(!r || !r.target || !Array.isArray(r.defs)) return toast((r && r.msg) || 'لم يتم تحميل الصلاحيات');
       $('mTitle').textContent='🔐 صلاحيات '+r.target.name;
-      $('mBody').innerHTML='<div class="perm-grid">'+r.defs.map(x=>`<label class="perm-row"><input type="checkbox" data-perm="${esc(x.key)}" ${x.on?'checked':''}><span>${esc(x.label)}</span></label>`).join('')+'</div>';
-      $('mOk').textContent='حفظ الصلاحيات'; $('mOk').onclick=async()=>{
-        const boxes=[...$('mBody').querySelectorAll('[data-perm]')];
-        try { for(const b of boxes) { const saved = await api('setperm',r.target.id,b.dataset.perm+'|'+(b.checked?'on':'off')); if(!saved || saved.ok === false) throw new Error(saved && saved.msg ? saved.msg : 'تعذر حفظ إحدى الصلاحيات'); } const menu = await api('refreshmenu',r.target.id); if(!menu || menu.ok === false) throw new Error(menu && menu.msg ? menu.msg : 'حُفظت الصلاحيات لكن تعذر تحديث أزرار تيليجرام'); closeModal(); toast('✅ تم تحديث صلاحيات '+r.target.name+' وأزرار تيليجرام'); loadTeam(); }
-        catch(e){toast('تعذر حفظ الصلاحيات: '+e.message);}
+      $('mBody').innerHTML='<div class="hint" style="margin-bottom:10px">حدد الصلاحيات المسموحة لهذا الأدمن. الخيارات غير المحددة تظل متوقفة.</div><div class="perm-grid">'+r.defs.map(x=>`<label class="perm-row"><input type="checkbox" data-perm="${esc(x.key)}" ${x.on?'checked':''}><span>${esc(x.label)}</span></label>`).join('')+'</div>';
+      $('mOk').textContent='حفظ جميع الصلاحيات'; $('mOk').disabled=false; $('mOk').onclick=async()=>{
+        const btn=$('mOk'), boxes=[...$('mBody').querySelectorAll('[data-perm]')], values={};
+        boxes.forEach(b=>{values[b.dataset.perm]=!!b.checked;});
+        btn.disabled=true; btn.textContent='جارٍ الحفظ…';
+        try {
+          const saved=await api('saveperms', r.target.id, JSON.stringify(values));
+          if(!saved || saved.ok!==true || saved.verified!==true || saved.count!==r.defs.length) throw new Error((saved && saved.msg) || 'لم يؤكد الخادم حفظ جميع الصلاحيات الـ'+r.defs.length);
+          let menuNote='';
+          try { const menu=await api('refreshmenu',r.target.id); if(!menu || menu.ok!==true) menuNote=' (تم الحفظ، تعذر تحديث أزرار تيليجرام)'; }
+          catch(e){ menuNote=' (تم الحفظ، تعذر تحديث أزرار تيليجرام)'; }
+          closeModal(); toast('✅ حُفظت وتأكدت '+saved.count+' صلاحية للأدمن '+r.target.name+menuNote); await loadTeam();
+        } catch(e) { toast('❌ لم يكتمل حفظ الصلاحيات: '+e.message); btn.disabled=false; btn.textContent='حفظ جميع الصلاحيات'; }
       }; $('modal').classList.add('on');
     } catch(e){toast('تعذر تحميل الصلاحيات: '+e.message);}
   }
+  async function addSuperAdmin() {
+    const id=$('superId') ? $('superId').value.trim() : '', name=$('superName') ? $('superName').value.trim() : '';
+    if(!/^\d{5,20}$/.test(id)) { toast('أدخل Telegram ID صحيحاً'); return; }
+    const r=await call('addsuper',id,name,'✅ تم تسجيل السوبر أدمن');
+    if(r) { toast(r.message || (r.delivered ? '✅ تم إرسال دعوة السوبر أدمن' : '✅ سُجل الحساب؛ عليه إرسال /start للبوت')); await loadTeam(); }
+  }
+
 
   // ---------- العمائر والمستأجرون ----------
   async function loadDir() {
@@ -806,8 +839,7 @@
     const v = $('vset'); v.innerHTML = skel(3);
     try {
       const [r,d,ap,approvalList] = await Promise.all([api('feat'),api('delivery'),api('approvalmode'),api('approvals')]);
-      v.innerHTML = `<div class="panel"><b>📨 توزيع البلاغات الجديدة</b><div class="hint">الوضع الافتراضي: يصل البلاغ للسوبر أدمن فقط، ثم يحوله للأدمن المناسب. يمكن تفعيل الإرسال الجماعي.</div>
-        <select id="deliveryMode" class="inp" style="width:100%;max-width:420px" onchange="setDeliveryMode(this.value)"><option value="owner_only" ${d.mode==='owner_only'?'selected':''}>👑 السوبر أدمن فقط</option><option value="all_admins" ${d.mode==='all_admins'?'selected':''}>👑 السوبر أدمن + جميع الأدمنية</option></select></div>
+      v.innerHTML = `<div class="panel"><b>📨 مسار البلاغات الجديدة</b><div class="stat" style="margin-top:10px"><b>👑 مالك النظام + 🛡️ السوبر أدمن</b><span>كل بلاغ جديد يصل إليهم أولاً. لا يصل تلقائياً للأدمن العادي.</span></div><div class="hint" style="margin-top:10px">بعد مراجعة البلاغ، يستطيع السوبر أدمن نشره في مجموعة البلاغات أو اتخاذ الإجراء بنفسه أو تحويله لأدمن محدد. ${d.groupReady ? 'المجموعة المرتبطة: '+esc(d.groupTitle || 'مجموعة النشر') : 'لم تُربط مجموعة النشر بعد؛ أرسل الأمر /setgroup داخل المجموعة بواسطة مالك النظام.'}</div></div>
       <div class="panel" style="margin-top:16px"><b>🔐 اعتماد تغييرات الأدمن والفني</b><label style="display:flex;align-items:center;gap:10px;padding:12px 4px"><input type="checkbox" ${ap.required?'checked':''} onchange="setApprovalMode(this.checked)" style="width:20px;height:20px"><span>يجب موافقة السوبر أدمن قبل اعتماد إضافة أو حذف مرفق يطلبه الأدمن أو الفني</span></label>
       <div class="hint">عند الإيقاف تُطبّق التعديلات مباشرة لمن يملك صلاحية المرفقات.</div><b style="display:block;margin-top:12px">📥 طلبات تنتظر موافقتك (${approvalList.list.length})</b>
       ${approvalList.list.length ? approvalList.list.map(x=>`<div class="track-card"><div><b>#${esc(x.requestId)} · ${esc(x.operation)}</b><div class="hint">${esc(x.name||'مرفق')} · من ${esc(x.by)} · ${esc(x.date)}</div>${x.url?`<a class="btn sm" target="_blank" rel="noopener" href="${esc(x.url)}">📎 معاينة المرفق</a>`:''}</div><div class="row"><button class="btn ok" onclick="decideApproval(${x.row},'approve')">✅ اعتماد</button><button class="btn bad" onclick="decideApproval(${x.row},'reject')">❌ رفض</button><a class="btn" onclick="goReq('${esc(x.requestId)}')">فتح البلاغ</a></div></div>`).join('') : '<div class="empty">لا توجد تغييرات معلقة ✅</div>'}</div>
@@ -815,7 +847,7 @@
       ${r.feats.map(f => `<label style="display:flex;align-items:center;gap:10px;padding:12px 4px;border-top:1px solid var(--bd);cursor:pointer"><input type="checkbox" ${f.on ? 'checked' : ''} onchange="toggleFeat('${f.key}', this)" style="width:20px;height:20px"><span style="font-weight:700">${esc(f.label)}</span></label>`).join('')}</div>`;
     } catch(e) { v.innerHTML='<div class="empty">تعذّر تحميل الإعدادات</div>'; }
   }
-  async function setDeliveryMode(mode) { const r=await call('setdelivery','',mode,mode==='owner_only'?'✅ البلاغات للسوبر أدمن فقط':'✅ البلاغات لجميع الأدمنية'); if(!r) loadSet(); }
+  async function setDeliveryMode() { const r=await call('setdelivery','','superadmins_only','✅ البلاغات تصل للسوبر أدمن أولاً'); if(!r) loadSet(); }
 
   async function setApprovalMode(on) { const r=await call('setapprovalmode','',on?'on':'off',on?'✅ تفعيل الموافقات':'✅ إيقاف الموافقات'); if(!r) loadSet(); }
   async function decideApproval(row, decision) {
