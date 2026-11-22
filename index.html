@@ -99,9 +99,10 @@
   .urgent small { display: block; font-weight: 500; color: var(--muted); font-size: 13px; }
 
   .media-btns { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-  .mbtn { border: 2px dashed var(--accent); border-radius: 16px; background: var(--accent-soft); color: var(--accent);
-    padding: 14px 6px; font: inherit; font-weight: 800; cursor: pointer; text-align: center; font-size: 15px; }
-  .mbtn .ic { display: block; font-size: 28px; }
+  .media-actions .media-action { min-height: 104px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 7px; border: 1.5px solid var(--line); border-radius: 16px; background: var(--accent-soft); color: var(--accent); padding: 12px 8px; font: inherit; font-weight: 800; cursor: pointer; text-align: center; font-size: 15px; }
+  .media-actions .media-action .ic { display: block; font-size: 36px; line-height: 1.15; margin: 0; }
+  .media-actions .media-action.gallery { grid-column: 1 / -1; min-height: 78px; background: var(--field); border-style: dashed; }
+  .media-actions .media-action:active { transform: scale(.98); }
   .mbtn.big { grid-column: 1 / -1; padding: 18px 6px; font-size: 18px; background: var(--accent); color: #fff; border: 0; }
   .mbtn.big .ic { display: inline; font-size: 26px; margin-inline-end: 8px; }
   .mbtn.sec2 { padding: 10px 6px; border-style: solid; border-width: 1.5px; background: transparent; font-size: 14px; }
@@ -194,29 +195,31 @@
 
 
 
-  /* واجهة الحارس والفني: صور وأرقام وأزرار كبيرة، بلا حاجة للقراءة أو الكتابة */
-  .guard-kinds{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:8px 0 16px}
-  .gkind{min-height:112px;border:2px solid var(--line);border-radius:18px;background:var(--field);color:var(--text);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;font:inherit;cursor:pointer}
+  /* واجهة الحارس: الصورة أولاً والكلمة القصيرة معها لتوضيح المهمة دون إخفاء النص */
+  .guard-kinds{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin:8px 0 16px}
+  .gkind{min-height:124px;border:2px solid var(--line);border-radius:18px;background:var(--field);color:var(--text);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:7px;padding:10px 6px;font:inherit;cursor:pointer;text-align:center}
   .gkind.on{border-color:var(--ok);background:var(--ok-soft);box-shadow:inset 0 0 0 1px var(--ok)}
-  .gkind-num{font-size:18px;font-weight:900}.gkind-pic{font-size:38px;line-height:1.2}
-  body.guard-mode .office,body.guard-mode .sub,body.guard-mode .guard-scope-title,body.guard-mode #guardH{font-size:0}
-  body.guard-mode .pills{display:none}
-  body.guard-mode .scope-btn{min-height:110px}
-  body.guard-mode #mediaCard .sec h2,body.guard-mode #mediaCard .hint{font-size:0}
-  body.guard-mode #mediaCard .mbtn{font-size:0;min-height:84px}
-  body.guard-mode #mediaCard .mbtn .ic{font-size:48px;margin:0}
-  body.guard-mode #mediaCard .mbtn.big .ic{display:inline}
-  body.guard-mode #sendBtn{font-size:0}
-  body.guard-mode #sendBtn::after{content:'📤';font-size:32px}
-  body.guard-mode #subHint{font-size:0}
-  body.guard-mode #ovText,body.guard-mode #ovHint{display:none}
-  body.guard-mode #doneView .done h3,body.guard-mode #doneView .done .msg,body.guard-mode #doneView .done .tl,body.guard-mode #doneWarn{display:none}
-  body.guard-mode #doneView #tgBtn,body.guard-mode #doneView #trkBtn,body.guard-mode #doneView #shBtn{display:none}
-  body.guard-mode #doneView>button[onclick="newRequest()"]{font-size:0}
-  body.guard-mode #doneView>button[onclick="newRequest()"]::after{content:'➕';font-size:32px}
-  body.guard-mode #err{font-size:0;text-align:center}
-  body.guard-mode #err::after{content:'⚠️';font-size:28px}
-  @media(max-width:360px){.gkind{min-height:96px}.gkind-pic{font-size:32px}}
+  .gkind-num{font-size:18px;font-weight:900}.gkind-pic{font-size:42px;line-height:1.2}.gkind-svg{width:60px;height:48px;display:block}.gkind-label{font-size:14px;line-height:1.25;font-weight:900}
+  .guard-scope-title{font-size:17px;font-weight:900;margin:12px 0 8px}
+  .scope-btn{flex-direction:column;gap:6px;min-height:116px}
+  .scope-btn .scope-label{font-size:15px;line-height:1.2;font-weight:900}.scope-svg{width:58px;height:58px;display:block}
+  .guard-mini-title{font-size:15px;font-weight:900;margin:12px 0 6px}
+  body.guard-mode .pills{display:flex;flex-wrap:wrap}
+  body.guard-mode #mediaCard .sec h2{font-size:18px}
+  body.guard-mode #mediaCard .hint{font-size:14px;line-height:1.55}
+  body.guard-mode #mediaCard .mbtn{font-size:15px;min-height:96px}
+  body.guard-mode #mediaCard .mbtn .ic{font-size:42px;margin:0}
+  body.guard-mode #trackList .media-action{font-size:15px;min-height:90px}
+  body.guard-mode #trackList .media-action .ic{font-size:42px}
+  body.guard-mode #trackList .media-action span:not(.ic){display:block}
+  body.guard-mode #sendBtn{font-size:19px;min-height:60px}
+  body.guard-mode #subHint{font-size:14px;line-height:1.4}
+  body.guard-mode #ovText,body.guard-mode #ovHint{display:block}
+  body.guard-mode #doneView .done h3,body.guard-mode #doneView .done .msg,body.guard-mode #doneView .done .tl,body.guard-mode #doneWarn{display:block}
+  body.guard-mode #doneView #tgBtn,body.guard-mode #doneView #trkBtn,body.guard-mode #doneView #shBtn{display:flex}
+  body.guard-mode #doneView>button[onclick="newRequest()"]{font-size:17px}
+  body.guard-mode #err{font-size:14px;text-align:center}
+  @media(max-width:390px){.gkind{min-height:116px}.gkind-pic{font-size:36px}.gkind-svg{width:52px;height:44px}.gkind-label{font-size:13px}.scope-btn .scope-label{font-size:14px}.scope-svg{width:52px;height:52px}}
 
   /* تحسينات وضوح عامة */
   body{font-size:18px;line-height:1.65;letter-spacing:0}
@@ -237,7 +240,15 @@
   .bar{height:12px}
   @media(prefers-reduced-motion:reduce){*,*::before,*::after{scroll-behavior:auto!important;animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}}
 
+  html.guard-init #tenCard, html.guard-init #probCard { display: none !important; }
 </style>
+<script>
+  try {
+    const _earlyQ = new URLSearchParams(location.search);
+    const _earlyPath = decodeURIComponent(location.pathname);
+    if (_earlyQ.has('g') || _earlyPath.includes('معاينة-واجهة-الحارس.html')) document.documentElement.classList.add('guard-init');
+  } catch (e) {}
+</script>
 </head>
 <body>
 <div class="wrap">
@@ -261,18 +272,20 @@
 
     <div class="card hidden" id="guardCard">
       <div class="sec"><div class="num">🛡️</div><h2 id="guardH">بلاغ من الحارس</h2></div>
+      <div class="guard-mini-title">🧰 اختر نوع البلاغ</div>
       <div id="gKinds" class="guard-kinds" aria-label="نوع الطلب">
-        <button type="button" class="gkind" data-k="water" aria-label="وايت ماء"><span class="gkind-pic">🚚💧</span></button>
-        <button type="button" class="gkind" data-k="sewage" aria-label="وايت صرف صحي"><span class="gkind-pic">🚛🚽</span></button>
-        <button type="button" class="gkind" data-k="maint" aria-label="صيانة"><span class="gkind-pic">🛠️🔧</span></button>
+        <button type="button" class="gkind" data-k="water" aria-label="وايت ماء"><svg class="gkind-svg" viewBox="0 0 72 56" aria-hidden="true"><path d="M5 34h7V17h33v17h5V23h10l8 10v12H5z" fill="#d8edff" stroke="#1769aa" stroke-width="2.5" stroke-linejoin="round"/><path d="M13 19h30v13H13z" fill="#7bc4ef" stroke="#1769aa" stroke-width="2"/><path d="M21 25c-4 5-4 7 0 9 4-2 4-4 0-9z" fill="#fff" stroke="#1769aa" stroke-width="1.5"/><path d="M50 26h8l6 7H50z" fill="#fff" stroke="#1769aa" stroke-width="2"/><circle cx="19" cy="45" r="5" fill="#24364b"/><circle cx="55" cy="45" r="5" fill="#24364b"/></svg><span class="gkind-label">وايت ماء</span></button>
+        <button type="button" class="gkind" data-k="sewage" aria-label="وايت صرف صحي"><svg class="gkind-svg" viewBox="0 0 72 56" aria-hidden="true"><path d="M5 34h7V18h32v16h5V23h10l8 10v12H5z" fill="#e5e7eb" stroke="#475569" stroke-width="2.5" stroke-linejoin="round"/><path d="M14 20h29v12H14z" fill="#b7c4d2" stroke="#475569" stroke-width="2"/><path d="M19 27h18M22 23l-3 4 3 4M34 23l3 4-3 4" fill="none" stroke="#475569" stroke-width="2" stroke-linecap="round"/><path d="M50 26h8l6 7H50z" fill="#fff" stroke="#475569" stroke-width="2"/><circle cx="19" cy="45" r="5" fill="#24364b"/><circle cx="55" cy="45" r="5" fill="#24364b"/></svg><span class="gkind-label">وايت صرف صحي</span></button>
+        <button type="button" class="gkind" data-k="maint" aria-label="صيانة"><svg class="gkind-svg" viewBox="0 0 72 56" aria-hidden="true"><path d="M11 22h50l5 25H6z" fill="#ffedc2" stroke="#a85a00" stroke-width="2.5" stroke-linejoin="round"/><path d="M25 22v-7h22v7M18 31h36" fill="none" stroke="#a85a00" stroke-width="2.5" stroke-linecap="round"/><path d="M44 7a10 10 0 0 0 12 12L42 33l-7-7 14-14A10 10 0 0 0 44 7z" fill="#8cc7a8" stroke="#16794a" stroke-width="2" stroke-linejoin="round"/></svg><span class="gkind-label">صيانة</span></button>
       </div>
-      <div class="guard-scope-title">📍</div>
+      <div class="guard-scope-title">📍 حدد الموقع</div>
       <div class="guard-scope">
-        <button type="button" id="wholeBuildingBtn" class="scope-btn active" aria-label="المبنى بالكامل" title="المبنى بالكامل" aria-pressed="true"><span class="scope-emoji">🏢</span></button>
-        <button type="button" id="chooseApartmentBtn" class="scope-btn" aria-label="شقة محددة" title="شقة محددة" aria-pressed="false"><span class="scope-emoji">🚪</span></button>
+        <button type="button" id="wholeBuildingBtn" class="scope-btn active" aria-label="المبنى بالكامل" title="المبنى بالكامل" aria-pressed="true"><svg class="scope-svg" viewBox="0 0 64 64" aria-hidden="true"><path d="M12 55V10h40v45M7 55h50" fill="#d9eaff" stroke="#1769aa" stroke-width="3" stroke-linejoin="round"/><path d="M21 18h7v7h-7zm15 0h7v7h-7zM21 32h7v7h-7zm15 0h7v7h-7z" fill="#fff" stroke="#1769aa" stroke-width="2"/><path d="M27 55V45h10v10" fill="#8cc7a8" stroke="#1769aa" stroke-width="2"/></svg><span class="scope-label">المبنى بالكامل</span></button>
+        <button type="button" id="chooseApartmentBtn" class="scope-btn" aria-label="شقة محددة" title="شقة محددة" aria-pressed="false"><svg class="scope-svg" viewBox="0 0 64 64" aria-hidden="true"><path d="M14 56V8h36v48M8 56h48" fill="#fff1d6" stroke="#a85a00" stroke-width="3" stroke-linejoin="round"/><path d="M22 17h20v39H22z" fill="#f8d58e" stroke="#a85a00" stroke-width="2.5"/><circle cx="37" cy="37" r="2" fill="#a85a00"/><path d="M10 12h44" stroke="#a85a00" stroke-width="3" stroke-linecap="round"/></svg><span class="scope-label">شقة محددة</span></button>
       </div>
       <div id="guardAptPanel" class="hidden">
-        <div class="gdisp">🚪 <span id="gaptv">—</span></div>
+        <div class="guard-mini-title">🚪 اختر رقم الشقة من القائمة أو اكتب الرقم</div>
+        <div class="gdisp">رقم الشقة: <span id="gaptv">—</span></div>
         <input type="hidden" id="gapt" value="">
         <div id="gaptChoices" class="gapt-choices"></div>
         <input type="tel" id="gaptCustom" inputmode="numeric" autocomplete="off" placeholder="12" aria-label="رقم الشقة">
@@ -307,15 +320,23 @@
 
     <!-- الخطوة 2: الصور والفيديو -->
     <div class="card" id="mediaCard">
-      <div class="sec" id="sec2"><div class="num">2</div><h2 id="mediaH">صور أو فيديو <small>(اختياري)</small></h2></div>
-      <div class="media-btns" style="grid-template-columns:1fr">
-        <button class="mbtn big" type="button" onclick="document.getElementById('mediaIn').click()">
-          <span class="ic">📷🎥</span> تصوير أو اختيار صور وفيديو
+      <div class="sec" id="sec2"><div class="num">2</div><h2 id="mediaH">📷 صور المشكلة أو 🎥 فيديو <small>(اختياري)</small></h2></div>
+      <div class="media-btns media-actions">
+        <button class="mbtn media-action" type="button" onclick="document.getElementById('cameraPhotoIn').click()" aria-label="فتح الكاميرا لتصوير صورة">
+          <span class="ic">📷</span><span>تصوير صورة</span>
+        </button>
+        <button class="mbtn media-action" type="button" onclick="document.getElementById('cameraVideoIn').click()" aria-label="فتح الكاميرا لتسجيل فيديو">
+          <span class="ic">🎥</span><span>تصوير فيديو</span>
+        </button>
+        <button class="mbtn media-action gallery" type="button" onclick="document.getElementById('mediaIn').click()" aria-label="اختيار صور أو فيديو من الاستديو">
+          <span class="ic">🖼️</span><span>اختيار من الاستديو (صور وفيديو)</span>
         </button>
       </div>
+      <input type="file" id="cameraPhotoIn" accept="image/*" capture="environment" class="hidden">
+      <input type="file" id="cameraVideoIn" accept="video/*" capture="environment" class="hidden">
       <input type="file" id="mediaIn" accept="image/*,video/*" multiple class="hidden">
       <div class="thumbs" id="thumbs"></div>
-      <div class="hint">اختر الصور والفيديو معًا من نفس النافذة: حتى 4 صور وفيديو واحد لا يزيد عن 30 ثانية.</div>
+      <div class="hint">التصوير يفتح الكاميرا مباشرة. ومن الاستديو يمكنك اختيار الصور والفيديو معًا. الحد: 4 صور وفيديو واحد بمدة لا تتجاوز 30 ثانية.</div>
       <div id="uploadProgress" class="hint" style="color:var(--accent); font-weight:800; display:none; margin-top:8px;"></div>
     </div>
 
@@ -436,7 +457,7 @@
     return leak && target;
   };
   let leakLocation = '', leakDetail = '';
-  let guardBuildingWide = true;
+  let guardBuildingWide = true, guardScopeTouched = false;
   let DRAFT_RESTORING = !DEMO_MODE;
   const GUARD = (new URLSearchParams(location.search).get('g') || '').replace(/[^a-f0-9]/g, '').slice(0, 12);
 
@@ -464,7 +485,7 @@
     try { const all=await draftFilesGetAll(), db=await draftDbOpen(); await new Promise((resolve,reject)=>{const tx=db.transaction('files','readwrite'), st=tx.objectStore('files');all.filter(x=>x.tempKey===photoKey||x.videoKey===videoKey).forEach(x=>st.delete(x.id));tx.oncomplete=resolve;tx.onerror=()=>reject(tx.error);});db.close(); } catch(e) {}
   }
   function persistDraftState() {
-    lsSet('mr_draft',{desc:$('desc').value,selType:selType,urgent:$('urgent').checked,srcMode:srcMode,needSrc:needSrc,srcApt:$('srcApt').value,leakLocation:$('leakLoc').value,leakDetail:$('leakDetail').value,name:$('name').value,bld:$('bld').value,apt:$('apt').value,phone:$('phone').value,phone2:$('phone2').value,gapt:$('gapt').value,gKind:gKind,guardBuildingWide:guardBuildingWide});
+    lsSet('mr_draft',{desc:$('desc').value,selType:selType,urgent:$('urgent').checked,srcMode:srcMode,needSrc:needSrc,srcApt:$('srcApt').value,leakLocation:$('leakLoc').value,leakDetail:$('leakDetail').value,name:$('name').value,bld:$('bld').value,apt:$('apt').value,phone:$('phone').value,phone2:$('phone2').value,gapt:$('gapt').value,gKind:gKind,guardBuildingWide:guardBuildingWide,guardScopeTouched:guardScopeTouched});
   }
   function restoreDraftState() {
     const d=lsGet('mr_draft',{}); if(!d||typeof d!=='object')return;
@@ -473,7 +494,8 @@
     if(d.urgent){$('urgent').checked=true;$('urgentBox').classList.add('on');}
     if(d.srcMode && needsLeakDetails(d.selType || selType, d.desc || $('desc').value)){srcMode=d.srcMode;needSrc=true;$('f_src').classList.remove('hidden');['same','other','roof','unknown'].forEach(k=>$('src'+({same:'Same',other:'Up',roof:'Roof',unknown:'Unknown'}[k])).classList.toggle('on',srcMode===k));$('srcApt').classList.toggle('hidden',srcMode!=='other');$('leakLoc').value=d.leakLocation||'';$('leakDetail').value=d.leakDetail||'';}
     if(d.gKind){gKind=d.gKind;document.querySelectorAll('#gKinds .gkind').forEach(x=>x.classList.toggle('on',x.dataset.k===gKind));}
-    if(d.guardBuildingWide===false || d.gapt){setGuardScope('apt');}else{setGuardScope('building');}
+    guardScopeTouched = !!d.guardScopeTouched;
+    if(d.guardBuildingWide===false || d.gapt){setGuardScope('apt', false);}else{setGuardScope('building', false);}
     refreshSteps();
   }
 
@@ -605,54 +627,63 @@
   restoreDraftState();
 
   function refreshSteps() {
-    if (GUARD) return;
     const uploading = photos.some(p => p.uploading) || !!(video && video.uploading);
-    
+
+    if (GUARD) {
+      // الحارس لديه ثلاث خطوات مرئية: نوع البلاغ، تحديد النطاق، والمرفقات (اختيارية).
+      const s1 = !!gKind;
+      const s2 = !!guardScopeTouched && (guardBuildingWide || !!$('gapt').value);
+      const s3 = !!(photos.length || video);
+      [s1, s2, s3].forEach((ok, i) => $('st' + (i + 1)).classList.toggle('ok', !!ok && !uploading));
+      const n = [s1, s2, s3].filter(Boolean).length;
+      $('stLbl').textContent = uploading ? '⏳ جاري الرفع…' : (n === 3 ? 'جاهز للإرسال ✓' : (n + ' من 3'));
+      $('subHint').textContent = uploading ? 'انتظر حتى يكتمل رفع الصور والفيديو' : (!s1 ? 'اختر نوع البلاغ من الصور' : !s2 ? 'حدد المبنى بالكامل أو اختر شقة' : !s3 ? 'يمكنك إضافة صورة أو فيديو (اختياري) ثم إرسال البلاغ' : 'جاهز للإرسال، راجع اختيارك ثم أرسل البلاغ');
+      const btn = $('sendBtn');
+      if (btn) { btn.disabled = uploading; btn.textContent = uploading ? '⏳ انتظر.. جاري رفع المرفقات' : '📤 إرسال البلاغ'; }
+      return;
+    }
+
+    // المستأجر لديه ثلاث خطوات: بياناته، المرفقات، ووصف المشكلة.
     const s1 = profComplete(), s2 = !!(photos.length || video), s3 = !!selType && ($('desc').value.trim().length >= 3 || photos.length || video);
     [s1, s2, s3].forEach((ok, i) => { $('st' + (i + 1)).classList.toggle('ok', !!ok && !uploading); });
     ['sec1', 'sec2', 'sec3'].forEach((id, i) => $(id).classList.toggle('ok', !![s1, s2, s3][i] && !uploading));
-    
-    const n = [s1, s3].filter(Boolean).length;
-    
-    $('stLbl').textContent = uploading ? '⏳ جاري الرفع…' : (n === 2 ? 'جاهز للإرسال ✓' : (n + ' من 2'));
-    $('subHint').textContent = uploading ? 'انتظر حتى يكتمل رفع الصور والفيديو'  : (n === 2 ? 'ضغطة وحدة وتوصل للمكتب 👇' : (!s1 ? 'اكتب هويتك أو جوالك أول' : 'اختر نوع المشكلة واشرحها'));
+    const n = [s1, s2, s3].filter(Boolean).length;
+    $('stLbl').textContent = uploading ? '⏳ جاري الرفع…' : (n === 3 ? 'جاهز للإرسال ✓' : (n + ' من 3'));
+    $('subHint').textContent = uploading ? 'انتظر حتى يكتمل رفع الصور والفيديو' : (s1 && s3 ? (s2 ? 'ضغطة وحدة وتوصل للمكتب 👇' : 'جاهز للإرسال — الصور والفيديو اختيارية 👇') : (!s1 ? 'أدخل بياناتك أولاً' : 'اختر نوع المشكلة واشرحها'));
 
     const btn = $('sendBtn');
     if (btn) {
-      if (uploading) {
-        btn.disabled = true;
-        btn.textContent = '⏳ انتظر.. جاري رفع المرفقات';
-      } else {
-        btn.disabled = false;
-        btn.textContent = 'إرسال البلاغ';
-      }
+      if (uploading) { btn.disabled = true; btn.textContent = '⏳ انتظر.. جاري رفع المرفقات'; }
+      else { btn.disabled = false; btn.textContent = 'إرسال البلاغ'; }
     }
   }
-  
-  if (GUARD) { $('stepper').classList.add('hidden'); }
+
+  if (GUARD) { $('stepper').classList.remove('hidden'); }
 
   refreshMyBtn();
   if (GUARD) {
     document.body.classList.add('guard-mode');
     ['tenCard', 'probCard', 'tgBtn', 'shBtn'].forEach(k => { const e = $(k); if (e) e.classList.add('hidden'); });
-    $('guardCard').classList.remove('hidden'); $('mediaH').textContent = 'الصورة';
+    $('guardCard').classList.remove('hidden'); $('mediaH').textContent = '📷 صور المشكلة أو 🎥 فيديو (اختياري)';
     $('guardCard').appendChild($('mediaCard')); $('mediaCard').classList.remove('hidden');
     $('gKinds').addEventListener('click', e => {
       const b = e.target.closest('.gkind'); if (!b) return;
       gKind = b.dataset.k; persistDraftState();
       document.querySelectorAll('#gKinds .gkind').forEach(x => x.classList.toggle('on', x === b));
-      $('mediaH').innerHTML = '📷 🎥';
+      $('mediaH').textContent = '📷 صور المشكلة أو 🎥 فيديو (اختياري)';
+      refreshSteps();
     });
-    $('sendBtn').textContent = '📤';
-    $('subHint').textContent = 'اختر نوع الطلب ثم أرسل — الشقة اختيارية';
-    $('wholeBuildingBtn').addEventListener('click', () => setGuardScope('building'));
-    $('chooseApartmentBtn').addEventListener('click', () => setGuardScope('apt'));
+    $('sendBtn').textContent = '📤 إرسال البلاغ';
+    $('subHint').textContent = 'اختر نوع الطلب والموقع، ثم أرسل البلاغ. الشقة اختيارية.';
+    $('wholeBuildingBtn').addEventListener('click', () => setGuardScope('building', true));
+    $('chooseApartmentBtn').addEventListener('click', () => setGuardScope('apt', true));
     $('gaptCustom').addEventListener('input', () => {
       const v = toLatin($('gaptCustom').value).replace(/[^0-9]/g, '').slice(0, 6);
       $('gaptCustom').value = v; $('gapt').value = v; $('gaptv').textContent = v || '—';
-      document.querySelectorAll('#gaptChoices .gapt-choice').forEach(x => x.classList.toggle('on', x.dataset.apt === v)); persistDraftState();
+      document.querySelectorAll('#gaptChoices .gapt-choice').forEach(x => x.classList.toggle('on', x.dataset.apt === v)); persistDraftState(); refreshSteps();
     });
-    setGuardScope('building');
+    // اترك اختيار النطاق المستعاد كما هو؛ افتراضي الصفحة هو المبنى بالكامل.
+    refreshSteps();
     run('guardInfo', GUARD).then(r => {
       if (r && r.ok) { $('guardH').textContent = 'حارس عمارة ' + r.building; renderGuardApartments(r.apartments || []); }
       else { $('formView').innerHTML = '<div class="card"><h2>⚠️</h2>' + ((r && r.msg) || 'الرابط غير صالح') + '</div>'; }
@@ -668,11 +699,12 @@
     const selected = $('gapt').value; if (selected) { $('gaptv').textContent = selected; host.querySelectorAll('.gapt-choice').forEach(x => x.classList.toggle('on', x.dataset.apt === selected)); }
     host.querySelectorAll('.gapt-choice').forEach(b => b.addEventListener('click', () => {
       const v = b.dataset.apt; $('gapt').value = v; $('gaptCustom').value = ''; $('gaptv').textContent = v;
-      host.querySelectorAll('.gapt-choice').forEach(x => x.classList.toggle('on', x === b)); persistDraftState();
+      host.querySelectorAll('.gapt-choice').forEach(x => x.classList.toggle('on', x === b)); persistDraftState(); refreshSteps();
     }));
   }
-  function setGuardScope(scope) {
+  function setGuardScope(scope, markSelection = true) {
     guardBuildingWide = scope !== 'apt';
+    if (markSelection) guardScopeTouched = true;
     const whole = $('wholeBuildingBtn'), unit = $('chooseApartmentBtn'), panel = $('guardAptPanel');
     if (whole) { whole.classList.toggle('active', guardBuildingWide); whole.setAttribute('aria-pressed', guardBuildingWide ? 'true' : 'false'); }
     if (unit) { unit.classList.toggle('active', !guardBuildingWide); unit.setAttribute('aria-pressed', !guardBuildingWide ? 'true' : 'false'); }
@@ -680,6 +712,7 @@
     if (guardBuildingWide) { $('gapt').value = ''; $('gaptCustom').value = ''; $('gaptv').textContent = '—'; document.querySelectorAll('#gaptChoices .gapt-choice').forEach(x => x.classList.remove('on')); }
     else $('gaptv').textContent = $('gapt').value || '—';
     persistDraftState();
+    if (GUARD) refreshSteps();
   }
 
   function refreshMyBtn() { $('myBtn').classList.toggle('hidden', !lsGet('mr_tokens', []).length && !TRACK); }
@@ -726,17 +759,24 @@
     await uploadVideoFile(selectedVideo, videoKey);
   }
 
-  $('mediaIn').addEventListener('change', async e => {
-    const files = Array.from(e.target.files || []);
-    e.target.value = '';
+  async function processMediaInput(input) {
+    const files = Array.from(input.files || []);
+    const forcedKind = input.id === 'cameraPhotoIn' ? 'image' : input.id === 'cameraVideoIn' ? 'video' : '';
+    input.value = '';
     if (!files.length) return;
     if (DRAFT_RESTORING) { showErr('انتظر حتى تكتمل استعادة المرفقات المحفوظة.'); return; }
-    // نعالج الاختيارات بالتتابع حتى لا تتداخل مفاتيح الرفع أو تتكرر المرفقات.
+    // نعالج الملفات بالتتابع لمنع تداخل مفاتيح الرفع.
     for (const f of files) {
-      if (/^image\//i.test(f.type || '')) await handlePickedImage(f);
-      else if (/^video\//i.test(f.type || '')) await handlePickedVideo(f);
+      const isImage = /^image\//i.test(f.type || '') || forcedKind === 'image';
+      const isVideo = /^video\//i.test(f.type || '') || forcedKind === 'video';
+      if (isImage) await handlePickedImage(f);
+      else if (isVideo) await handlePickedVideo(f);
+      else showErr('نوع الملف غير مدعوم. اختر صورة أو فيديو.');
     }
     drawThumbs(); refreshSteps();
+  }
+  ['cameraPhotoIn', 'cameraVideoIn', 'mediaIn'].forEach(id => {
+    $(id).addEventListener('change', e => processMediaInput(e.currentTarget));
   });
 
   async function restoreDraftFiles() {
@@ -900,7 +940,7 @@
     if (res.id && res.token) { const savedTokens = lsGet('mr_tokens', []); if (savedTokens.indexOf(res.token) < 0) { savedTokens.push(res.token); lsSet('mr_tokens', savedTokens); } }
     
     if (!GUARD) lsSet('mr_profile', ident ? { lk: ident.lk, pick: ident.pick, name: ident.name, bld: ident.bld, apt: ident.apt, needPhone: ident.needPhone, phone2: f.phone || '' } : { manual: true, name: f.name, bld: f.district, apt: f.apt, phone: f.phone });
-    else { $('gapt').value = ''; $('gaptCustom').value = ''; $('gaptv').textContent = '—'; gKind = ''; document.querySelectorAll('#gKinds .gkind').forEach(x => x.classList.remove('on')); setGuardScope('building'); }
+    else { $('gapt').value = ''; $('gaptCustom').value = ''; $('gaptv').textContent = '—'; gKind = ''; guardScopeTouched = false; document.querySelectorAll('#gKinds .gkind').forEach(x => x.classList.remove('on')); setGuardScope('building', false); refreshSteps(); }
 
     // جميع المرفقات رُفعت مسبقاً؛ ربطها بالبلاغ يتم داخل الخادم عند الإنشاء.
 
@@ -968,9 +1008,14 @@
         `<span class="${r.step > i + 1 || r.step === 3 ? 'ok' : r.step === i + 1 ? 'on' : ''}">${s}</span>`).join('') + '</div>';
       const rej = r.status === 'مرفوض' ? `<div class="box rej"><b>🚫 تعذّر تنفيذ الطلب</b>${r.reason ? '<div>السبب: ' + esc(r.reason) + '</div>' : ''}</div>` : '';
       const askMedia = r.status === 'بانتظار ردك' && r.media ? `<div class="box ask"><b>📷 الإدارة تطلب صورة أو فيديو:</b><div>${esc(r.question)}</div>
-        <input type="file" id="mf${esc(r.id)}" accept="image/*,video/*" multiple class="hidden" onchange="sendMore('${esc(r.id)}','${esc(r.token)}')">
-        <button class="submit" onclick="document.getElementById('mf${esc(r.id)}').click()">📷 اختر صورة أو فيديو</button>
-        <div class="hint" id="ms${esc(r.id)}"></div></div>` : '';
+        <input type="file" id="mfPhoto${esc(r.id)}" accept="image/*" capture="environment" class="hidden" onchange="sendMore('${esc(r.id)}','${esc(r.token)}','photo')">
+        <input type="file" id="mfVideo${esc(r.id)}" accept="video/*" capture="environment" class="hidden" onchange="sendMore('${esc(r.id)}','${esc(r.token)}','video')">
+        <input type="file" id="mfGallery${esc(r.id)}" accept="image/*,video/*" multiple class="hidden" onchange="sendMore('${esc(r.id)}','${esc(r.token)}','gallery')">
+        <div class="media-btns media-actions">
+          <button class="mbtn media-action" type="button" onclick="document.getElementById('mfPhoto${esc(r.id)}').click()"><span class="ic">📷</span><span>تصوير صورة</span></button>
+          <button class="mbtn media-action" type="button" onclick="document.getElementById('mfVideo${esc(r.id)}').click()"><span class="ic">🎥</span><span>تصوير فيديو</span></button>
+          <button class="mbtn media-action gallery" type="button" onclick="document.getElementById('mfGallery${esc(r.id)}').click()"><span class="ic">🖼️</span><span>اختيار من الاستديو</span></button>
+        </div><div class="hint" id="ms${esc(r.id)}"></div></div>` : '';
       const ask = askMedia || (r.status === 'بانتظار ردك' ? `<div class="box ask"><b>❓ الإدارة تسأل:</b><div>${esc(r.question)}</div>
         <textarea id="rp${esc(r.id)}" placeholder="اكتب ردك هنا…"></textarea>
         <button class="submit" onclick="sendReply('${esc(r.id)}','${esc(r.token)}')">إرسال الرد</button></div>` : '');
@@ -1002,10 +1047,13 @@
       showTrack(true);
     } catch (e) {}
   }, 20000);
-  async function sendMore(id, token) {
-    const files = [...$('mf' + id).files], st = $('ms' + id);
+  async function sendMore(id, token, source) {
+    const inputId = source === 'photo' ? 'mfPhoto' + id : source === 'video' ? 'mfVideo' + id : 'mfGallery' + id;
+    const input = $(inputId), files = [...(input ? input.files : [])], st = $('ms' + id);
     if (!files.length) return;
-    const pics = files.filter(f => /^image\//.test(f.type)).slice(0, MAX_PHOTOS), vid = files.find(f => /^video\//.test(f.type));
+    if (input) input.value = '';
+    const pics = files.filter(f => /^image\//.test(f.type || '') || (source === 'photo' && !f.type)).slice(0, MAX_PHOTOS);
+    const vid = files.find(f => /^video\//.test(f.type || '')) || (source === 'video' ? files[0] : null);
     const total = pics.length + (vid ? 1 : 0);
     if (!total) { st.textContent = 'اختر صورة أو فيديو'; return; }
     uploadingMore = true;
