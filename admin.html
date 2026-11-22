@@ -433,7 +433,7 @@
         <div class="av" data-bld-thumb="${esc(r.bld || '')}">${esc(r.icon)}</div>
         <div class="t">#${esc(r.id)} · ${esc(place(r))} ${r.urg ? '<span class="urg">🔴</span>' : ''}</div>
         <div class="s">${esc(r.type)} · ${esc(r.tenant || r.name)}</div>
-        <div class="m"><span class="badge ${bcls(r.st)}">${esc(r.st)}</span>${r.tech ? '<span class="s">👷 ' + esc(r.tech) + '</span>' : ''}${r.media ? '<span class="s">📎 ' + r.media + '</span>' : ''}</div>
+        <div class="m"><span class="badge ${bcls(r.st)}">${esc(r.st)}</span>${r.availableAll ? '<span class="badge b-تمت">👥 متاح للأدمنية</span>' : DATA.superAdmin ? '<span class="badge b-بانتظار">🔒 خاص</span>' : ''}${r.tech ? '<span class="s">👷 ' + esc(r.tech) + '</span>' : ''}${r.media ? '<span class="s">📎 ' + r.media + '</span>' : ''}</div>
         <div class="r">${esc(age(r.ts))}</div>
       </div>`).join('') : '<div class="empty">🎉 لا توجد طلبات هنا</div>';
     loadRequestBuildingThumbs();
@@ -486,7 +486,7 @@
     const canPhone = hasPerm('view_phone'), canAssign = hasPerm('assign_tech'), canStatus = hasPerm('update_status');
     const canVisit = hasPerm('manage_visits'), canWithdraw = hasPerm('withdraw_tech'), canCancel = hasPerm('cancel_request'), canAsk = hasPerm('ask_tenant'), canReject = hasPerm('reject_request');
     const canMedia = hasPerm('manage_media'), canEdit = hasPerm('edit_request'), canDelete = hasPerm('delete_request');
-    const canForward = hasPerm('forward_request');
+    const canForward = hasPerm('forward_request') && !!r.availableAll;
     const wa = canPhone && r.waPhone ? `<a class="btn ok" target="_blank" rel="noopener" href="https://wa.me/${esc(r.waPhone)}">💬 واتساب</a><a class="btn" href="tel:+${esc(r.waPhone)}">📞 اتصال</a>` : '';
     const techOpts = '<option value="">— اختر الفني —</option>' + DATA.techs.map(t => `<option value="${esc(t.row)}">${esc(t.name)}${t.spec ? ' — ' + esc(t.spec) : ''}</option>`).join('');
     const mediaIds = r.links.map(u => { const m = /\/d\/([\w-]{15,})/.exec(u) || /[?&]id=([\w-]{15,})/.exec(u); return m ? m[1] : ''; });
@@ -516,7 +516,7 @@
       <div class="row">${wa}</div>
       ${r.vis ? `<h3>📅 موعد الزيارة</h3><div class="desc"><b>${esc(r.vis)}${r.vdate ? ' — ' + esc(r.vdate) : ''}</b></div>` : ''}
       ${assignedTrack}
-      ${DATA.superAdmin && DATA.groupReady ? `<div class="row"><button class="btn pri" ${r.groupPublished ? 'disabled' : ''} onclick="publishSelectedToGroup()">📢 ${r.groupPublished ? 'أُتيح للأدمنية' : 'إتاحة البلاغ للأدمنية'}</button></div><div class="hint">لا يظهر البلاغ للأدمنية العاديين إلا بعد ضغط هذا الزر. المجموعة: ${esc(DATA.groupTitle || 'مجموعة الأدمنية')}</div>` : ''}
+      ${DATA.superAdmin ? (r.availableAll ? `<div class="panel" style="margin:12px 0;background:var(--ok-soft)"><b>✅ متاح لجميع الأدمنية</b><div class="hint">أتيح بواسطة ${esc(r.availableBy || 'الإدارة')} · ${esc(r.availableAt || '')}. أُرسل تنبيه جديد إلى الأدمنية المفعّل لهم عرض البلاغات.</div></div>` : `<div class="panel" style="margin:12px 0;background:var(--warn-soft)"><b>🔒 البلاغ خاص بالمالك والسوبر أدمن</b><div class="hint">لن يظهر لأي أدمن عادي قبل السماح. عند الضغط سيظهر في قائمة طلباتهم ويصلهم تنبيه كبلاغ جديد.</div><button class="btn pri" style="margin-top:8px" onclick="shareSelectedWithAdmins()">👥 إتاحة للجميع وإرسال التنبيه</button></div>`) : (r.availableAll ? `<span class="badge b-تمت">👥 متاح لجميع الأدمنية</span>` : `<span class="badge b-بانتظار">🔒 خاص بالإدارة العليا</span>`)}
       <h3>إجراءات الإدارة</h3>
       ${!done ? `<div class="row">
         ${canAssign ? `<select id="techSel" style="flex:1;min-width:150px">${techOpts}</select><button class="btn pri" onclick="assign()">👷 ${r.tech ? 'تغيير الفني' : 'تعيين فني'}</button>` : ''}
@@ -558,11 +558,13 @@
     const r = await call(op, SEL, arg);
     if (r) { await load(false); await openReq(SEL, true); }
   }
-  async function publishSelectedToGroup() {
-    if (!DATA || !DATA.superAdmin) return toast('النشر للمجموعة للسوبر أدمن فقط');
-    if (DETAIL && DETAIL.req && DETAIL.req.groupPublished) return toast('هذا البلاغ منشور بالفعل في المجموعة');
-    const r=await call('publishgroup',SEL,'','✅ تم نشر البلاغ في المجموعة');
-    if(r) { toast('📢 أصبح البلاغ متاحاً للأدمنية في المجموعة'); await load(false); await openReq(SEL,true); }
+  async function shareSelectedWithAdmins() {
+    if (!DATA || !DATA.superAdmin) return toast('إتاحة البلاغ للجميع لمالك النظام والسوبر أدمن فقط');
+    if (DETAIL && DETAIL.req && DETAIL.req.availableAll) return toast('البلاغ متاح بالفعل للأدمنية');
+    confirmBox('👥 إتاحة البلاغ لجميع الأدمنية', 'سيظهر البلاغ في قائمة كل أدمن لديه صلاحية عرض البلاغات، وسيصله تنبيه خاص كأنه بلاغ جديد مع المرفقات. هل تريد المتابعة؟', async () => {
+      const r=await call('shareall',SEL,'','✅ أصبح البلاغ متاحًا للجميع');
+      if(r) { toast(r.message || '✅ تمت الإتاحة'); await load(false); await openReq(SEL,true); }
+    }, 'إتاحة للجميع');
   }
   function assign() { const v = $('techSel').value; if (!v) { toast('اختر الفني أولاً'); return; } act('assign', v); }
   function withdrawReq() { confirmBox('↩️ سحب البلاغ من الفني', 'سيُزال التكليف الحالي ويعود البلاغ إلى قائمة الانتظار.', () => act('withdraw'), 'سحب'); }
@@ -839,7 +841,7 @@
     const v = $('vset'); v.innerHTML = skel(3);
     try {
       const [r,d,ap,approvalList] = await Promise.all([api('feat'),api('delivery'),api('approvalmode'),api('approvals')]);
-      v.innerHTML = `<div class="panel"><b>📨 مسار البلاغات الجديدة</b><div class="stat" style="margin-top:10px"><b>👑 مالك النظام + 🛡️ السوبر أدمن</b><span>كل بلاغ جديد يصل إليهم أولاً. لا يصل تلقائياً للأدمن العادي.</span></div><div class="hint" style="margin-top:10px">بعد مراجعة البلاغ، يستطيع السوبر أدمن نشره في مجموعة البلاغات أو اتخاذ الإجراء بنفسه أو تحويله لأدمن محدد. ${d.groupReady ? 'مجموعة الأدمنية المرتبطة: '+esc(d.groupTitle || 'مجموعة الأدمنية') : 'لم تُربط مجموعة الأدمنية بعد؛ أرسل مالك النظام الأمر /setgroup من داخل المجموعة.'}</div></div>
+      v.innerHTML = `<div class="panel"><b>📨 مسار إتاحة البلاغات</b><div class="stat" style="margin-top:10px"><b>👑 مالك النظام + 🛡️ السوبر أدمن أولاً</b><span>يصل كل بلاغ جديد لهم فقط، ويُحفظ في عمود «متاح للجميع» بقيمة «لا» افتراضيًا.</span></div><div class="hint" style="margin-top:10px">من تفاصيل البلاغ اضغط «إتاحة للجميع». تتحول قيمة العمود إلى «نعم»، ويظهر البلاغ في لوحات الأدمنية الذين يملكون صلاحية عرض البلاغات، ويرسل لهم البوت بطاقة جديدة وتنبيهًا خاصًا مع المرفقات. يعيد النظام محاولة التنبيهات التي تعذّر إرسالها.</div></div>
       <div class="panel" style="margin-top:16px"><b>🔐 اعتماد تغييرات الأدمن والفني</b><label style="display:flex;align-items:center;gap:10px;padding:12px 4px"><input type="checkbox" ${ap.required?'checked':''} onchange="setApprovalMode(this.checked)" style="width:20px;height:20px"><span>يجب موافقة السوبر أدمن قبل اعتماد إضافة أو حذف مرفق يطلبه الأدمن أو الفني</span></label>
       <div class="hint">عند الإيقاف تُطبّق التعديلات مباشرة لمن يملك صلاحية المرفقات.</div><b style="display:block;margin-top:12px">📥 طلبات تنتظر موافقتك (${approvalList.list.length})</b>
       ${approvalList.list.length ? approvalList.list.map(x=>`<div class="track-card"><div><b>#${esc(x.requestId)} · ${esc(x.operation)}</b><div class="hint">${esc(x.name||'مرفق')} · من ${esc(x.by)} · ${esc(x.date)}</div>${x.url?`<a class="btn sm" target="_blank" rel="noopener" href="${esc(x.url)}">📎 معاينة المرفق</a>`:''}</div><div class="row"><button class="btn ok" onclick="decideApproval(${x.row},'approve')">✅ اعتماد</button><button class="btn bad" onclick="decideApproval(${x.row},'reject')">❌ رفض</button><a class="btn" onclick="goReq('${esc(x.requestId)}')">فتح البلاغ</a></div></div>`).join('') : '<div class="empty">لا توجد تغييرات معلقة ✅</div>'}</div>
