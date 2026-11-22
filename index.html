@@ -259,6 +259,9 @@
 
     <div class="card" id="probCard">
       <div class="sec" id="sec2"><div class="num">2</div><h2>وش المشكلة؟</h2></div>
+      <div class="fld" id="f_loc"><label>وين المشكلة؟</label>
+        <div class="chips" style="flex-wrap:wrap"><button type="button" class="chip on" id="locIn" onclick="setLoc(false)">🚪 داخل شقتي</button><button type="button" class="chip" id="locOut" onclick="setLoc(true)">🏢 خارج الشقة (المبنى)</button></div>
+        <div class="em hidden" id="locHint" style="display:none">اختر النوع، واكتب وين مكان المشكلة (الدرج، الأسياب، الحوش، المصعد…)</div></div>
       <div class="fld" id="f_type"><div class="types" id="types"></div><div class="em">اختر نوع المشكلة</div></div>
       <label class="urgent" id="urgentBox">
         <input type="checkbox" id="urgent" onchange="this.parentNode.classList.toggle('on', this.checked)">
@@ -337,6 +340,22 @@
     elev: [{ t: 'المصعد معطّل' }, { t: 'باب المصعد لا يغلق' }],
     other: [],
   };
+  // مشاكل خارج الشقة (المبنى/الأسياب/الأحواش…)
+  const QUICK_OUT = {
+    plumb: [{ t: 'تسرب مياه بالحوش' }, { t: 'انسداد مجاري' }, { t: 'مشكلة بالخزان أو المضخة' }],
+    elec: [{ t: 'إنارة الدرج معطلة' }, { t: 'إنارة المدخل' }, { t: 'إنارة الأسياب' }],
+    elev: [{ t: 'المصعد معطّل' }, { t: 'باب المصعد لا يغلق' }],
+    other: [{ t: 'باب المدخل' }, { t: 'البوابة' }, { t: 'الحوش' }],
+  };
+  let locOut = false;
+  const curQuick = () => (locOut ? QUICK_OUT : QUICK)[selType] || [];
+  function setLoc(out) {
+    locOut = !!out;
+    $('locIn').classList.toggle('on', !locOut); $('locOut').classList.toggle('on', locOut);
+    const h = $('locHint'); h.style.display = locOut ? 'block' : 'none'; h.classList.toggle('hidden', !locOut);
+    $('desc').placeholder = locOut ? 'اكتب المشكلة ومكانها… مثال: إنارة الدرج الثاني معطلة' : 'اكتب المشكلة باختصار… أو اختر من الأعلى';
+    drawChips(); refreshSteps();
+  }
   const BOT_USER = 'Aljulsi_maint_bot';   // بوت تليجرام: ربط المستأجر بتحديثات طلبه
   const OFFICE_WA = '966572294942';   // رقم واتساب المكتب (يظهر في زر «واتساب المكتب»)
   const MAX_PHOTOS = 4, MAX_VIDEO_SEC = 30, MAX_VIDEO_MB = 45, CHUNK = 4 * 1024 * 1024; // مضاعف 256KB (شرط Drive)
@@ -375,13 +394,13 @@
     drawChips(); refreshSteps();
   });
   function drawChips() {
-    const list = QUICK[selType] || [];
+    const list = curQuick();
     $('chips').classList.toggle('hidden', !list.length);
     $('chips').innerHTML = list.map((c, i) => `<button type="button" class="chip" onclick="addChip(${i})">${c.t}</button>`).join('');
     needSrc = false; srcMode = ''; $('f_src').classList.add('hidden'); $('srcSame').classList.remove('on'); $('srcUp').classList.remove('on'); $('srcRoof').classList.remove('on'); $('srcUnk').classList.remove('on'); $('srcApt').classList.add('hidden');
   }
   function addChip(i) {
-    const c = (QUICK[selType] || [])[i]; if (!c) return;
+    const c = curQuick()[i]; if (!c) return;
     const d = $('desc'), cur = d.value.trim();
     if (cur.indexOf(c.t) < 0) d.value = cur ? cur + '، ' + c.t : c.t;
     if (c.src) { needSrc = true; $('f_src').classList.remove('hidden'); }
@@ -480,6 +499,8 @@
       const b = e.target.closest('.type'); if (!b) return;
       gKind = b.dataset.k;
       document.querySelectorAll('#gKinds .type').forEach(x => x.classList.toggle('on', x === b));
+      const tk = gKind === 'water' || gKind === 'sewage';   // وايت/صرف: بلا اختيار شقة
+      $('gScope').classList.toggle('hidden', tk); if (tk) { setGScope('bld'); $('gAptBox').classList.add('hidden'); }
       $('mediaH').innerHTML = gKind === 'maint' ? 'صورة المشكلة <small>(مطلوبة)</small>' : 'صورة <small>(اختيارية)</small>';
     });
     $('sendBtn').textContent = '📤 إرسال';
@@ -678,6 +699,7 @@
       if (photos.some(p => p.uploading) || (video && video.uploading)) return showErr('انتظر اكتمال رفع المرفقات ثم أرسل');
       if (photos.some(p => p.error) || (video && video.error)) return showErr('بعض المرفقات لم تُرفع — احذفها (✕) وأعد اختيارها');
       f = { desc: $('desc').value.trim(), type: selType, urgent: $('urgent').checked, website: $('website').value, mediaCount: photos.length + (video ? 1 : 0), tmpKey: photos.length ? TEMP_KEY : '', videoTmpKey: video ? VIDEO_TEMP_KEY : '' };
+      f.outside = locOut ? 1 : 0;
       if (ident) {
         f.lk = ident.lk; f.pick = ident.pick;
         if (ident.needPhone) { f.phone = toLatin($('phone2').value).trim(); if (!phoneOk(f.phone)) return bad('phone2'); }
@@ -690,7 +712,7 @@
       } else return bad('lk');
       if (!f.type) return bad('type');
       if (f.desc.length < 3 && !f.mediaCount) return bad('desc');
-      if (needSrc || (selType === 'plumb' && /تهريب|تسريب|تسرب|مكيف|نقط|سقف|سطح/.test(f.desc))) {
+      if (!locOut && (needSrc || (selType === 'plumb' && /تهريب|تسريب|تسرب|مكيف|نقط|سقف|سطح/.test(f.desc)))) {
         $('f_src').classList.remove('hidden');
         if (!srcMode) return bad('src', 'اختر مصدر المشكلة');
         f.srcMode = { same: 'own', up: 'other', roof: 'roof', unk: 'unknown' }[srcMode];
@@ -721,7 +743,7 @@
     const hasMedia = !!(res.id && (ph.length || vd));
     $('doneWarn').textContent = hasMedia ? '⏳ جاري رفع المرفقات… لا تغلق الصفحة حتى تظهر «تم رفع المرفقات»' : '';
     photos = []; video = null; drawThumbs(); $('desc').value = ''; $('urgent').checked = false;
-    $('urgentBox').classList.remove('on'); selType = ''; document.querySelectorAll('.type').forEach(x => x.classList.remove('on')); drawChips();
+    $('urgentBox').classList.remove('on'); selType = ''; locOut = false; $('locIn').classList.add('on'); $('locOut').classList.remove('on'); $('locHint').style.display = 'none'; $('desc').placeholder = 'اكتب المشكلة باختصار… أو اختر من الأعلى'; document.querySelectorAll('.type').forEach(x => x.classList.remove('on')); drawChips();
     if (!GUARD) { if (!ident) { manualOn = false; } show1('prof'); drawProf(); refreshSteps(); }
     show('doneView'); refreshMyBtn();
     if (!hasMedia) return;
