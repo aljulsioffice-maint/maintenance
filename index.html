@@ -169,8 +169,7 @@
   .keypad { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: 10px; }
   .keypad button { font: inherit; font-size: 32px; padding: 14px 0; border-radius: 16px; border: 2px solid #d4dbe7; background: #fff; color: #123; font-weight: 800; }
   .keypad button:active { background: #dbe6ff; }
-  #gKinds .type .ic { width: auto; min-width: 70px; height: 70px; padding: 0 12px; white-space: nowrap; font-size: 32px; }
-  #gKinds .type { font-size: 17px; }
+  #gKinds .gkind { font-size: 17px; }
 
   .tabs2 { display: flex; gap: 8px; margin-bottom: 12px; }
   .tabbtn { flex: 1; border: 1.5px solid var(--bd, #d0d7e2); background: var(--card, #fff); color: inherit; border-radius: 12px; padding: 10px; font-weight: 700; font-size: 15px; margin-bottom: 10px; }
@@ -181,20 +180,43 @@
   .star { border: 0; background: none; font-size: 32px; color: #e0a800; padding: 0 2px; line-height: 1; }
 
   /* تجربة الحارس: تعليمات مصورة وأهداف لمس كبيرة */
-  .guard-guide{display:flex;align-items:center;justify-content:space-around;gap:5px;padding:12px 8px;background:var(--accent-soft);border-radius:18px;margin:12px 0 4px}
-  .guide-step{width:26%;min-width:0;display:flex;flex-direction:column;align-items:center;gap:2px}
-  .guide-step svg{width:58px;height:58px;max-width:100%}.guide-step span{font-size:23px;line-height:1.1}
-  .guide-arrow{font-size:25px;font-weight:900;color:var(--accent)}
-  .guard-guide-caption{display:grid;grid-template-columns:1fr 1fr 1fr;text-align:center;font-size:12px;font-weight:800;color:var(--muted);margin:0 0 16px}
   .guard-scope-title{font-size:18px;font-weight:900;margin:10px 0}
   .guard-scope{display:grid;grid-template-columns:1fr 1fr;gap:9px}
-  .scope-btn{min-height:118px;border:2px solid var(--line);border-radius:16px;background:var(--field);color:var(--text);font:inherit;padding:10px 6px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;cursor:pointer}
+  .scope-btn{min-height:100px;border:2px solid var(--line);border-radius:16px;background:var(--field);color:var(--text);font:inherit;padding:10px 6px;display:flex;align-items:center;justify-content:center;cursor:pointer}
   .scope-btn.active{border-color:var(--ok);background:var(--ok-soft);box-shadow:inset 0 0 0 1px var(--ok)}
-  .scope-btn .scope-emoji{font-size:34px;line-height:1.2}.scope-btn b{font-size:16px}.scope-btn small{font-size:12px;line-height:1.3;color:var(--muted);font-weight:600}
-  #guardAptPanel{margin-top:12px}.gdisp{font-size:28px;min-height:60px;padding:8px}
-  .guard-guide-caption span{white-space:nowrap}
-  @media(max-width:360px){.scope-btn b{font-size:14px}.scope-btn small{font-size:11px}.guide-step svg{width:48px;height:48px}}
+  .scope-btn .scope-emoji{font-size:48px;line-height:1.2}
+  #guardAptPanel{margin-top:12px}.gdisp{font-size:28px;min-height:54px;padding:8px}
+  .gapt-choices{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin:8px 0 12px}
+  .gapt-choice{min-height:54px;border:2px solid var(--line);border-radius:12px;background:var(--field);font-size:21px;font-weight:900;color:var(--text)}
+  .gapt-choice.on{border-color:var(--ok);background:var(--ok-soft)}
+  #gaptCustom{font-size:20px;text-align:center;min-height:52px}
+  @media(max-width:360px){.gapt-choices{grid-template-columns:repeat(3,minmax(0,1fr))}}
 
+
+
+  /* واجهة الحارس والفني: صور وأرقام وأزرار كبيرة، بلا حاجة للقراءة أو الكتابة */
+  .guard-kinds{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:8px 0 16px}
+  .gkind{min-height:112px;border:2px solid var(--line);border-radius:18px;background:var(--field);color:var(--text);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;font:inherit;cursor:pointer}
+  .gkind.on{border-color:var(--ok);background:var(--ok-soft);box-shadow:inset 0 0 0 1px var(--ok)}
+  .gkind-num{font-size:18px;font-weight:900}.gkind-pic{font-size:38px;line-height:1.2}
+  body.guard-mode .office,body.guard-mode .sub,body.guard-mode .guard-scope-title,body.guard-mode #guardH{font-size:0}
+  body.guard-mode .pills{display:none}
+  body.guard-mode .scope-btn{min-height:110px}
+  body.guard-mode #mediaCard .sec h2,body.guard-mode #mediaCard .hint{font-size:0}
+  body.guard-mode #mediaCard .mbtn{font-size:0;min-height:84px}
+  body.guard-mode #mediaCard .mbtn .ic{font-size:48px;margin:0}
+  body.guard-mode #mediaCard .mbtn.big .ic{display:inline}
+  body.guard-mode #sendBtn{font-size:0}
+  body.guard-mode #sendBtn::after{content:'📤';font-size:32px}
+  body.guard-mode #subHint{font-size:0}
+  body.guard-mode #ovText,body.guard-mode #ovHint{display:none}
+  body.guard-mode #doneView .done h3,body.guard-mode #doneView .done .msg,body.guard-mode #doneView .done .tl,body.guard-mode #doneWarn{display:none}
+  body.guard-mode #doneView #tgBtn,body.guard-mode #doneView #trkBtn,body.guard-mode #doneView #shBtn{display:none}
+  body.guard-mode #doneView>button[onclick="newRequest()"]{font-size:0}
+  body.guard-mode #doneView>button[onclick="newRequest()"]::after{content:'➕';font-size:32px}
+  body.guard-mode #err{font-size:0;text-align:center}
+  body.guard-mode #err::after{content:'⚠️';font-size:28px}
+  @media(max-width:360px){.gkind{min-height:96px}.gkind-pic{font-size:32px}}
 
   /* تحسينات وضوح عامة */
   body{font-size:18px;line-height:1.65;letter-spacing:0}
@@ -239,28 +261,21 @@
 
     <div class="card hidden" id="guardCard">
       <div class="sec"><div class="num">🛡️</div><h2 id="guardH">بلاغ من الحارس</h2></div>
-      <div class="guard-guide" role="img" aria-label="اختر نوع البلاغ، ثم صوّر المشكلة، ويمكنك تحديد شقة أو ترك البلاغ للمبنى بالكامل">
-        <div class="guide-step"><svg viewBox="0 0 64 64" aria-hidden="true"><path d="M8 28 32 8l24 20v28H8z" fill="#dcecff" stroke="#1769aa" stroke-width="3"/><path d="M22 56V38h20v18M18 29h8v8h-8zm20 0h8v8h-8z" fill="#fff" stroke="#1769aa" stroke-width="2"/></svg><span>🏢</span></div>
-        <div class="guide-arrow">➜</div>
-        <div class="guide-step"><svg viewBox="0 0 64 64" aria-hidden="true"><rect x="9" y="8" width="46" height="48" rx="8" fill="#e8f7ee" stroke="#16834a" stroke-width="3"/><circle cx="32" cy="25" r="9" fill="#fff" stroke="#16834a" stroke-width="3"/><path d="M19 49V42a13 13 0 0 1 26 0v7" fill="#fff" stroke="#16834a" stroke-width="3"/></svg><span>🚪</span></div>
-        <div class="guide-arrow">➜</div>
-        <div class="guide-step"><svg viewBox="0 0 64 64" aria-hidden="true"><path d="M8 20h12l5-7h15l5 7h11v34H8z" fill="#f0e9ff" stroke="#7044b8" stroke-width="3"/><circle cx="32" cy="36" r="11" fill="#fff" stroke="#7044b8" stroke-width="3"/><circle cx="32" cy="36" r="5" fill="#c7b2ee"/></svg><span>📷</span></div>
+      <div id="gKinds" class="guard-kinds" aria-label="نوع الطلب">
+        <button type="button" class="gkind" data-k="water" aria-label="وايت ماء"><span class="gkind-pic">🚚💧</span></button>
+        <button type="button" class="gkind" data-k="sewage" aria-label="وايت صرف صحي"><span class="gkind-pic">🚛🚽</span></button>
+        <button type="button" class="gkind" data-k="maint" aria-label="صيانة"><span class="gkind-pic">🛠️🔧</span></button>
       </div>
-      <div class="guard-guide-caption"><span>نوع الطلب</span><span>المبنى أو الشقة</span><span>صورة المشكلة</span></div>
-      <div class="guard-scope-title">📍 أين المشكلة؟</div>
+      <div class="guard-scope-title">📍</div>
       <div class="guard-scope">
-        <button type="button" id="wholeBuildingBtn" class="scope-btn active" aria-pressed="true"><span class="scope-emoji">🏢</span><b>المبنى بالكامل</b><small>إذا لم تحدد شقة، نعتمد المبنى كله</small></button>
-        <button type="button" id="chooseApartmentBtn" class="scope-btn" aria-pressed="false"><span class="scope-emoji">🚪</span><b>شقة محددة</b><small>اضغط هنا إذا تعرف رقم الشقة</small></button>
+        <button type="button" id="wholeBuildingBtn" class="scope-btn active" aria-label="المبنى بالكامل" title="المبنى بالكامل" aria-pressed="true"><span class="scope-emoji">🏢</span></button>
+        <button type="button" id="chooseApartmentBtn" class="scope-btn" aria-label="شقة محددة" title="شقة محددة" aria-pressed="false"><span class="scope-emoji">🚪</span></button>
       </div>
       <div id="guardAptPanel" class="hidden">
-        <div class="gdisp">🚪 <span id="gaptv">اختر رقم الشقة</span></div>
+        <div class="gdisp">🚪 <span id="gaptv">—</span></div>
         <input type="hidden" id="gapt" value="">
-        <div class="keypad" id="keypad">
-          <button type="button" data-k="1">1</button><button type="button" data-k="2">2</button><button type="button" data-k="3">3</button>
-          <button type="button" data-k="4">4</button><button type="button" data-k="5">5</button><button type="button" data-k="6">6</button>
-          <button type="button" data-k="7">7</button><button type="button" data-k="8">8</button><button type="button" data-k="9">9</button>
-          <button type="button" data-k="c">🗑️</button><button type="button" data-k="0">0</button><button type="button" data-k="b">⌫</button>
-        </div>
+        <div id="gaptChoices" class="gapt-choices"></div>
+        <input type="tel" id="gaptCustom" inputmode="numeric" autocomplete="off" placeholder="12" aria-label="رقم الشقة">
       </div>
     </div>
 
@@ -293,18 +308,14 @@
     <!-- الخطوة 2: الصور والفيديو -->
     <div class="card" id="mediaCard">
       <div class="sec" id="sec2"><div class="num">2</div><h2 id="mediaH">صور أو فيديو <small>(اختياري)</small></h2></div>
-      <div class="media-btns">
-        <button class="mbtn big" type="button" onclick="document.getElementById('photoCam').click()"><span class="ic">📷</span>صوّر المشكلة الآن</button>
-        <button class="mbtn sec2" type="button" onclick="document.getElementById('photoIn').click()"><span class="ic">🖼️</span>من الاستوديو</button>
-        <button class="mbtn sec2" type="button" onclick="document.getElementById('videoCam').click()"><span class="ic">🎥</span>فيديو الآن</button>
-        <button class="mbtn sec2" type="button" onclick="document.getElementById('videoIn').click()"><span class="ic">🎞️</span>فيديو من الاستوديو</button>
+      <div class="media-btns" style="grid-template-columns:1fr">
+        <button class="mbtn big" type="button" onclick="document.getElementById('mediaIn').click()">
+          <span class="ic">📷🎥</span> تصوير أو اختيار صور وفيديو
+        </button>
       </div>
-      <input type="file" id="photoCam" accept="image/*" capture="environment" class="hidden">
-      <input type="file" id="photoIn" accept="image/*" multiple class="hidden">
-      <input type="file" id="videoCam" accept="video/*" capture="environment" class="hidden">
-      <input type="file" id="videoIn" accept="video/*" class="hidden">
+      <input type="file" id="mediaIn" accept="image/*,video/*" multiple class="hidden">
       <div class="thumbs" id="thumbs"></div>
-      <div class="hint">حتى 4 صور، وفيديو واحد لا يزيد عن 30 ثانية. الصورة تسرّع الحل.</div>
+      <div class="hint">اختر الصور والفيديو معًا من نفس النافذة: حتى 4 صور وفيديو واحد لا يزيد عن 30 ثانية.</div>
       <div id="uploadProgress" class="hint" style="color:var(--accent); font-weight:800; display:none; margin-top:8px;"></div>
     </div>
 
@@ -319,9 +330,22 @@
       </label>
       <label for="desc" style="margin-top:18px">اشرح باختصار</label>
       <div class="chips hidden" id="chips"></div>
-      <div class="fld hidden" id="f_src"><label>من أين المشكلة؟</label>
-        <div class="chips" style="flex-wrap:wrap"><button type="button" class="chip" id="srcSame" onclick="setSrc('same')">من شقتي</button><button type="button" class="chip" id="srcUp" onclick="setSrc('up')">من الشقة اللي فوقي</button></div>
-        <input type="text" id="srcApt" class="hidden" inputmode="numeric" placeholder="رقم الشقة اللي فوقك" style="margin-top:6px"><div class="em">اختر مصدر المشكلة، ولو من الشقة اللي فوقك اكتب رقمها</div></div>
+      <div class="fld hidden" id="f_src">
+        <label>💧 مصدر التهريب من أين؟</label>
+        <div class="chips" style="flex-wrap:wrap">
+          <button type="button" class="chip" id="srcSame" onclick="setSrc('same')">من شقتي</button>
+          <button type="button" class="chip" id="srcUp" onclick="setSrc('other')">من شقة أخرى</button>
+          <button type="button" class="chip" id="srcRoof" onclick="setSrc('roof')">من السطح / المبنى</button>
+          <button type="button" class="chip" id="srcUnknown" onclick="setSrc('unknown')">غير معروف</button>
+        </div>
+        <input type="tel" id="srcApt" class="inp hidden" inputmode="numeric" placeholder="رقم الشقة مصدر التهريب" style="margin-top:6px;width:100%">
+        <label for="leakLoc" style="margin-top:14px">📍 في أي مكان داخل الشقة؟</label>
+        <select id="leakLoc" class="inp" style="width:100%">
+          <option value="">اختر المكان بدقة</option><option value="bath_main">الحمام الرئيسي</option><option value="bath_guest">حمام الضيوف</option><option value="bath_other">حمام آخر</option><option value="kitchen">المطبخ</option><option value="bed_main">غرفة النوم الرئيسية</option><option value="bed_other">غرفة نوم أخرى</option><option value="kids">غرفة أطفال</option><option value="majlis">المجلس</option><option value="living">الصالة</option><option value="corridor">الممر</option><option value="ceiling">سقف الغرفة</option><option value="roof">السطح</option><option value="other">مكان آخر</option>
+        </select>
+        <input type="text" id="leakDetail" class="inp" maxlength="120" placeholder="تفصيل إضافي: بجانب الباب، فوق المكيف… (اختياري)" style="width:100%;margin-top:8px">
+        <div class="em">اختر المصدر والمكان حتى يصل الفني للموقع الصحيح</div>
+      </div>
       <div class="fld" id="f_desc"><textarea id="desc" placeholder="اكتب المشكلة باختصار… أو اختر من الأعلى"></textarea><div class="em">اكتب وصف المشكلة أو أرفق صورة</div></div>
     </div>
 
@@ -367,7 +391,7 @@
   const TRACK = (_q.get('t') || '').replace(/[^a-f0-9]/g, '').slice(0, 20), APP_URL = location.origin + location.pathname, API_URL = 'https://script.google.com/macros/s/AKfycby4tmfamJKcw5g29sgp45Rp6j_jSC_1TB5a28VDDbqjznHfN8aZFDdc8Bn9pcWkLs6u7g/exec';
   const TYPES = [['plumb','🚿','سباكة','#1f7ae0'],['elec','⚡','كهرباء','#f0a000'],['elev','🛗','مصعد','#6b7686'],['other','🛠️','أخرى','#7a4bd1']];
   const QUICK = {
-    plumb: [{ t: 'شطاف خربان' }, { t: 'تهريب مياه', src: 1 }, { t: 'انسداد مجاري' }, { t: 'مياه مكيف', src: 1 }, { t: 'إزعاج مكيف', src: 1 }],
+    plumb: [{ t: 'شطاف خربان' }, { t: 'تهريب مياه من السقف' }, { t: 'انسداد مجاري' }, { t: 'انسداد تصريف المكيف' }, { t: 'تنقيط المكيف' }, { t: 'مكيف يقطر ماء' }],
     elec: [{ t: 'أفياش لا تعمل' }, { t: 'التماس كهربائي' }, { t: 'مشكلة بالطبلون' }],
     elev: [{ t: 'المصعد معطّل' }, { t: 'باب المصعد لا يغلق' }],
     other: [],
@@ -391,6 +415,7 @@
     if (fn === 'startTempVideo') return {ok:true,key:'demo-upload-'+DEMO_TOKEN(),nextOffset:0};
     if (fn === 'submitRequest') return {ok:true,id:DEMO_NEXT_ID++,token:DEMO_TOKEN()};
     if (fn === 'submitGuard') return {ok:true,id:DEMO_NEXT_ID++,token:DEMO_TOKEN()};
+    if (fn === 'guardInfo') return {ok:true,name:'حارس تجريبي',building:'عمارة التجربة',apartments:['1','2','3','12','21']};
     if (fn === 'getTracking') return (args[0]||[]).map((t,i)=>({id:26000+i,token:t,date:'2026-11-22 10:30',type:'سباكة',icon:'🚿',status:'قيد المعالجة',step:2,tech:'فني تجريبي',ts:'work',linked:true,visit:''}));
     if (fn === 'replyInfo') return {ok:true};
     if (fn === 'rateTech') return {ok:true};
@@ -404,6 +429,13 @@
   if (!/^[a-f0-9]{32}$/i.test(REQUEST_KEY)) { REQUEST_KEY = ''; }
   if (!REQUEST_KEY) { REQUEST_KEY = (crypto.randomUUID ? crypto.randomUUID().replace(/-/g, '') : (Date.now().toString(16) + Math.random().toString(16).slice(2)).slice(0, 32)); sessionSet('mr_submit_key', REQUEST_KEY); }
   let selType = '', photos = [], video = null, lastToken = '', gKind = '', needSrc = false, srcMode = '';
+  const needsLeakDetails = (type, desc) => {
+    const d = String(desc || '').replace(/[أإآ]/g, 'ا');
+    const leak = /(?:ماء|مياه|مويا|موية|مويه|تهريب|تسرب|تسريب|تنقيط|تقطير|يقطر|ينقط|تصريف|انسداد|مسدود)/.test(d);
+    const target = /(?:سقف|سطح|مكيف|مكيفات|تكييف)/.test(d);
+    return leak && target;
+  };
+  let leakLocation = '', leakDetail = '';
   let guardBuildingWide = true;
   let DRAFT_RESTORING = !DEMO_MODE;
   const GUARD = (new URLSearchParams(location.search).get('g') || '').replace(/[^a-f0-9]/g, '').slice(0, 12);
@@ -432,15 +464,15 @@
     try { const all=await draftFilesGetAll(), db=await draftDbOpen(); await new Promise((resolve,reject)=>{const tx=db.transaction('files','readwrite'), st=tx.objectStore('files');all.filter(x=>x.tempKey===photoKey||x.videoKey===videoKey).forEach(x=>st.delete(x.id));tx.oncomplete=resolve;tx.onerror=()=>reject(tx.error);});db.close(); } catch(e) {}
   }
   function persistDraftState() {
-    lsSet('mr_draft',{desc:$('desc').value,selType:selType,urgent:$('urgent').checked,srcMode:srcMode,needSrc:needSrc,srcApt:$('srcApt').value,name:$('name').value,bld:$('bld').value,apt:$('apt').value,phone:$('phone').value,phone2:$('phone2').value,gapt:$('gapt').value,gKind:gKind,guardBuildingWide:guardBuildingWide});
+    lsSet('mr_draft',{desc:$('desc').value,selType:selType,urgent:$('urgent').checked,srcMode:srcMode,needSrc:needSrc,srcApt:$('srcApt').value,leakLocation:$('leakLoc').value,leakDetail:$('leakDetail').value,name:$('name').value,bld:$('bld').value,apt:$('apt').value,phone:$('phone').value,phone2:$('phone2').value,gapt:$('gapt').value,gKind:gKind,guardBuildingWide:guardBuildingWide});
   }
   function restoreDraftState() {
     const d=lsGet('mr_draft',{}); if(!d||typeof d!=='object')return;
-    ['desc','name','bld','apt','phone','phone2','srcApt','gapt'].forEach(k=>{if(d[k]!=null && $(k))$(k).value=d[k];});
+    ['desc','name','bld','apt','phone','phone2','srcApt','gapt'].forEach(k=>{if(d[k]!=null && $(k))$(k).value=d[k];}); if(d.gapt && $('gaptCustom')) $('gaptCustom').value=d.gapt;
     if(d.selType){selType=d.selType;document.querySelectorAll('#types .type').forEach(x=>x.classList.toggle('on',x.dataset.k===selType));drawChips();}
     if(d.urgent){$('urgent').checked=true;$('urgentBox').classList.add('on');}
-    if(d.srcMode){srcMode=d.srcMode;needSrc=!!d.needSrc;$('f_src').classList.remove('hidden');$('srcSame').classList.toggle('on',srcMode==='same');$('srcUp').classList.toggle('on',srcMode==='up');$('srcApt').classList.toggle('hidden',srcMode!=='up');}
-    if(d.gKind){gKind=d.gKind;document.querySelectorAll('#gKinds .type').forEach(x=>x.classList.toggle('on',x.dataset.k===gKind));}
+    if(d.srcMode && needsLeakDetails(d.selType || selType, d.desc || $('desc').value)){srcMode=d.srcMode;needSrc=true;$('f_src').classList.remove('hidden');['same','other','roof','unknown'].forEach(k=>$('src'+({same:'Same',other:'Up',roof:'Roof',unknown:'Unknown'}[k])).classList.toggle('on',srcMode===k));$('srcApt').classList.toggle('hidden',srcMode!=='other');$('leakLoc').value=d.leakLocation||'';$('leakDetail').value=d.leakDetail||'';}
+    if(d.gKind){gKind=d.gKind;document.querySelectorAll('#gKinds .gkind').forEach(x=>x.classList.toggle('on',x.dataset.k===gKind));}
     if(d.guardBuildingWide===false || d.gapt){setGuardScope('apt');}else{setGuardScope('building');}
     refreshSteps();
   }
@@ -474,19 +506,32 @@
     const list = QUICK[selType] || [];
     $('chips').classList.toggle('hidden', !list.length);
     $('chips').innerHTML = list.map((c, i) => `<button type="button" class="chip" onclick="addChip(${i})">${c.t}</button>`).join('');
-    needSrc = false; srcMode = ''; $('f_src').classList.add('hidden'); $('srcSame').classList.remove('on'); $('srcUp').classList.remove('on'); $('srcApt').classList.add('hidden');
+    needSrc = false; srcMode = ''; leakLocation = ''; leakDetail = ''; $('f_src').classList.add('hidden'); ['srcSame','srcUp','srcRoof','srcUnknown'].forEach(id=>$(id).classList.remove('on')); $('srcApt').classList.add('hidden'); $('srcApt').value = ''; $('leakLoc').value=''; $('leakDetail').value='';
+  }
+  function syncAcSourcePrompt() {
+    const eligible = needsLeakDetails(selType, $('desc').value);
+    needSrc = eligible;
+    if (!eligible) {
+      srcMode = ''; $('srcApt').value = ''; leakLocation = ''; leakDetail = ''; $('leakLoc').value=''; $('leakDetail').value=''; $('f_src').classList.add('hidden');
+      ['srcSame','srcUp','srcRoof','srcUnknown'].forEach(id=>$(id).classList.remove('on')); $('srcApt').classList.add('hidden');
+    } else {
+      $('f_src').classList.remove('hidden');
+      $('srcApt').classList.toggle('hidden', srcMode !== 'other');
+    }
   }
   function addChip(i) {
     const c = (QUICK[selType] || [])[i]; if (!c) return;
     const d = $('desc'), cur = d.value.trim();
     if (cur.indexOf(c.t) < 0) d.value = cur ? cur + '، ' + c.t : c.t;
-    if (c.src) { needSrc = true; $('f_src').classList.remove('hidden'); }
+    syncAcSourcePrompt();
     $('f_desc').classList.remove('bad'); refreshSteps(); persistDraftState();
   }
   function setSrc(m) {
-    srcMode = m; $('srcSame').classList.toggle('on', m === 'same'); $('srcUp').classList.toggle('on', m === 'up');
-    $('srcApt').classList.toggle('hidden', m !== 'up'); $('f_src').classList.remove('bad');
-    if (m === 'up') setTimeout(() => $('srcApt').focus({ preventScroll: true }), 50);
+    srcMode = m;
+    $('srcSame').classList.toggle('on', m === 'same'); $('srcUp').classList.toggle('on', m === 'other');
+    $('srcRoof').classList.toggle('on', m === 'roof'); $('srcUnknown').classList.toggle('on', m === 'unknown');
+    $('srcApt').classList.toggle('hidden', m !== 'other'); $('f_src').classList.remove('bad');
+    if (m === 'other') setTimeout(() => $('srcApt').focus({ preventScroll: true }), 50);
     persistDraftState();
   }
   $('waBtn').href = DEMO_MODE ? 'javascript:void(0)' : 'https://wa.me/' + OFFICE_WA;
@@ -552,9 +597,10 @@
   $('apt').addEventListener('input', () => { $('apt').value = toLatin($('apt').value); });
   if (!GUARD && ident) { show1('prof'); drawProf(); }
   else if (!GUARD && prof.manual && manualValid()) { show1('prof'); drawProf(); }
-  ['name', 'apt', 'phone', 'phone2', 'desc'].forEach(id => $(id).addEventListener('input', () => { const f = $('f_' + id); if (f) f.classList.remove('bad'); refreshSteps(); }));
+  ['name', 'apt', 'phone', 'phone2', 'desc'].forEach(id => $(id).addEventListener('input', () => { const f = $('f_' + id); if (f) f.classList.remove('bad'); if (id === 'desc') syncAcSourcePrompt(); refreshSteps(); }));
   $('bld').addEventListener('input', () => { $('f_bld').classList.remove('bad'); refreshSteps(); persistDraftState(); });
-  ['name','apt','phone','phone2','desc','srcApt','gapt'].forEach(id=>{if($(id))$(id).addEventListener('input',persistDraftState);});
+  ['name','apt','phone','phone2','desc','srcApt','leakDetail','gapt'].forEach(id=>{if($(id))$(id).addEventListener('input',persistDraftState);});
+  if ($('leakLoc')) $('leakLoc').addEventListener('change', e=>{leakLocation=e.target.value;persistDraftState();});
   $('urgent').addEventListener('change',persistDraftState);
   restoreDraftState();
 
@@ -587,88 +633,112 @@
 
   refreshMyBtn();
   if (GUARD) {
+    document.body.classList.add('guard-mode');
     ['tenCard', 'probCard', 'tgBtn', 'shBtn'].forEach(k => { const e = $(k); if (e) e.classList.add('hidden'); });
     $('guardCard').classList.remove('hidden'); $('mediaH').textContent = 'الصورة';
     $('guardCard').appendChild($('mediaCard')); $('mediaCard').classList.remove('hidden');
-    document.querySelectorAll('.media-btns .mbtn').forEach((b, i) => { if (i > 1) b.classList.add('hidden'); });
     $('gKinds').addEventListener('click', e => {
-      const b = e.target.closest('.type'); if (!b) return;
+      const b = e.target.closest('.gkind'); if (!b) return;
       gKind = b.dataset.k; persistDraftState();
-      document.querySelectorAll('#gKinds .type').forEach(x => x.classList.toggle('on', x === b));
-      $('mediaH').innerHTML = gKind === 'maint' ? 'صورة المشكلة <small>(مطلوبة)</small>' : 'صورة <small>(اختيارية)</small>';
+      document.querySelectorAll('#gKinds .gkind').forEach(x => x.classList.toggle('on', x === b));
+      $('mediaH').innerHTML = '📷 🎥';
     });
-    $('sendBtn').textContent = '📤 إرسال البلاغ';
+    $('sendBtn').textContent = '📤';
     $('subHint').textContent = 'اختر نوع الطلب ثم أرسل — الشقة اختيارية';
     $('wholeBuildingBtn').addEventListener('click', () => setGuardScope('building'));
     $('chooseApartmentBtn').addEventListener('click', () => setGuardScope('apt'));
-    $('keypad').addEventListener('click', e => {
-      const b = e.target.closest('button'); if (!b) return;
-      let v = $('gapt').value; const k = b.dataset.k;
-      if (k === 'b') v = v.slice(0, -1); else if (k === 'c') v = ''; else if (v.length < 4) v += k;
-      $('gapt').value = v; $('gaptv').textContent = v || 'لم تحدد شقة — للمبنى بالكامل'; persistDraftState();
+    $('gaptCustom').addEventListener('input', () => {
+      const v = toLatin($('gaptCustom').value).replace(/[^0-9]/g, '').slice(0, 6);
+      $('gaptCustom').value = v; $('gapt').value = v; $('gaptv').textContent = v || '—';
+      document.querySelectorAll('#gaptChoices .gapt-choice').forEach(x => x.classList.toggle('on', x.dataset.apt === v)); persistDraftState();
     });
     setGuardScope('building');
     run('guardInfo', GUARD).then(r => {
-      if (r && r.ok) $('guardH').textContent = 'حارس عمارة ' + r.building;
+      if (r && r.ok) { $('guardH').textContent = 'حارس عمارة ' + r.building; renderGuardApartments(r.apartments || []); }
       else { $('formView').innerHTML = '<div class="card"><h2>⚠️</h2>' + ((r && r.msg) || 'الرابط غير صالح') + '</div>'; }
     }).catch(() => {});
   } else refreshSteps();
   if (TRACK && !GUARD) { const t = lsGet('mr_tokens', []); if (t.indexOf(TRACK) < 0) { t.push(TRACK); lsSet('mr_tokens', t); } showTrack(); }
 
+  function renderGuardApartments(apartments) {
+    const host = $('gaptChoices'); if (!host) return;
+    const vals = Array.from(new Set((apartments || []).map(x => String(x).trim()).filter(Boolean)));
+    const safe = a => String(a).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+    host.innerHTML = vals.map(a => `<button type="button" class="gapt-choice" data-apt="${safe(a)}">${safe(a)}</button>`).join('');
+    const selected = $('gapt').value; if (selected) { $('gaptv').textContent = selected; host.querySelectorAll('.gapt-choice').forEach(x => x.classList.toggle('on', x.dataset.apt === selected)); }
+    host.querySelectorAll('.gapt-choice').forEach(b => b.addEventListener('click', () => {
+      const v = b.dataset.apt; $('gapt').value = v; $('gaptCustom').value = ''; $('gaptv').textContent = v;
+      host.querySelectorAll('.gapt-choice').forEach(x => x.classList.toggle('on', x === b)); persistDraftState();
+    }));
+  }
   function setGuardScope(scope) {
     guardBuildingWide = scope !== 'apt';
     const whole = $('wholeBuildingBtn'), unit = $('chooseApartmentBtn'), panel = $('guardAptPanel');
     if (whole) { whole.classList.toggle('active', guardBuildingWide); whole.setAttribute('aria-pressed', guardBuildingWide ? 'true' : 'false'); }
     if (unit) { unit.classList.toggle('active', !guardBuildingWide); unit.setAttribute('aria-pressed', !guardBuildingWide ? 'true' : 'false'); }
     if (panel) panel.classList.toggle('hidden', guardBuildingWide);
-    if (guardBuildingWide) { $('gapt').value = ''; $('gaptv').textContent = 'المبنى بالكامل'; }
-    else $('gaptv').textContent = $('gapt').value || 'اختر رقم الشقة';
+    if (guardBuildingWide) { $('gapt').value = ''; $('gaptCustom').value = ''; $('gaptv').textContent = '—'; document.querySelectorAll('#gaptChoices .gapt-choice').forEach(x => x.classList.remove('on')); }
+    else $('gaptv').textContent = $('gapt').value || '—';
     persistDraftState();
   }
 
   function refreshMyBtn() { $('myBtn').classList.toggle('hidden', !lsGet('mr_tokens', []).length && !TRACK); }
 
-  // الرفع المسبق للصور
-  ['photoIn', 'photoCam'].forEach(id => $(id).addEventListener('change', async e => {
-    const files = Array.from(e.target.files || []);
-    for (const f of files) {
-      if (DRAFT_RESTORING) { showErr('انتظر حتى تكتمل استعادة المرفقات المحفوظة.'); break; }
-      if (photos.length >= MAX_PHOTOS) { showErr('الحد ' + MAX_PHOTOS + ' صور'); break; }
-      
-      const clientId = crypto.randomUUID ? crypto.randomUUID().replace(/-/g,'') : (Date.now().toString(36)+Math.random().toString(36).slice(2));
-      const p = { file: f, clientId:clientId, url: URL.createObjectURL(f), uploading: true };
-      photos.push(p); drawThumbs();
-      
-      try {
-        try { await draftFilePut('photo', clientId, f); } catch(e) {}
-        const b64 = await compress(f);
-        const r = await run('uploadTempPhoto', b64, TEMP_KEY, clientId);
-        if (r && r.ok) { p.uploading = false; p.tempIndex = r.index; if (p.cancelled) { run('removeTempPhoto', TEMP_KEY, p.tempIndex, p.clientId); draftFileDelete('photo',p.clientId,TEMP_KEY); } }
-        else { showErr('تعذر رفع الصورة'); photos = photos.filter(x => x !== p); run('removeTempPhoto',TEMP_KEY,0,p.clientId).catch(()=>{}); draftFileDelete('photo',p.clientId,TEMP_KEY); }
-      } catch (err) { 
-        photos = photos.filter(x => x !== p); URL.revokeObjectURL(p.url); run('removeTempPhoto',TEMP_KEY,0,p.clientId).catch(()=>{}); draftFileDelete('photo',p.clientId,TEMP_KEY); showErr('تعذر رفع الصورة. أعد اختيارها قبل إرسال البلاغ.');
+  // منتقي موحّد: الصور والفيديو في نافذة واحدة، ويمكن اختيار النوعين معاً.
+  async function handlePickedImage(f) {
+    if (photos.length >= MAX_PHOTOS) { showErr('الحد الأقصى ' + MAX_PHOTOS + ' صور.'); return; }
+    const clientId = crypto.randomUUID ? crypto.randomUUID().replace(/-/g,'') : (Date.now().toString(36)+Math.random().toString(36).slice(2));
+    const p = { file: f, clientId:clientId, url: URL.createObjectURL(f), uploading: true };
+    photos.push(p); drawThumbs(); refreshSteps();
+    try {
+      try { await draftFilePut('photo', clientId, f); } catch(e) {}
+      const b64 = await compress(f);
+      const r = await run('uploadTempPhoto', b64, TEMP_KEY, clientId);
+      if (r && r.ok) {
+        p.uploading = false; p.tempIndex = r.index;
+        if (p.cancelled) { run('removeTempPhoto', TEMP_KEY, p.tempIndex, p.clientId); draftFileDelete('photo',p.clientId,TEMP_KEY); }
+      } else {
+        showErr('تعذر رفع الصورة؛ أعد اختيارها.');
+        photos = photos.filter(x => x !== p); URL.revokeObjectURL(p.url);
+        run('removeTempPhoto',TEMP_KEY,0,p.clientId).catch(()=>{}); draftFileDelete('photo',p.clientId,TEMP_KEY);
       }
-      drawThumbs(); refreshSteps();
+    } catch (err) {
+      photos = photos.filter(x => x !== p); URL.revokeObjectURL(p.url);
+      run('removeTempPhoto',TEMP_KEY,0,p.clientId).catch(()=>{}); draftFileDelete('photo',p.clientId,TEMP_KEY);
+      showErr('تعذر رفع الصورة. أعد اختيارها قبل إرسال البلاغ.');
     }
-    e.target.value = '';
-  }));
-  ['videoIn', 'videoCam'].forEach(id => $(id).addEventListener('change', async e => {
-    const f = e.target.files && e.target.files[0]; e.target.value = '';
-    if (!f) return;
-    if (DRAFT_RESTORING) return showErr('انتظر حتى تكتمل استعادة المرفقات المحفوظة.');
+    drawThumbs(); refreshSteps();
+  }
+
+  async function handlePickedVideo(f) {
+    if (video) { showErr('يوجد فيديو مرفق بالفعل. احذف الفيديو السابق من المعاينة لإضافة فيديو آخر.'); return; }
     const dur = await videoDuration(f);
-    if (!dur || dur > MAX_VIDEO_SEC + 1) return showErr('تعذر قراءة مدة الفيديو أو أنه أطول من ' + MAX_VIDEO_SEC + ' ثانية — اختر مقطعاً أقصر');
-    if (f.size > MAX_VIDEO_MB * 1024 * 1024) return showErr('حجم الفيديو كبير — الحد ' + MAX_VIDEO_MB + 'MB');
-    if (!/^video\//i.test(f.type || '')) return showErr('صيغة الفيديو غير مدعومة');
-    if (video && video.url) { const oldKey = VIDEO_TEMP_KEY; video.cancelled = true; URL.revokeObjectURL(video.url); run('removeTempVideo', oldKey).catch(() => {}); draftFileDelete('video','video',oldKey); }
-    VIDEO_TEMP_KEY = 'tmp_' + (crypto.randomUUID ? crypto.randomUUID().replace(/-/g, '') : (Date.now().toString(36)+Math.random().toString(36).slice(2))) + '_v'; lsSet('mr_video_temp_key', VIDEO_TEMP_KEY);
+    if (!dur || dur > MAX_VIDEO_SEC + 1) { showErr('مدة الفيديو يجب ألا تتجاوز ' + MAX_VIDEO_SEC + ' ثانية.'); return; }
+    if (f.size > MAX_VIDEO_MB * 1024 * 1024) { showErr('حجم الفيديو كبير — الحد ' + MAX_VIDEO_MB + 'MB.'); return; }
+    if (!/^video\//i.test(f.type || '')) { showErr('صيغة الفيديو غير مدعومة.'); return; }
+    VIDEO_TEMP_KEY = 'tmp_' + (crypto.randomUUID ? crypto.randomUUID().replace(/-/g, '') : (Date.now().toString(36)+Math.random().toString(36).slice(2))) + '_v';
+    lsSet('mr_video_temp_key', VIDEO_TEMP_KEY);
     video = { file: f, url: URL.createObjectURL(f), uploading: true, uploaded: false, progress: 0, uploadKey: '' };
     const selectedVideo = video;
     const videoKey = VIDEO_TEMP_KEY;
     try { await draftFilePut('video', 'video', f); } catch(e) {}
     drawThumbs(); refreshSteps();
     await uploadVideoFile(selectedVideo, videoKey);
-  }));
+  }
+
+  $('mediaIn').addEventListener('change', async e => {
+    const files = Array.from(e.target.files || []);
+    e.target.value = '';
+    if (!files.length) return;
+    if (DRAFT_RESTORING) { showErr('انتظر حتى تكتمل استعادة المرفقات المحفوظة.'); return; }
+    // نعالج الاختيارات بالتتابع حتى لا تتداخل مفاتيح الرفع أو تتكرر المرفقات.
+    for (const f of files) {
+      if (/^image\//i.test(f.type || '')) await handlePickedImage(f);
+      else if (/^video\//i.test(f.type || '')) await handlePickedVideo(f);
+    }
+    drawThumbs(); refreshSteps();
+  });
+
   async function restoreDraftFiles() {
     if (DEMO_MODE) return;
     try {
@@ -786,10 +856,9 @@
     let f, call;
     if (GUARD) {
       const gapt = $('gapt').value.trim();
-      if (!gKind) return showErr('اختر: وايت ماء أو وايت صرف أو صيانة');
+      if (!gKind) return showErr('⚠️');
       // رقم الشقة اختياري؛ تركه فارغاً يعني أن البلاغ للمبنى بالكامل.
-      if (gKind === 'maint' && !photos.length && !video) return showErr('صوّر المشكلة');
-      call = () => run('submitGuard', GUARD, gapt, gKind, photos.length + (video ? 1 : 0), TEMP_KEY, REQUEST_KEY);
+      call = () => run('submitGuard', GUARD, gapt, gKind, photos.length + (video ? 1 : 0), TEMP_KEY, REQUEST_KEY, VIDEO_TEMP_KEY);
     } else {
       f = { desc: $('desc').value.trim(), type: selType, urgent: $('urgent').checked, website: $('website').value, mediaCount: photos.length + (video ? 1 : 0), tmpKey: TEMP_KEY, videoTmpKey: VIDEO_TEMP_KEY, requestKey: REQUEST_KEY };
       if (ident) {
@@ -804,11 +873,14 @@
       } else return bad('lk');
       if (!f.type) return bad('type');
       if (f.desc.length < 3 && !f.mediaCount) return bad('desc');
-      if (needSrc || (selType === 'plumb' && /تهريب|تسريب|تسرب|مكيف|نقط/.test(f.desc))) {
+      if (needsLeakDetails(selType, f.desc)) {
         $('f_src').classList.remove('hidden');
-        if (!srcMode) return bad('src', 'اختر مصدر المشكلة: من شقتي أم من الشقة اللي فوقي');
-        if (srcMode === 'up') { f.src = toLatin($('srcApt').value).trim(); if (!f.src) return bad('src', 'اكتب رقم الشقة اللي فوقك'); }
-        else f.desc += ' (من شقتي)';
+        if (!srcMode) return bad('src', 'حدد مصدر التهريب أولاً');
+        if (srcMode === 'other') { f.src = toLatin($('srcApt').value).trim(); if (!f.src) return bad('src', 'أدخل رقم الشقة مصدر التهريب'); }
+        f.leakSource = srcMode;
+        f.leakLocation = $('leakLoc').value;
+        f.leakDetail = $('leakDetail').value.trim();
+        if (!f.leakLocation) return bad('src', 'حدد الغرفة أو الحمام المتأثر');
       }
       call = () => run('submitRequest', f);
     }
@@ -828,7 +900,7 @@
     if (res.id && res.token) { const savedTokens = lsGet('mr_tokens', []); if (savedTokens.indexOf(res.token) < 0) { savedTokens.push(res.token); lsSet('mr_tokens', savedTokens); } }
     
     if (!GUARD) lsSet('mr_profile', ident ? { lk: ident.lk, pick: ident.pick, name: ident.name, bld: ident.bld, apt: ident.apt, needPhone: ident.needPhone, phone2: f.phone || '' } : { manual: true, name: f.name, bld: f.district, apt: f.apt, phone: f.phone });
-    else { $('gapt').value = ''; $('gaptv').textContent = 'المبنى بالكامل'; gKind = ''; document.querySelectorAll('#gKinds .type').forEach(x => x.classList.remove('on')); setGuardScope('building'); }
+    else { $('gapt').value = ''; $('gaptCustom').value = ''; $('gaptv').textContent = '—'; gKind = ''; document.querySelectorAll('#gKinds .gkind').forEach(x => x.classList.remove('on')); setGuardScope('building'); }
 
     // جميع المرفقات رُفعت مسبقاً؛ ربطها بالبلاغ يتم داخل الخادم عند الإنشاء.
 
