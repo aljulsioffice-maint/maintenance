@@ -257,7 +257,9 @@
       <input type="file" id="videoCam" accept="video/*" capture="environment" class="hidden">
       <input type="file" id="videoIn" accept="video/*" class="hidden">
       <div class="thumbs" id="thumbs"></div>
+            <div class="thumbs" id="thumbs"></div>
       <div class="hint">حتى 4 صور، وفيديو واحد لا يزيد عن 30 ثانية. الصورة تسرّع الحل.</div>
+      <div id="uploadProgress" class="hint" style="color:var(--accent); font-weight:800; display:none; margin-top:8px;"></div>
     </div>
 
     <!-- الخطوة 3: وش المشكلة -->
@@ -442,13 +444,16 @@
 
   function refreshSteps() {
     if (GUARD) return;
-    // s1: من أنت؟ | s2: الصور | s3: وش المشكلة؟
+    // منع اعتبار الخطوة جاهزة إذا كانت هناك صور تُرفع
+    const uploading = photos.some(p => p.uploading);
     const s1 = profComplete(), s2 = !!(photos.length || video), s3 = !!selType && ($('desc').value.trim().length >= 3 || photos.length || video);
-    [s1, s2, s3].forEach((ok, i) => { $('st' + (i + 1)).classList.toggle('ok', !!ok); });
-    ['sec1', 'sec2', 'sec3'].forEach((id, i) => $(id).classList.toggle('ok', !![s1, s2, s3][i]));
+    
+    [s1, s2, s3].forEach((ok, i) => { $('st' + (i + 1)).classList.toggle('ok', !!ok && !uploading); });
+    ['sec1', 'sec2', 'sec3'].forEach((id, i) => $(id).classList.toggle('ok', !![s1, s2, s3][i] && !uploading));
+    
     const n = [s1, s3].filter(Boolean).length;
-    $('stLbl').textContent = n === 2 ? 'جاهز للإرسال ✓' : (n + ' من 2');
-    $('subHint').textContent = n === 2 ? 'ضغطة وحدة وتوصل للمكتب 👇' : (!s1 ? 'اكتب هويتك أو جوالك أول' : 'اختر نوع المشكلة واشرحها');
+    $('stLbl').textContent = uploading ? '⏳ جاري الرفع…' : (n === 2 ? 'جاهز للإرسال ✓' : (n + ' من 2'));
+    $('subHint').textContent = uploading ? 'انتظر قليلاً حتى يتم رفع الصور' : (n === 2 ? 'ضغطة وحدة وتوصل للمكتب 👇' : (!s1 ? 'اكتب هويتك أو جوالك أول' : 'اختر نوع المشكلة واشرحها'));
   }
   if (GUARD) { $('stepper').classList.add('hidden'); }
 
@@ -518,14 +523,24 @@
       v.onerror = () => res(0); v.src = URL.createObjectURL(file);
     });
   }
-  function drawThumbs() {
+    function drawThumbs() {
     const h = photos.map((p, i) => `<div class="thumb" style="${p.uploading ? 'opacity:0.5' : ''}">
       <img src="${p.url}">
-      ${p.uploading ? '<div style="position:absolute;top:30%;left:30%;font-size:20px">⏳</div>' : ''}
+      ${p.uploading ? '<div style="position:absolute;top:30%;left:30%;font-size:20px">⏳</div>' : '<div style="position:absolute;bottom:4px;right:4px;color:#fff;background:green;border-radius:50%;width:20px;height:20px;text-align:center;font-size:12px;">✓</div>'}
       <button onclick="rmPhoto(${i})">✕</button></div>`);
     if (video) h.push(`<div class="thumb"><video src="${video.url}" muted></video><button onclick="rmVideo()">✕</button></div>`);
     $('thumbs').innerHTML = h.join('');
     $('f_desc').classList.remove('bad'); refreshSteps();
+    
+    // تحديث شريط التقدم
+    const uploadingCount = photos.filter(p => p.uploading).length;
+    const prog = $('uploadProgress');
+    if (uploadingCount > 0) {
+      prog.style.display = 'block';
+      prog.textContent = '⏳ جاري رفع ' + uploadingCount + ' صورة… يرجى الانتظار حتى يكتمل الرفع.';
+    } else {
+      prog.style.display = 'none';
+    }
   }
   function rmPhoto(i) { photos.splice(i, 1); drawThumbs(); }
   function rmVideo() { video = null; drawThumbs(); }
@@ -557,7 +572,12 @@
 
   async function send() {
     showErr('');
+    // التأكد من عدم وجود صور لا تزال تُرفع
+    if (photos.some(p => p.uploading)) {
+      return showErr('⏳ يرجى الانتظار حتى تكتمل عملية رفع الصور قبل إرسال البلاغ.');
+    }
     let f, call;
+    // ... باقي الكود
     if (GUARD) {
       const gapt = $('gapt').value.trim();
       if (!gKind) return showErr('اختر: وايت ماء أو وايت صرف أو صيانة');
