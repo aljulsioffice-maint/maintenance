@@ -742,9 +742,11 @@
     const v = $('vset'); v.innerHTML = skel(3);
     const r = await call('feat', '', '', ''); if (!r) { v.innerHTML = '<div class="empty">تعذّر التحميل</div>'; return; }
     v.innerHTML = `<div class="panel"><b>🎛️ الميزات</b><div class="hint" style="margin:6px 0 10px">فعّل أو ألغِ أي ميزة. الإلغاء يوقفها فوراً بدون حذف شيء.</div>
+      <div class="row" style="margin:0 0 10px"><button class="btn ${DATA.testMode ? 'bad' : ''}" onclick="toggleTest()">${DATA.testMode ? '🧪 وضع التجربة شغّال — اضغط للإيقاف' : '🧪 تشغيل وضع التجربة (إيقاف الإرسال عن الجميع)'}</button></div>
       <div class="row" style="margin:0 0 10px"><button class="btn pri" onclick="pushKb()">📣 تحديث أزرار تليجرام للجميع</button><span class="hint">يرسل لوحة الأزرار الحالية لكل الفنيين والأدمنية</span></div>
       ${r.feats.map(f => `<label style="display:flex;align-items:center;gap:10px;padding:12px 4px;border-top:1px solid var(--bd);cursor:pointer"><input type="checkbox" ${f.on ? 'checked' : ''} onchange="toggleFeat('${f.key}', this)" style="width:20px;height:20px"><span style="font-weight:700">${esc(f.label)}</span></label>`).join('')}</div>`;
   }
+  async function toggleTest() { const on = !DATA.testMode; if (on && !confirm('تشغيل وضع التجربة: يتوقف كل إرسال لتليجرام عن الجميع عداك والسوبر أدمن، وينتهي تلقائياً بعد 6 ساعات. متأكد؟')) return; const r = await call('testmode', on ? 'on' : 'off', '', ''); if (r) { DATA.testMode = r.on; toast(r.on ? '🧪 وضع التجربة شغّال' : '✅ عاد الإرسال للجميع' + (r.missed ? ' — وصل ' + r.missed + ' بلاغ جديد أثناء التجربة' : '')); loadSet && loadSet(); } }
   async function pushKb() { const r = await call('pushmenus', '', '', ''); if (r) toast('📣 وصلت الأزرار لـ ' + r.n + ' عضو'); }
   async function toggleFeat(k, el) { const want = el.checked; if (!(await call('setfeat', k, want ? 'on' : 'off', want ? '✅ فُعّلت' : '⛔ أُلغيت'))) el.checked = !want; }
   async function searchTen() {
