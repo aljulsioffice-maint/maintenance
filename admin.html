@@ -683,7 +683,7 @@
     BLDS = null; const blds = await getBlds();
     v.innerHTML = `<div class="grid2" style="margin-top:0">
       <div class="panel"><b>🏢 العمائر (من «التواصل العام»)</b>
-        <div style="color:var(--mut);font-size:13px;margin:0 0 10px">رابط الموقع (خرائط جوجل) يظهر للفني بزر 📍 على بطاقة الطلب.</div>
+        <div style="color:var(--mut);font-size:13px;margin:0 0 10px">رابط الموقع (خرائط جوجل) للإدارة فقط، ولا يظهر للفني.</div>
         <table><tr><th>العمارة</th><th>الوحدات</th><th>رابط الموقع</th><th>الصورة</th></tr>
         ${blds.map((b, i) => `<tr><td><b>${esc(b.name)}</b></td><td>${b.units}</td><td><div class="row" style="margin:0;flex-wrap:nowrap"><input class="inp" id="mp${i}" style="width:100%;min-width:150px;padding:6px 8px" dir="ltr" placeholder="https://maps.app.goo.gl/…" value="${esc(b.url)}" onkeydown="if(event.key==='Enter')saveMap(${i}, this.value)"><button class="btn sm pri" onclick="saveMap(${i}, $('mp${i}').value)">💾 حفظ</button></div></td>
           <td style="white-space:nowrap"><input type="file" id="bf${i}" accept="image/*" class="hidden" onchange="uploadBld(${i})">${b.photo ? `<span id="bt${i}" onclick="viewBld(${i})" style="display:inline-block;width:64px;height:64px;border-radius:10px;background:var(--soft);vertical-align:middle;margin-inline-end:6px;overflow:hidden;cursor:zoom-in;text-align:center;line-height:64px">⏳</span>` : ''}<button class="btn sm" onclick="$('bf${i}').click()">${b.photo ? '🔁 تغيير' : '📷 رفع'}</button>${b.photo ? ' <button class="btn sm" onclick="delBld(' + i + ')">🗑️</button>' : ''}</td></tr>`).join('')}</table></div>
