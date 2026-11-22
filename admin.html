@@ -386,7 +386,7 @@
     return m < 60 ? 'قبل ' + Math.max(m, 1) + ' د' : m < 1440 ? 'قبل ' + Math.floor(m / 60) + ' س' : 'قبل ' + Math.floor(m / 1440) + ' يوم';
   }
   const hfmt = h => h >= 48 ? Math.floor(h / 24) + ' يوم' : h + ' ساعة';
-  const place = r => r.bld ? r.bld + ' — ' + r.apt : (r.dis ? 'حي ' + r.dis + ' — ' : '') + r.apt;
+  const place = r => (r.bld ? r.bld + ' — ' + r.apt : (r.dis ? 'حي ' + r.dis + ' — ' : '') + r.apt) + (r.out ? ' 🏢 خارج الشقة' : '');
 
   const FILTERS = [
     ['open', 'مفتوحة', r => !isDone(r.st)], ['new', 'جديدة', r => r.st === 'جديد'], ['wip', 'قيد المعالجة', r => r.st === 'قيد المعالجة'],
