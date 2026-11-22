@@ -347,14 +347,15 @@
     elev: [{ t: 'المصعد معطّل' }, { t: 'باب المصعد لا يغلق' }],
     other: [{ t: 'باب المدخل' }, { t: 'البوابة' }, { t: 'الحوش' }],
   };
-  let locOut = false;
+  let locOut = false, chipSel = '';
   const curQuick = () => (locOut ? QUICK_OUT : QUICK)[selType] || [];
   function setLoc(out) {
     locOut = !!out;
     $('locIn').classList.toggle('on', !locOut); $('locOut').classList.toggle('on', locOut);
     const h = $('locHint'); h.style.display = locOut ? 'block' : 'none'; h.classList.toggle('hidden', !locOut);
     $('desc').placeholder = locOut ? 'اكتب المشكلة ومكانها… مثال: إنارة الدرج الثاني معطلة' : 'اكتب المشكلة باختصار… أو اختر من الأعلى';
-    drawChips(); refreshSteps();
+    $('desc').value = ''; $('srcApt').value = ''; $('f_desc').classList.remove('bad');   // غيّر رأيه: بيانات المكان السابق تُمسح (النوع يبقى)
+    drawChips(); saveDraftText(); refreshSteps();
   }
   const BOT_USER = 'Aljulsi_maint_bot';   // بوت تليجرام: ربط المستأجر بتحديثات طلبه
   const OFFICE_WA = '966572294942';   // رقم واتساب المكتب (يظهر في زر «واتساب المكتب»)
@@ -396,16 +397,30 @@
   function drawChips() {
     const list = curQuick();
     $('chips').classList.toggle('hidden', !list.length);
-    $('chips').innerHTML = list.map((c, i) => `<button type="button" class="chip" onclick="addChip(${i})">${c.t}</button>`).join('');
+    chipSel = '';
+    paintChips();
     needSrc = false; srcMode = ''; $('f_src').classList.add('hidden'); $('srcSame').classList.remove('on'); $('srcUp').classList.remove('on'); $('srcRoof').classList.remove('on'); $('srcUnk').classList.remove('on'); $('srcApt').classList.add('hidden');
   }
+  function paintChips() {
+    const list = curQuick();
+    $('chips').innerHTML = list.map((c, i) => `<button type="button" class="chip${c.t === chipSel ? ' on' : ''}" onclick="addChip(${i})">${c.t}</button>`).join('');
+  }
+  // اختيار واحد: يُنار، واختيار غيره يستبدل السابق (لا تتراكم)، والضغط عليه مرة ثانية يلغيه
   function addChip(i) {
     const c = curQuick()[i]; if (!c) return;
-    const d = $('desc'), cur = d.value.trim();
-    if (cur.indexOf(c.t) < 0) d.value = cur ? cur + '، ' + c.t : c.t;
-    if (c.src) { needSrc = true; $('f_src').classList.remove('hidden'); }
+    const d = $('desc');
+    const parts = d.value.split('،').map(x => x.trim()).filter(x => x && x !== chipSel);   // احذف العبارة السابقة وأبقِ ما كتبه المستخدم بنفسه
+    const off = chipSel === c.t;
+    chipSel = off ? '' : c.t;
+    if (!off) parts.push(c.t);
+    d.value = parts.join('، ');
+    needSrc = !off && !!c.src;
+    if (!needSrc && !/تهريب|تسريب|تسرب|مكيف|نقط|سقف|سطح/.test(d.value)) { $('f_src').classList.add('hidden'); srcMode = ''; ['srcSame', 'srcUp', 'srcRoof', 'srcUnk'].forEach(k => $(k).classList.remove('on')); $('srcApt').classList.add('hidden'); }
+    if (needSrc) $('f_src').classList.remove('hidden');
+    paintChips(); saveDraftText();
     $('f_desc').classList.remove('bad'); refreshSteps();
   }
+  $('desc').addEventListener('input', () => { if (chipSel && $('desc').value.indexOf(chipSel) < 0) { chipSel = ''; paintChips(); } });
   // تهريب/مياه مكيف: هل المصدر شقتي أم الشقة اللي فوقي (ورقمها)
   function setSrc(m) {
     srcMode = m; $('srcSame').classList.toggle('on', m === 'same'); $('srcUp').classList.toggle('on', m === 'up'); $('srcRoof').classList.toggle('on', m === 'roof'); $('srcUnk').classList.toggle('on', m === 'unk');
