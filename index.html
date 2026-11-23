@@ -75,6 +75,10 @@
 
   .lkst { font-size: 14px; font-weight: 700; margin-top: 6px; min-height: 20px; color: var(--muted); }
   .lkst.ok { color: var(--ok); } .lkst.no { color: var(--warn); }
+  .lkst.busy { display: flex; align-items: center; gap: 12px; padding: 14px 16px; margin-top: 10px; border-radius: 16px; background: var(--accent-soft, #eef4fb); border: 2px solid var(--accent, #0f62a3); color: var(--accent, #0f62a3); font-size: 18px; font-weight: 800; }
+  .lkst.busy small { display: block; font-size: 13.5px; font-weight: 600; opacity: .85; }
+  .spin { flex: none; width: 28px; height: 28px; border-radius: 50%; border: 4px solid rgba(15,98,163,.25); border-top-color: var(--accent, #0f62a3); animation: spin .8s linear infinite; }
+  @keyframes spin { to { transform: rotate(360deg); } }
   .nf { background: var(--warn-soft); color: var(--warn); border-radius: 14px; padding: 10px 13px; font-weight: 700; font-size: 15px; margin: 14px 0 4px; }
   .ubtn { display: block; width: 100%; text-align: start; border: 2px solid var(--line); background: var(--field); color: var(--text); border-radius: 14px; padding: 12px 14px; margin-top: 8px; font: inherit; font-weight: 800; font-size: 16px; cursor: pointer; }
   .ubtn small { display: block; color: var(--muted); font-weight: 500; }
@@ -133,6 +137,11 @@
   .media-btns { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
   .thumb button { width: 34px; height: 34px; font-size: 16px; }
   .media-label { font-weight: 800; font-size: 15px; margin: 0 0 8px; }
+  .mediaPromo { margin-top: 16px; padding: 14px 12px; border: 2px dashed var(--accent, #0f62a3); border-radius: 18px; background: var(--accent-soft, #eef4fb); }
+  .mediaPromo .mh { font-size: 19px; font-weight: 800; color: var(--accent, #0f62a3); }
+  .mediaPromo .ms { font-size: 14.5px; margin-top: 3px; font-weight: 700; }
+  .mediaPromo .mbtn { background: var(--card, #fff); }
+  .mediaPromo .media-btns.icons .mbtn { padding: 16px 0; } .mediaPromo .media-btns.icons .mbtn .ic { font-size: 36px; }
   .media-label small { font-weight: 600; color: var(--muted, #667); font-size: 12px; }
   #mediaBox { margin-bottom: 14px; padding-bottom: 12px; border-bottom: 1px dashed var(--line); }
   .media-btns.icons { display: flex; gap: 8px; }
@@ -212,6 +221,11 @@
   .box .submit { font-size: 17px; padding: 12px; margin-top: 8px; box-shadow: none; }
 
   /* الحارس */
+  #gAptList .chip { min-width: 70px; padding: 14px 12px; font-size: 24px; font-weight: 800; justify-content: center; }
+  #gAptList .chip.on { background: #16a34a !important; color: #fff !important; border-color: #16a34a !important; }
+  .gdoor { text-align: center; margin-top: 14px; padding: 14px 10px; border-radius: 18px; background: #e8f7ee; border: 3px solid #16a34a; }
+  .gd-art { font-size: 46px; line-height: 1.2; } .gd-num { font-size: 60px; font-weight: 900; color: #15803d; line-height: 1.05; } .gd-txt { font-size: 19px; font-weight: 800; color: #15803d; margin-top: 4px; }
+  @media (prefers-color-scheme: dark) { .gdoor { background: #10301f; } .gd-num, .gd-txt { color: #86efac; } }
   .gdisp { font-size: 50px; font-weight: 900; text-align: center; margin: 12px 0 4px; min-height: 72px; background: #eef3ff; color: #123; border-radius: 18px; padding: 6px; }
   .keypad { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: 10px; }
   .keypad button { font: inherit; font-size: 32px; padding: 14px 0; border-radius: 16px; border: 2px solid #d4dbe7; background: #fff; color: #123; font-weight: 800; }
@@ -249,9 +263,9 @@
       <div class="types" id="gScope" style="margin-top:10px"><button type="button" class="type on" id="gBld" style="--c:#16a34a" onclick="setGScope('bld')"><span class="ic">🏢</span>كل العمارة</button><button type="button" class="type" id="gApt" style="--c:#2563eb" onclick="setGScope('apt')"><span class="ic">🚪</span>شقة محددة</button></div>
       <div id="gAptBox" class="hidden">
       <div class="chips" id="gAptList" style="flex-wrap:wrap;margin-top:8px"></div>
-      <div class="gdisp">🚪 اختر رقم الشقة: <span id="gaptv">—</span></div>
       <input type="hidden" id="gapt" value="">
-      <div class="keypad" id="keypad">
+      <div class="gdoor hidden" id="gDoor"><div class="gd-art">🚪 ⟶ 🔧</div><div class="gd-num" id="gaptv">—</div><div class="gd-txt">✓ جنب الباب</div></div>
+      <div class="keypad hidden" id="keypad">
         <button type="button" data-k="1">1</button><button type="button" data-k="2">2</button><button type="button" data-k="3">3</button>
         <button type="button" data-k="4">4</button><button type="button" data-k="5">5</button><button type="button" data-k="6">6</button>
         <button type="button" data-k="7">7</button><button type="button" data-k="8">8</button><button type="button" data-k="9">9</button>
@@ -270,7 +284,7 @@
         <button class="link" type="button" onclick="manualMode()">ما لقيت رقمي؟ سجّل بياناتك يدوياً</button>
       </div>
       <div class="prof hidden" id="profSum"><div class="av" id="psAv">👤</div><div class="tx"><b id="psName"></b><small id="psSub"></small></div><button class="link" type="button" onclick="editProf()">ليس أنا</button></div>
-      <div id="contactBox" class="hidden" style="margin-top:12px"><div class="hint">📞 سنتواصل معك على رقمك: <b dir="ltr" id="cbPhone"></b> · <button class="link" type="button" onclick="showAlt()">رقم آخر؟</button></div>
+      <div id="contactBox" class="hidden" style="margin-top:12px"><div class="hint">📞 سنتواصل معك على رقمك: <b dir="ltr" id="cbPhone"></b> · <button class="link" type="button" style="font-weight:800;font-size:16px;text-decoration:underline" onclick="showAlt()">📱 رقم آخر؟</button></div>
         <div class="fld hidden" id="f_alt" style="margin-top:8px"><label for="alt">رقم آخر للتواصل (اختياري)</label>
           <input type="tel" id="alt" inputmode="tel" placeholder="05xxxxxxxx" dir="ltr" style="text-align:right"><div class="em">رقم الجوال غير صحيح (مثال: 0551234567)</div>
           <div class="hint">إذا المبلّغ غير المستأجر أو رقمك المسجّل قديم. نحفظه ونتواصل عليه.</div></div></div>
@@ -400,7 +414,9 @@
     $('locIn').classList.toggle('on', !locOut); $('locOut').classList.toggle('on', locOut);
     const h = $('locHint'); h.style.display = locOut ? 'block' : 'none'; h.classList.toggle('hidden', !locOut);
     $('desc').placeholder = locOut ? 'اكتب المشكلة ومكانها… مثال: إنارة الدرج الثاني معطلة' : 'اكتب المشكلة باختصار… أو اختر من الأعلى';
-    $('desc').value = ''; $('srcApt').value = ''; $('f_desc').classList.remove('bad');   // غيّر رأيه: بيانات المكان السابق تُمسح (النوع يبقى)
+    $('desc').value = ''; $('srcApt').value = ''; $('f_desc').classList.remove('bad');   // غيّر رأيه: كل ما اختاره للمكان السابق يُمسح (النوع والوصف والطارئ) فلا يبقى اختيار غير متوافق
+    selType = ''; document.querySelectorAll('#types .type').forEach(x => x.classList.remove('on'));
+    $('urgent').checked = false; $('urgentBox').classList.remove('on'); $('urgAuto').style.display = 'none'; try { urgentTouched = false; } catch (e) {}
     drawChips(); saveDraftText(); refreshSteps();
   }
   const BOT_USER = 'Aljulsi_maint_bot';   // بوت تليجرام: ربط المستأجر بتحديثات طلبه
@@ -529,7 +545,7 @@
     $('name').focus(); refreshSteps();
   }
   async function doLookup(v) {
-    const my = ++lkSeq; $('lkSt').className = 'lkst'; $('lkSt').textContent = '⏳ جاري البحث…';
+    const my = ++lkSeq; $('lkSt').className = 'lkst busy'; $('lkSt').innerHTML = '<span class="spin"></span><span>نبحث عن معلوماتك…<small>لحظات ونكمل لك التعبئة تلقائياً</small></span>';
     let r; try { r = await run('lookupTenant', v); } catch (e) { r = null; }
     if (my !== lkSeq) return;
     if (!r || !r.ok) { $('lkSt').className = 'lkst no'; $('lkSt').textContent = (r && r.msg) || 'تعذّر التحقق الآن'; return manualMode('تعذّر التعرّف تلقائياً — سجّل بياناتك 👇'); }
@@ -594,10 +610,10 @@
       const b = e.target.closest('button'); if (!b) return;
       let v = $('gapt').value; const k = b.dataset.k;
       if (k === 'b') v = v.slice(0, -1); else if (k === 'c') v = ''; else if (v.length < 4) v += k;
-      $('gapt').value = v; $('gaptv').textContent = v || '—';
+      $('gapt').value = v; $('gaptv').textContent = v || '—'; updDoor();
     });
     run('guardInfo', GUARD).then(r => {
-      if (r && r.ok) { $('guardH').textContent = 'حارس عمارة ' + r.building; $('gAptList').innerHTML = (r.apartments || []).map(a => `<button type="button" class="chip" onclick="pickGApt('${String(a).replace(/[^0-9A-Za-z\-]/g, '')}')">${String(a).replace(/[^0-9A-Za-z\-]/g, '')}</button>`).join(''); }
+      if (r && r.ok) { $('guardH').textContent = 'حارس عمارة ' + r.building; $('gAptList').innerHTML = (r.apartments || []).map(a => { const q = String(a).replace(/[^0-9A-Za-z\-]/g, ''); return `<button type="button" class="chip" data-a="${q}" onclick="pickGApt('${q}')">${q}</button>`; }).join(''); if (!(r.apartments || []).length) $('keypad').classList.remove('hidden'); }
       else { $('formView').innerHTML = '<div class="card"><h2>⚠️</h2>' + ((r && r.msg) || 'الرابط غير صالح') + '</div>'; }
     }).catch(() => { $('guardH').textContent = '⚠️ تعذّر الاتصال — تأكد من الإنترنت ثم أعد فتح الصفحة'; });
   } else refreshSteps();
@@ -639,7 +655,7 @@
   }
   $('urgent').addEventListener('change', () => { urgentTouched = true; $('urgAuto').style.display = 'none'; });
   $('desc').addEventListener('input', autoUrgent);
-  function saveDraftText() { if (!GUARD) lsSet('mr_draft', { desc: $('desc').value, urgent: $('urgent').checked }); }
+  function saveDraftText() { /* لا نحفظ نص المسودة: الصفحة تبدأ فاضية كل مرة */ }
   async function retryRun(fn, ...args) {
     let last;
     for (let i = 0; i < 3; i++) { try { return await run(fn, ...args); } catch (e) { last = e; if (i < 2) await new Promise(r => setTimeout(r, 700 * Math.pow(2, i))); } }
@@ -715,9 +731,7 @@
   ['cameraPhotoIn', 'cameraVideoIn', 'galleryPhotoIn', 'galleryVideoIn'].forEach(id => $(id).addEventListener('change', e => processPick(e.currentTarget)));
   async function restoreDraft() {
     try {
-      const d = lsGet('mr_draft', {});
-      if (d && d.desc && !$('desc').value) $('desc').value = d.desc;
-      if (d && d.urgent) { $('urgent').checked = true; $('urgentBox').classList.add('on'); }
+      lsSet('mr_draft', {});   // الصفحة تبدأ فاضية: لا نص ولا اختيار قديم يُسترجع
       const all = await dbAll();
       for (const r of all.filter(x => x.kind === 'photo' && x.key === TEMP_KEY).slice(0, MAX_PHOTOS)) await addPhoto(new File([r.blob], r.name || 'p.jpg', { type: r.type, lastModified: r.lastModified }), r.id.slice(6));
       const rv = all.filter(x => x.kind === 'video' && x.key === VIDEO_TEMP_KEY)[0];
@@ -727,9 +741,9 @@
   if (!GUARD) {
     // المستأجر: الصور/الفيديو بأول «وش المشكلة؟» حتى يبدأ الرفع وهو يكمل التعبئة
     const mb = $('mediaBox'), lb = document.createElement('div');
-    lb.className = 'media-label'; lb.innerHTML = '📸 صوّر المشكلة أو أرفق صوراً/فيديو <small>(اختياري — تُرفع وأنت تكمل التعبئة)</small>';
-    mb.insertBefore(lb, mb.firstChild);
-    $('probCard').insertBefore(mb, $('f_loc')); $('mediaCard').classList.add('hidden'); $('st3').style.display = 'none';
+    lb.className = 'media-label'; lb.innerHTML = '<div class="mh">📷🎥 أرفق صورة أو فيديو للمشكلة</div><div class="ms">الصورة تختصر الوقت وتسرّع حل مشكلتك ⚡ <small>(اختياري — تُرفع وأنت تكمل التعبئة)</small></div>';
+    mb.classList.add('mediaPromo'); mb.insertBefore(lb, mb.firstChild);
+    $('probCard').appendChild(mb); $('mediaCard').classList.add('hidden'); $('st3').style.display = 'none';
     setTimeout(() => restoreDraft().finally(() => { DRAFT_RESTORING = false; drawThumbs(); }), 150);
     $('desc').addEventListener('input', saveDraftText); $('urgent').addEventListener('change', saveDraftText);
   }
@@ -801,7 +815,7 @@
   function progress(text, pct) { $('ovText').textContent = text; $('ovBar').style.width = Math.round(pct) + '%'; }
 
   let gScope = 'bld';
-  function setGScope(m) { gScope = m; $('gBld').classList.toggle('on', m === 'bld'); $('gApt').classList.toggle('on', m === 'apt'); $('gAptBox').classList.toggle('hidden', m !== 'apt'); if (m === 'bld') { $('gapt').value = ''; $('gaptv').textContent = '—'; } }
+  function setGScope(m) { gScope = m; $('gBld').classList.toggle('on', m === 'bld'); $('gApt').classList.toggle('on', m === 'apt'); $('gAptBox').classList.toggle('hidden', m !== 'apt'); if (m === 'bld') { $('gapt').value = ''; $('gaptv').textContent = '—'; updDoor(); } }
   // آخر بلاغات الحارس (من هذا الجوال): يطمئن أنها وصلت فلا يكررها
   function gRecentAdd(id, what, tok) { const a = lsGet('mr_gseen', []); a.unshift({ id: id, w: what, t: new Date().toTimeString().slice(0, 5), ts: Date.now(), tok: tok || '' }); lsSet('mr_gseen', a.slice(0, 4)); drawGRecent(); }
   async function undoRecent(id) {
@@ -817,7 +831,12 @@
     el.classList.toggle('hidden', !a.length);
     el.innerHTML = a.length ? '<b>🕘 آخر بلاغاتك</b>' + a.map(x => '<div style="margin-top:8px;display:flex;gap:8px;align-items:center;flex-wrap:wrap"><span>#' + x.id + ' · ' + String(x.w).replace(/</g, '&lt;') + ' · ' + x.t + (x.c ? ' · <b>⛔ مسحوب</b>' : '') + '</span>' + (!x.c && x.tok && x.ts && Date.now() - x.ts < 120000 ? '<button type="button" class="chip" onclick="undoRecent(\'' + x.id + '\')">↩️ تراجع</button>' : '') + '</div>').join('') : '';
   }
-  function pickGApt(a) { $('gapt').value = a; $('gaptv').textContent = a; }
+  function updDoor() {   // رسم بصري بلا قراءة: ✓ على الوحدة المختارة + الباب والعلامة ورقم الشقة بخط ضخم
+    const v = $('gapt').value;
+    document.querySelectorAll('#gAptList .chip').forEach(b => { const on = b.dataset.a === v && !!v; b.classList.toggle('on', on); b.textContent = (on ? '✓ ' : '') + b.dataset.a; });
+    $('gDoor').classList.toggle('hidden', !v);
+  }
+  function pickGApt(a) { $('gapt').value = a; $('gaptv').textContent = a; updDoor(); }
   let sendKey = '', gWhat = '', undoTs = 0;
   async function send() {
     if (sendingNow) return;
