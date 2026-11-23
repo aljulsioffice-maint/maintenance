@@ -593,8 +593,7 @@
   refreshMyBtn();
   if (GUARD) {
     ['tenCard', 'probCard', 'tgBtn', 'shBtn'].forEach(k => { const e = $(k); if (e) e.classList.add('hidden'); });
-    $('guardCard').classList.remove('hidden'); $('mediaH').textContent = 'الصورة';
-    document.querySelectorAll('.media-btns .mbtn.vid').forEach(b => b.classList.add('hidden'));   // الحارس: صورة فقط بلا فيديو
+    $('guardCard').classList.remove('hidden'); $('mediaH').textContent = 'صورة أو فيديو';   // الحارس يرفع صورة أو فيديو (زر 🎥 يفتح الكاميرا مباشرة للتصوير)
     $('gKinds').addEventListener('click', e => {
       const b = e.target.closest('.type'); if (!b) return;
       gKind = b.dataset.k;
@@ -602,7 +601,7 @@
       const tk = gKind === 'water' || gKind === 'sewage';   // وايت/صرف: بلا اختيار شقة
       $('gScope').classList.toggle('hidden', tk); if (tk) { setGScope('bld'); $('gAptBox').classList.add('hidden'); }
       $('mediaCard').classList.toggle('hidden', tk);   // الوايت بلا صور
-      $('mediaH').innerHTML = gKind === 'maint' ? 'صورة المشكلة <small>(مطلوبة)</small>' : 'صورة <small>(اختيارية)</small>';
+      $('mediaH').innerHTML = gKind === 'maint' ? '📷🎥 صورة أو فيديو المشكلة <small>(مطلوب)</small>' : '📷🎥 صورة أو فيديو <small>(اختياري)</small>';
     });
     $('sendBtn').textContent = '📤 إرسال'; drawGRecent();
     $('subHint').textContent = 'اختر النوع، ثم المبنى بالكامل أو شقة محددة، ثم أرسل';
