@@ -140,6 +140,7 @@
     font-size: 20px; font-weight: 800; padding: 16px; cursor: pointer; box-shadow: 0 8px 22px rgba(31,122,224,.35); }
   .submit:active { transform: translateY(1px); }
   .submit:disabled { opacity: .6; box-shadow: none; }
+  .submit.waiting { opacity: 1; background: linear-gradient(to left, var(--brand) var(--p, 0%), #9fb4cf var(--p, 0%)); box-shadow: none; transition: background .45s ease; }
   .err { background: var(--danger-soft); color: var(--danger); border-radius: 14px; padding: 12px 14px; margin-bottom: 14px; font-weight: 800; display: none; }
   /* مخفي بلا إزاحة يسار (الإزاحة في صفحة عربية RTL تسبب تمرير أفقي) */
   .hp { position: absolute; width: 1px; height: 1px; overflow: hidden; opacity: 0; pointer-events: none; clip-path: inset(50%); }
@@ -272,8 +273,9 @@
       <label class="urgent" id="urgentBox">
         <input type="checkbox" id="urgent" onchange="this.parentNode.classList.toggle('on', this.checked)">
         <span class="sw"></span>
-        <span>🔴 طارئ<small>تسريب ماء، انقطاع كهرباء، مصعد معطّل…</small></span>
+        <span>🔴 طارئ<small>خطر أو ضرر يزيد: تسريب مياه، انكسار ماسورة، ماس كهربائي، رائحة غاز أو دخان، مصعد محتجز فيه أحد</small></span>
       </label>
+      <div class="hint" id="urgAuto" style="display:none;color:#b45309;font-weight:700;margin-top:6px">⚠️ حدّدناه «طارئ» تلقائياً لأن المشكلة قد تكون خطرة — تقدر تلغيه</div>
       <label for="desc" style="margin-top:18px">اشرح باختصار</label>
       <div class="chips hidden" id="chips"></div>
       <div class="fld hidden" id="f_src"><label>من أين المشكلة؟</label>
@@ -431,7 +433,7 @@
     needSrc = chipSel.some(t => (list.filter(x => x.t === t)[0] || {}).src);
     if (!needSrc && !/تهريب|تسريب|تسرب|مكيف|نقط|سقف|سطح/.test(d.value)) { $('f_src').classList.add('hidden'); srcMode = ''; ['srcSame', 'srcUp', 'srcRoof', 'srcUnk'].forEach(x => $(x).classList.remove('on')); $('srcApt').classList.add('hidden'); }
     if (needSrc) $('f_src').classList.remove('hidden');
-    paintChips(); saveDraftText();
+    paintChips(); saveDraftText(); autoUrgent();
     $('f_desc').classList.remove('bad'); refreshSteps();
   }
   $('desc').addEventListener('input', () => { const v = $('desc').value, n = chipSel.filter(t => v.indexOf(t) >= 0); if (n.length !== chipSel.length) { chipSel = n; paintChips(); } });
@@ -574,6 +576,15 @@
   async function dbClear() {
     try { const all = await dbAll(), db = await dbOpen(); await new Promise((res, rej) => { const tx = db.transaction('files', 'readwrite'), st = tx.objectStore('files'); all.forEach(x => st.delete(x.id)); tx.oncomplete = res; tx.onerror = () => rej(tx.error); }); db.close(); } catch (e) {}
   }
+  // طارئ تلقائي لو الوصف فيه خطر (تسريب/انكسار ماسورة/ماس/غاز/دخان/محتجز…) ما لم يغيّره المستخدم بنفسه
+  let urgentTouched = false;
+  const URG_RE = /تسريب|تسرب|تهريب\s*مياه|انكسار|كسر\s*(ال)?ماسورة|انفجار|ماس\s*كهربائي|التماس|شرارة|حريق|دخان|غاز|محتجز|عالق|غرق|فيضان/;
+  function autoUrgent() {
+    if (urgentTouched || $('urgent').checked || !URG_RE.test($('desc').value)) return;
+    $('urgent').checked = true; $('urgentBox').classList.add('on'); $('urgAuto').style.display = 'block';
+  }
+  $('urgent').addEventListener('change', () => { urgentTouched = true; $('urgAuto').style.display = 'none'; });
+  $('desc').addEventListener('input', autoUrgent);
   function saveDraftText() { if (!GUARD) lsSet('mr_draft', { desc: $('desc').value, urgent: $('urgent').checked }); }
   async function retryRun(fn, ...args) {
     let last;
@@ -675,6 +686,22 @@
       v.onerror = () => res(0); v.src = URL.createObjectURL(file);
     });
   }
+  // زر الإرسال أثناء الرفع: معطّل لكنه «يمتلئ» تدريجياً مع نسبة، فلا يحسّ المستخدم أن شيئاً متوقف
+  let sendingNow = false, waitFake = 0, waitTimer = null;
+  function refreshSendBtn() {
+    if (sendingNow || GUARD) return;
+    const b = $('sendBtn'), up = photos.some(p => p.uploading) || !!(video && video.uploading);
+    if (up) {
+      if (!waitTimer) { waitFake = Math.max(waitFake, 8); waitTimer = setInterval(() => { waitFake = Math.min(92, waitFake + 2); refreshSendBtn(); }, 400); }
+      const items = photos.map(p => p.uploading ? 0 : 100).concat(video ? [video.uploading ? (video.progress || 0) : 100] : []);
+      const real = items.length ? Math.round(items.reduce((a, x) => a + x, 0) / items.length) : 0;
+      const p = video && video.uploading ? Math.max(real, 5) : Math.max(real, waitFake);   // فيديو: النسبة الفعلية، صور: تقدّم تقديري
+      b.disabled = true; b.classList.add('waiting'); b.style.setProperty('--p', p + '%'); b.textContent = '⏳ جاري رفع المرفقات… ' + p + '%';
+    } else {
+      if (waitTimer) { clearInterval(waitTimer); waitTimer = null; }
+      waitFake = 0; b.classList.remove('waiting'); b.style.removeProperty('--p'); b.disabled = false; b.textContent = 'إرسال البلاغ';
+    }
+  }
   function drawThumbs() {
     const badge = x => x.uploading ? '<div style="position:absolute;top:30%;left:30%;font-size:20px">⏳</div>' : (GUARD ? '' : `<div style="position:absolute;bottom:4px;right:4px;color:#fff;background:${x.error ? '#b91c1c' : 'green'};border-radius:50%;width:20px;height:20px;text-align:center;font-size:12px">${x.error ? '!' : '✓'}</div>`);
     const h = photos.map((p, i) => `<div class="thumb" style="${p.uploading ? 'opacity:.5' : ''}"><img src="${p.url}">${badge(p)}<button onclick="rmPhoto(${i})">✕</button></div>`);
@@ -682,7 +709,7 @@
     $('thumbs').innerHTML = h.join('');
     const up = photos.filter(p => p.uploading).length + (video && video.uploading ? 1 : 0), pr = $('uploadProgress');
     if (pr) { pr.style.display = up ? 'block' : 'none'; pr.textContent = '⏳ جاري رفع ' + up + ' مرفق… انتظر قبل الإرسال'; }
-    $('f_desc').classList.remove('bad'); refreshSteps();
+    $('f_desc').classList.remove('bad'); refreshSteps(); refreshSendBtn();
   }
   function rmPhoto(i) { const p = photos[i]; if (!p) return; p.cancelled = true; photos.splice(i, 1); if (!GUARD) { run('removeTempPhoto', TEMP_KEY, 0, p.clientId).catch(() => {}); dbDel('photo', p.clientId); } drawThumbs(); }
   function rmVideo() {
@@ -756,7 +783,7 @@
       call = () => run('submitRequest', f);
     }
 
-    $('sendBtn').disabled = true; $('overlay').style.display = 'flex'; progress('جاري الإرسال…', 5);
+    sendingNow = true; $('sendBtn').disabled = true; $('overlay').style.display = 'flex'; progress('جاري الإرسال…', 5);
     let res;
     try { res = await call(); }
     catch (e) { return endSend('تعذر الإرسال، تأكد من الإنترنت وحاول مرة ثانية'); }
@@ -772,12 +799,12 @@
     if (res.id) { const t = lsGet('mr_tokens', []); t.push(res.token); lsSet('mr_tokens', t); }
     lastToken = res.token;
     $('tgBtn').href = 'https://wa.me/' + OFFICE_WA + '?text=' + encodeURIComponent('بلاغ صيانة رقم #' + res.id + ' — ' + (GUARD ? 'من حارس العمارة' : 'أرجو تأكيد الاستلام'));
-    $('overlay').style.display = 'none'; $('sendBtn').disabled = false;
+    $('overlay').style.display = 'none'; sendingNow = false; $('sendBtn').disabled = false; refreshSendBtn();
     $('doneNum').textContent = '#' + res.id;
     const hasMedia = !!(res.id && (ph.length || vd));
     $('doneWarn').textContent = hasMedia ? '⏳ جاري رفع المرفقات… لا تغلق الصفحة حتى تظهر «تم رفع المرفقات»' : '';
     photos = []; video = null; drawThumbs(); $('desc').value = ''; $('urgent').checked = false;
-    $('urgentBox').classList.remove('on'); selType = ''; locOut = false; $('locIn').classList.add('on'); $('locOut').classList.remove('on'); $('locHint').style.display = 'none'; $('desc').placeholder = 'اكتب المشكلة باختصار… أو اختر من الأعلى'; document.querySelectorAll('.type').forEach(x => x.classList.remove('on')); drawChips();
+    $('urgentBox').classList.remove('on'); urgentTouched = false; $('urgAuto').style.display = 'none'; selType = ''; locOut = false; $('locIn').classList.add('on'); $('locOut').classList.remove('on'); $('locHint').style.display = 'none'; $('desc').placeholder = 'اكتب المشكلة باختصار… أو اختر من الأعلى'; document.querySelectorAll('.type').forEach(x => x.classList.remove('on')); drawChips();
     if (!GUARD) { if (!ident) { manualOn = false; } show1('prof'); drawProf(); refreshSteps(); }
     show('doneView'); refreshMyBtn();
     if (!hasMedia) return;
@@ -813,7 +840,7 @@
     fire('flushMedia', res.id, res.token);
     $('doneWarn').textContent = failed ? 'تعذر رفع بعض المرفقات — البلاغ نفسه وصل.' : '✅ تم رفع المرفقات';
   }
-  function endSend(msg) { $('overlay').style.display = 'none'; $('sendBtn').disabled = false; showErr(msg); }
+  function endSend(msg) { $('overlay').style.display = 'none'; sendingNow = false; $('sendBtn').disabled = false; refreshSendBtn(); showErr(msg); }
 
   function show(id) { ['formView', 'doneView', 'trackView'].forEach(v => $(v).classList.toggle('hidden', v !== id)); window.scrollTo(0, 0); }
   function newRequest() { show('formView'); }
