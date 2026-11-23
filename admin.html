@@ -584,6 +584,18 @@
     else window.open(DETAIL.req.links[i] || DETAIL.req.after, '_blank', 'noopener');
   }
 
+  // 🩺 تشخيص جهاز المبلّغ (يصل مع البلاغ): للتحقق من مشاكل الكاميرا/الرفع
+  function diagHtml(raw) {
+    if (!raw) return '';
+    try {
+      const d = JSON.parse(raw), L = [];
+      L.push('📱 ' + [d.d, d.os, d.br].filter(Boolean).join(' · ') + (d.app ? ' · ⚠️ داخل تطبيق' : '') + (d.net ? ' · 🌐 ' + d.net : ''));
+      if ((d.btn || []).length) L.push('🔘 ' + d.btn.join(' ← '));
+      (d.m || []).forEach(x => L.push((x.k === 'v' ? '🎥 فيديو ' : '📷 صورة ') + (x.mb || 0) + ' ميجا' + (x.c ? ' (مضغوط من ' + x.c + ')' : '') + (x.s ? ' · ' + x.s + ' ثانية' : '') + (x.e ? ' · ⚠️ ' + x.e : '')));
+      if (d.r) L.push('🔁 إعادة محاولة: ' + d.r);
+      return '<h3>🩺 الجهاز</h3><div class="desc" style="font-size:13px;line-height:1.9">' + L.map(esc).join('<br>') + '</div>';
+    } catch (e) { return ''; }
+  }
   function drawDetail() {
     const r = DETAIL.req, done = isDone(r.st);
     const wa = r.waPhone ? `<a class="btn ok" target="_blank" rel="noopener" href="https://wa.me/${esc(r.waPhone)}">💬 واتساب</a><a class="btn" href="tel:+${esc(r.waPhone)}">📞 اتصال</a>` : '';
@@ -607,6 +619,7 @@
         ${r.src ? `<div>المصدر</div><div>⬆️ شقة ${esc(r.src)}</div>` : ''}
       </div>
       <div class="desc">${esc(r.fullDesc) || '—'}</div>
+      ${diagHtml(r.diag)}
       ${r.question ? `<h3>❓ سؤال الإدارة</h3><div class="desc">${esc(r.question)}${r.reply ? '<hr style="border:0;border-top:1px solid var(--bd)">💬 ' + esc(r.reply) : ''}</div>` : ''}
       ${r.note ? `<h3>🗒 ملاحظة الإغلاق</h3><div class="desc">${esc(r.note)}</div>` : ''}${r.reason ? `<h3>🚫 سبب الرفض</h3><div class="desc">${esc(r.reason)}</div>` : ''}
       ${r.links.length || r.after ? `<h3>📎 المرفقات</h3>
