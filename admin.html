@@ -384,8 +384,8 @@
     let tm = 0, ta = 0, tn = 0; r.days.forEach(d => { tm += d.m.length; ta += d.a.length; tn += d.n.length; });
     box.innerHTML = `<h3 style="margin-top:0">📅 تقرير الأسبوع (${esc(r.from)} ← ${esc(r.to)})</h3>
       <div class="row noprint"><button class="btn" onclick="loadWeek('${r.prev}')">→ الأسبوع السابق</button><button class="btn" onclick="loadWeek('${r.next}')">الأسبوع التالي ←</button><button class="btn" onclick="loadWeek(fmtD(new Date()))">هذا الأسبوع</button></div>
-      <div class="hint" style="margin:6px 0">المجموع: ☀️ شمس ${tm} · 🌙 ليل ${ta} · ⚪ بدون فترة ${tn} · 📌 = فترة محددة يدوياً</div>
-      <table><tr><th>اليوم</th><th>☀️ شمس (صباح)</th><th>🌙 ليل (مساء)</th><th>⚪ بدون فترة</th></tr>${r.days.map(d => `<tr><td style="white-space:nowrap"><b>${esc(d.dn)}</b><br><small>${esc(d.d.slice(5))}</small></td><td>${cell(d.m)}</td><td>${cell(d.a)}</td><td>${cell(d.n)}</td></tr>`).join('')}</table>`;
+      <div class="hint" style="margin:6px 0">المجموع: ☀️ صباحاً ${tm} · 🌙 مساءً ${ta} · ⚪ بدون فترة ${tn} · 📌 = فترة محددة يدوياً</div>
+      <table><tr><th>اليوم</th><th>☀️ صباحاً</th><th>🌙 مساءً</th><th>⚪ بدون فترة</th></tr>${r.days.map(d => `<tr><td style="white-space:nowrap"><b>${esc(d.dn)}</b><br><small>${esc(d.d.slice(5))}</small></td><td>${cell(d.m)}</td><td>${cell(d.a)}</td><td>${cell(d.n)}</td></tr>`).join('')}</table>`;
   }
   function perfCsv() {
     if (!PD) return; const q = x => '"' + String(x == null ? '' : x).replace(/"/g, '""') + '"';
@@ -453,7 +453,7 @@
     const dt = new Date(ts.slice(0, 10) + 'T12:00:00'), sh = r.shift || (Number(ts.slice(11, 13)) < 15 ? 'm' : 'a');
     return { day: DN_AR[dt.getDay()], sh, set: !!r.shift, d: ts.slice(5, 10) };
   }
-  const tagHtml = r => { const t = workTag(r); return t ? `<span class="chip2" title="${t.set ? 'محددة' : 'تلقائية'}" style="${t.set ? '' : 'opacity:.6'}">${esc(t.day)} ${t.sh === 'm' ? '☀️ شمس' : t.sh === 'a' ? '🌙 ليل' : '⚪ بدون فترة'}</span>` : ''; };
+  const tagHtml = r => { const t = workTag(r); return t ? `<span class="chip2" title="${t.set ? 'محددة' : 'تلقائية'}" style="${t.set ? '' : 'opacity:.6'}">${esc(t.day)} ${t.sh === 'm' ? '☀️ صباحاً' : t.sh === 'a' ? '🌙 مساءً' : '⚪ بدون فترة'}</span>` : ''; };
   const can = k => !DATA || !DATA.perms || DATA.perms[k] !== false;
   const isDone = s => s === 'تمت المعالجة' || s === 'مرفوض' || s === 'ملغي';
   const bcls = s => 'b-' + String(s).split(' ')[0];
@@ -464,7 +464,8 @@
     return m < 60 ? 'قبل ' + Math.max(m, 1) + ' د' : m < 1440 ? 'قبل ' + Math.floor(m / 60) + ' س' : 'قبل ' + Math.floor(m / 1440) + ' يوم';
   }
   const hfmt = h => h >= 48 ? Math.floor(h / 24) + ' يوم' : h + ' ساعة';
-  const place = r => (r.bld ? r.bld + ' — ' + r.apt : (r.dis ? 'حي ' + r.dis + ' — ' : '') + r.apt) + (r.out ? ' 🏢 خارج الشقة' : '');
+  const aptTxt = a => (/\d/.test(String(a || '')) ? 'شقة ' : '') + (a || '');
+  const place = r => (r.bld ? r.bld + ' · ' + aptTxt(r.apt) : (r.dis ? 'حي ' + r.dis + ' · ' : '') + aptTxt(r.apt)) + (r.out ? ' 🏢 خارج الشقة' : '');
 
   const FILTERS = [
     ['open', 'مفتوحة', r => !isDone(r.st)], ['new', 'جديدة', r => r.st === 'جديد'], ['wip', 'قيد المعالجة', r => r.st === 'قيد المعالجة'],
@@ -520,13 +521,13 @@
       const sh = r.shift === 'n' ? 'n' : (r.shift || (Number(ts.slice(11, 13)) < 15 ? 'm' : 'a'));
       o[sh].push(r);
     });
-    const it = r => `<div class="dit" onclick="openReq('${esc(r.id)}')">#${esc(r.id)} · ${esc(place(r))} · ${esc(r.type)}${r.tech ? ' · 👷 ' + esc(r.tech) : ''}${r.st === 'أنجزه الفني' ? ' ⏳' : ''}</div>`;
+    const it = r => `<div class="dit" onclick="openReq('${esc(r.id)}')"><b>#${esc(r.id)}</b> · 🏢 <bdi>${esc(r.bld || '')}</bdi> · ${esc(aptTxt(r.apt))}<br><small>${esc(r.type)}${r.tech ? ' · 👷 ' + esc(r.tech) : ''}${r.st === 'أنجزه الفني' ? ' ⏳' : ''}${r.desc ? '<br>📝 ' + esc(String(r.desc).slice(0, 70)) + (String(r.desc).length > 70 ? '…' : '') : ''}</small></div>`;
     const sec = (ttl, arr) => arr.length ? `<div class="dsh">${ttl} <span class="hint">(${arr.length})</span></div>${arr.map(it).join('')}` : '';
     const rg = [['week', 'هذا الأسبوع'], ['7', 'آخر ٧ أيام'], ['last', 'الأسبوع الماضي']];
     let tot = 0; Object.keys(idx).forEach(k => { tot += idx[k].m.length + idx[k].a.length + idx[k].n.length; });
     return '<div class="rng" style="margin:6px 0">' + rg.map(x => `<button class="fchip ${DR === x[0] ? 'on' : ''}" onclick="setDR('${x[0]}')">${x[1]}</button>`).join('') + `</div><div class="hint" style="margin-bottom:6px">المنجز: ${tot} · الأسبوع من السبت إلى الجمعة · ⏳ = بانتظار تأكيدك</div>`
       + days.map(d => { const o = idx[fd(d)], n = o.m.length + o.a.length + o.n.length;
-        return `<div class="dcard"><h4><span>${DN_AR[d.getDay()]} <small class="hint">${fd(d).slice(5)}</small></span><b>${n}</b></h4>${n ? sec('☀️ شمس', o.m) + sec('🌙 ليل', o.a) + sec('⚪ بدون فترة', o.n) : '<div class="hint">لا منجز</div>'}</div>`; }).join('');
+        return `<div class="dcard"><h4><span>${DN_AR[d.getDay()]} <small class="hint">${fd(d).slice(5)}</small></span><b>${n}</b></h4>${n ? sec('☀️ صباحاً', o.m) + sec('🌙 مساءً', o.a) + sec('⚪ بدون فترة', o.n) : '<div class="hint">لا منجز</div>'}</div>`; }).join('');
   }
 
   async function openReq(id, quiet) {
@@ -605,7 +606,7 @@
           ${can('cancel_request') ? `<button class="btn bad" onclick="ask2('cancelreq','⛔ إلغاء الطلب','سبب الإلغاء (اختياري)', true)">⛔ إلغاء</button>` : ''}
           ${DATA.superAdmin && DATA.groupReady ? `<button class="btn" onclick="act('publishgroup')">📢 نشر للمجموعة</button>` : ''}
         </div>`}
-      ${DATA.superAdmin ? (() => { const t = workTag(r); return `<h3>🗓️ فترة العمل</h3><div class="row"><span class="hint" style="align-self:center">${t ? 'اليوم: <b>' + esc(t.day) + '</b> (' + esc(t.d) + ') · ' + (t.sh === 'm' ? '☀️ شمس (صباح)' : t.sh === 'a' ? '🌙 ليل (مساء)' : '⚪ بدون فترة') + (t.set ? ' — محددة' : ' — تلقائية من وقت الإنجاز') : (r.shift === 'n' ? '⚪ بدون فترة' : r.shift ? (r.shift === 'm' ? '☀️ شمس (صباح)' : '🌙 ليل (مساء)') + ' — محددة' : 'لم تُحدد')}</span><button class="btn ${r.shift === 'm' ? 'on' : ''}" onclick="act('setshift','m')">☀️ شمس</button><button class="btn ${r.shift === 'a' ? 'on' : ''}" onclick="act('setshift','a')">🌙 ليل</button><button class="btn ${r.shift === 'n' ? 'on' : ''}" onclick="act('setshift','n')">⚪ بدون فترة</button>${r.shift ? '<button class="btn" onclick="act(\'setshift\',\'\')">↺ تلقائي</button>' : ''}</div>`; })() : ''}
+      ${DATA.superAdmin ? (() => { const t = workTag(r); return `<h3>🗓️ فترة العمل</h3><div class="row"><span class="hint" style="align-self:center">${t ? 'اليوم: <b>' + esc(t.day) + '</b> (' + esc(t.d) + ') · ' + (t.sh === 'm' ? '☀️ صباحاً' : t.sh === 'a' ? '🌙 مساءً' : '⚪ بدون فترة') + (t.set ? ' — محددة' : ' — تلقائية من وقت الإنجاز') : (r.shift === 'n' ? '⚪ بدون فترة' : r.shift ? (r.shift === 'm' ? '☀️ صباحاً' : '🌙 مساءً') + ' — محددة' : 'لم تُحدد')}</span><button class="btn ${r.shift === 'm' ? 'on' : ''}" onclick="act('setshift','m')">☀️ صباحاً</button><button class="btn ${r.shift === 'a' ? 'on' : ''}" onclick="act('setshift','a')">🌙 مساءً</button><button class="btn ${r.shift === 'n' ? 'on' : ''}" onclick="act('setshift','n')">⚪ بدون فترة</button>${r.shift ? '<button class="btn" onclick="act(\'setshift\',\'\')">↺ تلقائي</button>' : ''}</div>`; })() : ''}
       ${can('edit_request') || can('delete_request') ? `<h3>تعديل</h3>
       <div class="row">${can('edit_request') ? '<button class="btn" onclick="editReq()">✏️ تعديل البيانات</button>' : ''}${can('delete_request') ? '<button class="btn bad" onclick="delReq()">🗑️ حذف الطلب</button>' : ''}</div>` : ''}
       <h3>🕓 السجل</h3>
@@ -633,14 +634,14 @@
       { label: 'الجوال', type: 'tel', v: '', ph: '05xxxxxxxx' },
       { label: 'النوع', type: 'select', v: TYPE_LIST[0], opts: TYPE_LIST.map(t => [t, t]) },
       { label: 'الوصف', type: 'textarea', v: '' },
-    ].concat(DATA.superAdmin ? [{ label: 'فترة العمل (للتقرير الأسبوعي)', type: 'select', v: '', opts: [['', '— تلقائي من وقت الإغلاق —'], ['m', '☀️ شمس (صباح)'], ['a', '🌙 ليل (مساء)']] }] : []), async v => { const r = await call('newreq', '', JSON.stringify({ bld: v[0], apt: v[1], name: v[2], phone: v[3], type: v[4], desc: v[5], shift: v[6] || '' }), '✅ أُضيف الطلب'); if (r) { await load(true); goReq(r.id); } }, 'إضافة');
+    ].concat(DATA.superAdmin ? [{ label: 'فترة العمل (للتقرير الأسبوعي)', type: 'select', v: '', opts: [['', '— تلقائي من وقت الإغلاق —'], ['m', '☀️ صباحاً'], ['a', '🌙 مساءً']] }] : []), async v => { const r = await call('newreq', '', JSON.stringify({ bld: v[0], apt: v[1], name: v[2], phone: v[3], type: v[4], desc: v[5], shift: v[6] || '' }), '✅ أُضيف الطلب'); if (r) { await load(true); goReq(r.id); } }, 'إضافة');
   }
   async function newTask() {
     const blds = await getBlds();
     openForm('🗓️ مهمة لليوم — تصل الفني مباشرة', [
       { label: 'العمارة', type: 'select', v: '', opts: [['', '— اختر —']].concat(blds.map(b => [b.name, b.name])) },
       { label: 'الشقة (اتركها فارغة للمبنى عموماً)', v: '' },
-      { label: 'الفترة', type: 'select', v: 'm', opts: [['m', '☀️ شمس (صباح)'], ['a', '🌙 ليل (مساء)']] },
+      { label: 'الفترة', type: 'select', v: 'm', opts: [['m', '☀️ صباحاً'], ['a', '🌙 مساءً']] },
       { label: 'الفني', type: 'select', v: '', opts: [['', '— اختر —']].concat(DATA.techs.map(t => [t.row, t.name + (t.spec ? ' — ' + t.spec : '')])) },
       { label: 'النوع', type: 'select', v: TYPE_LIST[0], opts: TYPE_LIST.map(t => [t, t]) },
       { label: 'المهمة', type: 'textarea', v: '', ph: 'وش المطلوب؟' },
@@ -656,7 +657,7 @@
   }
   function assign() { const v = $('techSel').value; if (!v) { toast('اختر الفني أولاً'); return; } act('assign', v); }
   function closeAsk(title) {
-    openForm(title, [{ type: 'textarea', label: 'ملاحظة الإغلاق (اختياري)', v: '' }, { label: 'فترة العمل (للتقرير الأسبوعي)', type: 'select', v: '', opts: [['', '— تلقائي: قبل 3 عصراً شمس، بعدها ليل —'], ['m', '☀️ شمس (صباح)'], ['a', '🌙 ليل (مساء)']] }],
+    openForm(title, [{ type: 'textarea', label: 'ملاحظة الإغلاق (اختياري)', v: '' }, { label: 'فترة العمل (للتقرير الأسبوعي)', type: 'select', v: '', opts: [['', '— تلقائي: قبل 3 عصراً صباحاً، بعدها مساءً —'], ['m', '☀️ صباحاً'], ['a', '🌙 مساءً']] }],
       async ([note, sh]) => { const ok = await call('close', SEL, note); if (!ok) return false; if (sh) await call('setshift', SEL, sh, ''); await load(false); await openReq(SEL, true); }, 'إغلاق');
   }
   function ask2(op, title, ph, optional) {
