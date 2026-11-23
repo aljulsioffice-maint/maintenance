@@ -657,6 +657,36 @@
   } else refreshSteps();
   if (TRACK && !GUARD) { const t = lsGet('mr_tokens', []); if (t.indexOf(TRACK) < 0) { t.push(TRACK); lsSet('mr_tokens', t); } showTrack(); }
 
+  // ---------- تطبيق الحارس: أيقونة «صيانة» على الشاشة الرئيسية (PWA) — في صفحة GitHub فقط ----------
+  if (GUARD && API_URL) (function () {
+    try {
+      const standalone = (window.matchMedia && matchMedia('(display-mode: standalone)').matches) || navigator.standalone;
+      const abs = f => new URL(f, location.href).href, I192 = 'data:image/png;base64,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';
+      const mk = I512 => {
+      const man = { name: 'صيانة الجلسي', short_name: 'صيانة', lang: 'ar', dir: 'rtl', start_url: location.href, scope: abs('./'), display: 'standalone', background_color: '#f08a00', theme_color: '#f08a00',
+        icons: [{ src: I192, sizes: '192x192', type: 'image/png', purpose: 'any maskable' }, { src: I512, sizes: '512x512', type: 'image/png', purpose: 'any maskable' }] };
+      const ml = document.createElement('link'); ml.rel = 'manifest'; ml.href = URL.createObjectURL(new Blob([JSON.stringify(man)], { type: 'application/manifest+json' })); document.head.appendChild(ml); };
+      { const im = new Image(); im.onload = () => { let u = I192; try { const c = document.createElement('canvas'); c.width = c.height = 512; c.getContext('2d').drawImage(im, 0, 0, 512, 512); u = c.toDataURL('image/png'); } catch (e) {} mk(u); }; im.onerror = () => mk(I192); im.src = I192; }
+      const ai = document.createElement('link'); ai.rel = 'apple-touch-icon'; ai.href = I192; document.head.appendChild(ai);
+      const tc = document.createElement('meta'); tc.name = 'theme-color'; tc.content = '#f08a00'; document.head.appendChild(tc);
+      if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(() => {});
+      if (standalone || lsGet('mr_inst_hide', 0)) return;
+      let dp = null;
+      const bar = document.createElement('div');
+      bar.style.cssText = 'position:sticky;top:0;z-index:30;display:flex;gap:8px;align-items:center;background:#f08a00;color:#fff;padding:10px 12px;font-weight:800;font-size:18px;box-shadow:0 2px 10px rgba(0,0,0,.25)';
+      bar.innerHTML = '<img src="' + I192 + '" width="40" height="40" style="border-radius:10px"><button type="button" id="instGo" style="flex:1;background:#fff;color:#a85a00;border:0;border-radius:12px;padding:10px;font:inherit;font-weight:800">📲 ضع الأيقونة على الشاشة</button><button type="button" id="instX" aria-label="إغلاق" style="background:none;border:0;color:#fff;font-size:22px;padding:6px">✕</button>';
+      document.body.insertBefore(bar, document.body.firstChild);
+      window.addEventListener('beforeinstallprompt', e => { e.preventDefault(); dp = e; });
+      window.addEventListener('appinstalled', () => { bar.remove(); });
+      $('instX').onclick = () => { lsSet('mr_inst_hide', 1); bar.remove(); };
+      $('instGo').onclick = async () => {
+        if (dp) { try { dp.prompt(); await dp.userChoice; } catch (e) {} dp = null; return; }
+        const ios = /iphone|ipad/i.test(navigator.userAgent);
+        alert(ios ? 'اضغط زر المشاركة ⬆️ ثم «إضافة إلى الشاشة الرئيسية»' : 'اضغط القائمة ⋮ أو ☰ ثم «إضافة إلى الشاشة الرئيسية» (أو «تثبيت التطبيق»)');
+      };
+    } catch (e) {}
+  })();
+
   function refreshMyBtn() { $('myBtn').classList.toggle('hidden', !lsGet('mr_tokens', []).length && !TRACK); }
 
   // ---------- الوسائط: رفع فوري مؤقت + مسودة محلية ----------
