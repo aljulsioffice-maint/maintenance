@@ -340,6 +340,7 @@
       <div class="tick"><svg viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></div>
       <h3>تم استلام بلاغك</h3>
       <div class="num" id="doneNum"></div>
+      <div id="undoBox" class="hidden" style="margin:6px 0"><button type="button" class="btn2 mini" id="undoBtn">↩️ تراجع عن البلاغ (خلال دقيقتين)</button></div>
       <button type="button" class="link" onclick="try{navigator.clipboard.writeText($('doneNum').textContent.replace('#',''));this.textContent='✅ نُسخ'}catch(e){}">📋 نسخ رقم البلاغ</button>
       <div id="doneWhat" style="font-size:20px;font-weight:800;margin:6px 0"></div>
       <div class="msg">ستصلك رسالة تأكيد الاستلام على واتساب 💬<br>وسيتواصل معك فريق الصيانة قريباً</div>
@@ -794,14 +795,22 @@
   let gScope = 'bld';
   function setGScope(m) { gScope = m; $('gBld').classList.toggle('on', m === 'bld'); $('gApt').classList.toggle('on', m === 'apt'); $('gAptBox').classList.toggle('hidden', m !== 'apt'); if (m === 'bld') { $('gapt').value = ''; $('gaptv').textContent = '—'; } }
   // آخر بلاغات الحارس (من هذا الجوال): يطمئن أنها وصلت فلا يكررها
-  function gRecentAdd(id, what) { const a = lsGet('mr_gseen', []); a.unshift({ id: id, w: what, t: new Date().toTimeString().slice(0, 5) }); lsSet('mr_gseen', a.slice(0, 5)); drawGRecent(); }
+  function gRecentAdd(id, what, tok) { const a = lsGet('mr_gseen', []); a.unshift({ id: id, w: what, t: new Date().toTimeString().slice(0, 5), ts: Date.now(), tok: tok || '' }); lsSet('mr_gseen', a.slice(0, 4)); drawGRecent(); }
+  async function undoRecent(id) {
+    const a = lsGet('mr_gseen', []), x = a.filter(q => String(q.id) === String(id))[0]; if (!x) return;
+    const c = await uiAsk('تراجع عن البلاغ #' + id + '؟ يُلغى ولا يصل الفريق.', 'نعم، تراجع'); if (!c.ok) return;
+    try { const r = await run('cancelRecent', x.id, x.tok); if (!r || !r.ok) { await uiNote(r && r.msg ? r.msg : 'تعذر التراجع'); return; } }
+    catch (e) { await uiNote('تعذر التراجع، تأكد من الإنترنت'); return; }
+    x.c = 1; lsSet('mr_gseen', a); drawGRecent(); $('undoBox').classList.add('hidden'); await uiNote('✅ تم التراجع عن البلاغ #' + id);
+  }
+  setInterval(() => { try { drawGRecent(); const u = $('undoBox'); if (u && Date.now() - undoTs > 120000) u.classList.add('hidden'); } catch (e) {} }, 15000);
   function drawGRecent() {
     const a = lsGet('mr_gseen', []), el = $('gRecent'); if (!el) return;
     el.classList.toggle('hidden', !a.length);
-    el.innerHTML = a.length ? '<b>🕘 آخر بلاغاتك</b>' + a.map(x => '<div style="margin-top:6px">#' + x.id + ' · ' + String(x.w).replace(/</g, '&lt;') + ' · ' + x.t + '</div>').join('') : '';
+    el.innerHTML = a.length ? '<b>🕘 آخر بلاغاتك</b>' + a.map(x => '<div style="margin-top:8px;display:flex;gap:8px;align-items:center;flex-wrap:wrap"><span>#' + x.id + ' · ' + String(x.w).replace(/</g, '&lt;') + ' · ' + x.t + (x.c ? ' · <b>⛔ مسحوب</b>' : '') + '</span>' + (!x.c && x.tok && x.ts && Date.now() - x.ts < 120000 ? '<button type="button" class="chip" onclick="undoRecent(\'' + x.id + '\')">↩️ تراجع</button>' : '') + '</div>').join('') : '';
   }
   function pickGApt(a) { $('gapt').value = a; $('gaptv').textContent = a; }
-  let sendKey = '', gWhat = '';
+  let sendKey = '', gWhat = '', undoTs = 0;
   async function send() {
     if (sendingNow) return;
     showErr('');
@@ -815,7 +824,7 @@
       gWhat = ({ water: '💧 وايت ماء', sewage: '🚽 وايت صرف', maint: '🔧 صيانة' }[gKind] || '') + ' — ' + (gScope === 'apt' ? '🚪 شقة ' + gapt : '🏢 كل العمارة');
       const _gc = await uiAsk('إرسال البلاغ: ' + gWhat + '؟', 'نعم، أرسل');   // تأكيد قبل الإرسال (يمنع بلاغ بالخطأ)
       if (!_gc.ok) return;
-      call = () => run('submitGuard', GUARD, gScope === 'apt' ? gapt : '', gKind, photos.length + (video ? 1 : 0), sendKey);
+      call = () => run('submitGuard', GUARD, gScope === 'apt' ? gapt : '', gKind, photos.length + (video ? 1 : 0), sendKey, 1);
     } else {
       if (photos.some(p => p.uploading) || (video && video.uploading)) return showErr('انتظر اكتمال رفع المرفقات ثم أرسل');
       if (photos.some(p => p.error) || (video && video.error)) return showErr('بعض المرفقات لم تُرفع — احذفها (✕) وأعد اختيارها');
@@ -846,6 +855,7 @@
         if (srcMode === 'up') { f.src = toLatin($('srcApt').value).trim(); if (!f.src) return bad('src', 'اكتب رقم الشقة المصدر'); }
         else f.desc += { same: ' (من شقتي)', roof: ' (من السطح أو المبنى)', unk: ' (المصدر غير معروف)' }[srcMode];
       }
+      f.defer = 1;   // الخادم يرد فوراً ويكمل النقل والإرسال للفريق بالخلفية
       call = () => run('submitRequest', f);
     }
 
@@ -861,14 +871,18 @@
     const ph = GUARD ? photos.slice() : [], vd = GUARD ? video : null;   // المستأجر رُفعت مرفقاته مسبقاً؛ الحارس يرفع بعد الإرسال
     const preUp = !GUARD && !!(photos.length || video);
     if (!GUARD) { TEMP_KEY = newKey(); lsSet('mr_temp_key', TEMP_KEY); VIDEO_TEMP_KEY = newKey('_v'); lsSet('mr_video_temp_key', VIDEO_TEMP_KEY); lsSet('mr_draft', {}); dbClear(); }
-    if (preUp && res.id) fire('flushMedia', res.id, res.token);
+    // إنهاء البلاغ بالخلفية (نقل المرفقات + إرسال البطاقة للفريق) — الشاشة لا تنتظره
+    const fin = res.deferred && res.id ? run('finishRequest', res.id, res.token).catch(() => {}) : Promise.resolve();
+    if (preUp && res.id) fin.then(() => fire('flushMedia', res.id, res.token));
     if (res.id) { const t = lsGet('mr_tokens', []); t.push(res.token); lsSet('mr_tokens', t); }
     lastToken = res.token;
     $('tgBtn').classList.toggle('hidden', !!res.waAuto);   // الإرسال آلي: لا زر للمستأجر
     $('tgBtn').href = 'https://wa.me/' + OFFICE_WA + '?text=' + encodeURIComponent('بلاغ صيانة رقم #' + res.id + ' — ' + (GUARD ? 'من حارس العمارة' : 'أرجو تأكيد الاستلام'));
     $('overlay').style.display = 'none'; sendingNow = false; $('sendBtn').disabled = false; refreshSendBtn();
     $('doneNum').textContent = '#' + res.id; sendKey = '';
-    if (GUARD) { $('doneWhat').textContent = '✅ ' + gWhat; try { navigator.vibrate && navigator.vibrate(200); } catch (e) {} gRecentAdd(res.id, gWhat); }
+    if (GUARD) { $('doneWhat').textContent = '✅ ' + gWhat; try { navigator.vibrate && navigator.vibrate(200); } catch (e) {} gRecentAdd(res.id, gWhat, res.token); }
+    else if (res.id) { const _tl = (TYPES.filter(t => t[0] === (f && f.type))[0] || [])[2] || 'بلاغ'; gRecentAdd(res.id, _tl + ' — ' + (f.desc || '').slice(0, 24), res.token); }
+    undoTs = Date.now(); $('undoBox').classList.toggle('hidden', !res.id || !res.token); $('undoBtn').onclick = () => undoRecent(res.id);
     const hasMedia = !!(res.id && (ph.length || vd));
     $('doneWarn').textContent = hasMedia ? '⏳ جاري رفع المرفقات… لا تغلق الصفحة حتى تظهر «تم رفع المرفقات»' : '';
     photos = []; video = null; drawThumbs(); $('desc').value = ''; $('urgent').checked = false;
@@ -905,7 +919,7 @@
     await Promise.all(photoJobs.concat([videoJob]));
     uploading = false; window.removeEventListener('beforeunload', guard);
     // الإرسال لتليجرام يكمل في الخلفية — المستأجر لا ينتظره
-    fire('flushMedia', res.id, res.token);
+    await fin; fire('flushMedia', res.id, res.token);
     $('doneWarn').textContent = failed ? 'تعذر رفع بعض المرفقات — البلاغ نفسه وصل.' : '✅ تم رفع المرفقات';
   }
   function endSend(msg) { $('overlay').style.display = 'none'; sendingNow = false; $('sendBtn').disabled = false; refreshSendBtn(); showErr(msg); }
