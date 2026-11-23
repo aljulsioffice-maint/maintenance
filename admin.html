@@ -598,7 +598,7 @@
   }
   function drawDetail() {
     const r = DETAIL.req, done = isDone(r.st);
-    const wa = r.waPhone ? `<a class="btn ok" target="_blank" rel="noopener" href="https://wa.me/${esc(r.waPhone)}">💬 واتساب</a><a class="btn" href="tel:+${esc(r.waPhone)}">📞 اتصال</a>` : '';
+    const wa = (r.waPhone ? `<a class="btn ok" target="_blank" rel="noopener" href="https://wa.me/${esc(r.waPhone)}">💬 واتساب المستأجر</a><a class="btn" href="tel:+${esc(r.waPhone)}">📞 اتصال</a>` : '') + (r.waPhoneG ? `<a class="btn ok" target="_blank" rel="noopener" href="https://wa.me/${esc(r.waPhoneG)}">💬 واتساب الحارس</a>` : '');
     const techOpts = '<option value="">— اختر الفني —</option>' + DATA.techs.map(t => `<option value="${esc(t.row)}">${esc(t.name)}${t.spec ? ' — ' + esc(t.spec) : ''}</option>`).join('');
     const files = r.files || [];
     $('detail').innerHTML = `
