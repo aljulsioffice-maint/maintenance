@@ -679,9 +679,25 @@
   $('urgent').addEventListener('change', () => { urgentTouched = true; $('urgAuto').style.display = 'none'; });
   $('desc').addEventListener('input', autoUrgent);
   function saveDraftText() { /* لا نحفظ نص المسودة: الصفحة تبدأ فاضية كل مرة */ }
+  // ---------- تشخيص الجهاز مع كل بلاغ ----------
+  const DG = { btn: [], m: [], retries: 0 };
+  function dgBtn(x) { if (x && DG.btn.indexOf(x) < 0 && DG.btn.length < 8) DG.btn.push(x); }
+  function devInfo() {
+    const ua = navigator.userAgent; let d = '', os = '', br = '', m;
+    if ((m = /Android ([\d.]+); ([^;)]+)/.exec(ua))) { os = 'Android ' + m[1]; d = m[2].replace(/ Build.*/, '').trim(); }
+    else if ((m = /iPhone OS ([\d_]+)/.exec(ua))) { os = 'iOS ' + m[1].replace(/_/g, '.'); d = 'iPhone'; }
+    else if (/iPad/.test(ua)) d = 'iPad';
+    if ((m = /SamsungBrowser\/(\d+)/.exec(ua))) br = 'Samsung Internet ' + m[1];
+    else if ((m = /(Edg|OPR|Firefox|CriOS|FxiOS)\/(\d+)/.exec(ua))) br = m[1] + ' ' + m[2];
+    else if ((m = /Chrome\/(\d+)/.exec(ua))) br = 'Chrome ' + m[1];
+    else if ((m = /Version\/([\d.]+).*Safari/.exec(ua))) br = 'Safari ' + m[1];
+    const c = navigator.connection || {};
+    return { d: d, os: os, br: br, app: window.__inApp ? 1 : 0, net: (c.effectiveType || '') + (c.downlink ? ' ' + c.downlink + 'Mbps' : ''), sc: screen.width + 'x' + screen.height };
+  }
+  function diagPayload() { try { const o = devInfo(); o.btn = DG.btn; o.m = DG.m.slice(-6); o.r = DG.retries; return JSON.stringify(o); } catch (e) { return ''; } }
   async function retryRun(fn, ...args) {
     let last;
-    for (let i = 0; i < 3; i++) { try { return await run(fn, ...args); } catch (e) { last = e; if (i < 2) await new Promise(r => setTimeout(r, 700 * Math.pow(2, i))); } }
+    for (let i = 0; i < 3; i++) { try { return await run(fn, ...args); } catch (e) { last = e; DG.retries++; if (i < 2) await new Promise(r => setTimeout(r, 700 * Math.pow(2, i))); } }
     throw last || new Error('تعذر الاتصال بالخادم');
   }
 
@@ -689,30 +705,64 @@
     if (photos.length >= MAX_PHOTOS) { showErr('الحد الأقصى ' + MAX_PHOTOS + ' صور'); return; }
     const p = { file: f, url: URL.createObjectURL(f), clientId: restoredId || newKey().slice(4), uploading: true };
     photos.push(p); drawThumbs();
+    const t0 = Date.now();
     try {
       if (!restoredId && !GUARD) await dbPut('photo', p.clientId, f);
       const r = await retryRun('uploadTempPhoto', await compress(f), TEMP_KEY, p.clientId);
       if (!r || !r.ok) throw new Error((r && r.msg) || 'upload');
+      DG.m.push({ k: 'p', mb: +(f.size / 1e6).toFixed(1), s: Math.round((Date.now() - t0) / 1000) });
       p.uploading = false;
       if (p.cancelled) run('removeTempPhoto', TEMP_KEY, 0, p.clientId).catch(() => {});
     } catch (e) {
+      DG.m.push({ k: 'p', mb: +(f.size / 1e6).toFixed(1), e: String((e && (e.name || e.message)) || 'fail').slice(0, 30) });
       p.uploading = false; p.error = true; showErr('تعذر رفع إحدى الصور — احذفها وأعد اختيارها.');
     }
     drawThumbs();
+  }
+  // ---------- ضغط الفيديو قبل الرفع (يرفع أسرع بكثير): إعادة ترميز بجودة أقل عبر المتصفح ----------
+  const CMP_MIN_MB = 8;
+  function canCompress() { try { return !!(window.MediaRecorder && HTMLVideoElement.prototype.captureStream && MediaRecorder.isTypeSupported('video/mp4')); } catch (e) { return false; } }
+  async function compressVideo(file, onProg) {
+    const url = URL.createObjectURL(file), v = document.createElement('video');
+    try {
+      v.muted = true; v.playsInline = true; v.preload = 'auto'; v.src = url;
+      await new Promise((res, rej) => { v.onloadedmetadata = res; v.onerror = () => rej(new Error('meta')); setTimeout(() => rej(new Error('meta_timeout')), 8000); });
+      const dur = isFinite(v.duration) && v.duration > 0 ? v.duration : MAX_VIDEO_SEC;
+      await v.play();
+      const stream = v.captureStream(), mt = ['video/mp4;codecs=avc1', 'video/mp4'].filter(t => MediaRecorder.isTypeSupported(t))[0] || 'video/mp4';
+      const mr = new MediaRecorder(stream, { mimeType: mt, videoBitsPerSecond: 1400000 }), chunks = [];
+      mr.ondataavailable = e => { if (e.data && e.data.size) chunks.push(e.data); };
+      const stopped = new Promise(res => { mr.onstop = res; });
+      mr.start(1000);
+      const tick = setInterval(() => { try { onProg && onProg(Math.min(99, Math.round(100 * v.currentTime / dur))); } catch (e) {} }, 400);
+      await new Promise(res => { v.onended = res; setTimeout(res, (dur + 6) * 1000); });
+      clearInterval(tick); if (mr.state !== 'inactive') mr.stop(); await stopped;
+      return new File(chunks, 'v.mp4', { type: 'video/mp4' });
+    } finally { try { v.pause(); v.removeAttribute('src'); v.load(); } catch (e) {} URL.revokeObjectURL(url); }
   }
   async function addVideo(f, restored) {
     if (video) return showErr('يوجد فيديو بالفعل — احذفه من المعاينة لإضافة غيره.');
     const dur = await videoDuration(f);
     if (isFinite(dur) && dur > MAX_VIDEO_SEC + 1) return showErr('الفيديو أطول من ' + MAX_VIDEO_SEC + ' ثانية — صوّر مقطعاً أقصر');
-    if (f.size > MAX_VIDEO_MB * 1024 * 1024) return showErr('حجم الفيديو كبير — صوّر مقطعاً أقصر');
+    let up = f, origMB = 0;
+    if (!restored && f.size > CMP_MIN_MB * 1048576 && canCompress()) {   // كبير: نجهّزه (أصغر) قبل الرفع
+      const stub = { file: f, url: URL.createObjectURL(f), uploading: true, preparing: true, prep: 0, progress: 0 };
+      video = stub; drawThumbs();
+      try { const c = await compressVideo(f, p => { stub.prep = p; drawThumbs(); }); const cd = await videoDuration(c); const full = !isFinite(dur) || dur <= 0 || !isFinite(cd) || cd >= dur * 0.9;   // لا نقبل مقطعاً ناقصاً (مثلاً لو خرج المستخدم من الصفحة أثناء التجهيز)
+        if (c && c.size > 1000 && c.size < f.size * 0.85 && full) { up = c; origMB = +(f.size / 1e6).toFixed(1); } else report('cmp_reject', Math.round(f.size / 1e5) + ' full=' + full); }
+      catch (e) { report('cmp_fail', (e && (e.name || e.message)) || ''); }
+      try { URL.revokeObjectURL(stub.url); } catch (e) {}
+      if (video === stub) video = null; else return;   // أُلغي أثناء التجهيز
+    }
+    if (up.size > MAX_VIDEO_MB * 1024 * 1024) return showErr('الفيديو كبير (' + (up.size / 1e6).toFixed(0) + ' ميجا) والحد ' + MAX_VIDEO_MB + ' — صوّر مقطعاً أقصر');
     if (!restored) { VIDEO_TEMP_KEY = newKey('_v'); lsSet('mr_video_temp_key', VIDEO_TEMP_KEY); }
-    const v = { file: f, url: URL.createObjectURL(f), uploading: true, progress: 0 };
+    const v = { file: up, url: URL.createObjectURL(up), uploading: true, progress: 0, cmpFrom: origMB };
     video = v; drawThumbs();
-    if (!restored && !GUARD) await dbPut('video', 'video', f);
+    if (!restored && !GUARD) await dbPut('video', 'video', up);
     await uploadVideoTemp(v, VIDEO_TEMP_KEY);
   }
   async function uploadVideoTemp(v, key) {
-    const f = v.file;
+    const f = v.file, t0 = Date.now();
     try {
       const st = await retryRun('startTempVideo', key, f.size, f.type || 'video/mp4');
       if (!st || !st.ok || (!st.key && !st.complete)) throw new Error((st && st.msg) || 'start');
@@ -725,8 +775,9 @@
       }
       if (!st.complete) { const d = await retryRun('finishTempVideo', key, st.key); if (!d || !d.ok) throw new Error('finish'); }
       if (video !== v || v.cancelled) { run('removeTempVideo', key).catch(() => {}); return; }
-      v.uploading = false; v.progress = 100;
+      v.uploading = false; v.progress = 100; DG.m.push({ k: 'v', mb: +(f.size / 1e6).toFixed(1), c: v.cmpFrom || 0, s: Math.round((Date.now() - t0) / 1000) });
     } catch (e) {
+      DG.m.push({ k: 'v', mb: +(f.size / 1e6).toFixed(1), c: v.cmpFrom || 0, e: String((e && (e.name || e.message)) || 'fail').slice(0, 30) });
       if (video === v) { v.uploading = false; v.error = true; showErr('تعذر رفع الفيديو — احذفه وأعد اختياره.'); }
     }
     drawThumbs();
@@ -744,7 +795,7 @@
   // ---------- كاميرا الفيديو: لو ما انفتحت تظهر طرق بديلة بالصفحة ----------
   let vidGot = false;
   function onVideoCam() {
-    vidGot = false; $('vidHelp').classList.add('hidden');
+    vidGot = false; $('vidHelp').classList.add('hidden'); dgBtn('cam_video_try');
     const back = () => { setTimeout(() => { if (!vidGot) { $('vidHelp').classList.remove('hidden'); report('video_no_camera', 'no file after camera video'); } }, 900); };
     window.addEventListener('focus', back, { once: true }); document.addEventListener('visibilitychange', function f() { if (document.visibilityState === 'visible') { document.removeEventListener('visibilitychange', f); back(); } });
     $('cameraVideoIn').click();
@@ -754,7 +805,7 @@
     $('vidHelp').classList.add('hidden');
     if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia || !window.MediaRecorder) { report('rec_unsupported', 'no MediaRecorder'); return showErr('هذا الجوال/المتصفح ما يدعم التسجيل هنا — افتح الرابط في كروم'); }
     let stream;
-    try { stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' }, audio: true }); }
+    try { stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment', width: { ideal: 1280 }, height: { ideal: 720 } }, audio: true }); }
     catch (e) { try { stream = await navigator.mediaDevices.getUserMedia({ video: true }); } catch (e2) { report('rec_denied', (e2 && e2.name) || ''); return showErr('اسمح للكاميرا: اضغط 🔒 بجانب الرابط ثم «السماح» وأعد المحاولة'); } }
     const ov = document.createElement('div'); ov.id = 'recOv';
     ov.innerHTML = '<button class="rx" type="button">✖ إلغاء</button><video autoplay muted playsinline></video><div class="rc" id="recC">جاهز</div><button class="rb" type="button">🔴 ابدأ التصوير</button>';
@@ -766,12 +817,12 @@
     let mr = null, chunks = [], sec = 0, timer = null;
     btn.onclick = () => {
       if (mr && mr.state === 'recording') { mr.stop(); return; }
-      try { mr = new MediaRecorder(stream, mt ? { mimeType: mt } : undefined); } catch (e) { report('rec_fail', (e && e.name) || ''); close(); return showErr('تعذّر التسجيل من الصفحة'); }
+      try { mr = new MediaRecorder(stream, mt ? { mimeType: mt, videoBitsPerSecond: 1400000 } : { videoBitsPerSecond: 1400000 }); } catch (e) { report('rec_fail', (e && e.name) || ''); close(); return showErr('تعذّر التسجيل من الصفحة'); }
       chunks = []; mr.ondataavailable = ev => { if (ev.data && ev.data.size) chunks.push(ev.data); };
       mr.onstop = async () => {
         clearInterval(timer); const type = (mr.mimeType || mt || 'video/webm').split(';')[0], ext = /mp4/.test(type) ? 'mp4' : 'webm';
         close(); const f = new File(chunks, 'rec.' + ext, { type }); if (f.size < 1000) return showErr('الفيديو فاضي — حاول مرة ثانية');
-        vidGot = true; await addVideo(f);
+        vidGot = true; dgBtn('recorder'); await addVideo(f);
       };
       mr.start(); sec = 0; btn.textContent = '⏹ إيقاف'; btn.classList.add('stop');
       timer = setInterval(() => { sec++; cn.textContent = '🔴 ' + sec + ' / ' + MAX_VIDEO_SEC + ' ثانية'; if (sec >= MAX_VIDEO_SEC) mr.stop(); }, 1000);
@@ -781,6 +832,7 @@
   (function () {
     const ua = navigator.userAgent, android = /Android/i.test(ua), ios = /iPhone|iPad|iPod/i.test(ua);
     const inApp = /; wv\)|\bwv\b|FBAN|FBAV|Instagram|Line\/|Snapchat|MicroMessenger|Telegram|TikTok|Twitter/i.test(ua) || (ios && !/Safari\//i.test(ua));
+    window.__inApp = inApp;
     if (!inApp) return;
     report('inapp_browser', ua.slice(0, 80));
     const d = document.createElement('div'); d.className = 'inapp';
@@ -791,6 +843,7 @@
   async function processPick(input) {
     const files = Array.from(input.files || []), forced = /PhotoIn$/.test(input.id) ? 'image' : /(VideoIn|videoAltIn)$/.test(input.id) ? 'video' : '';
     input.value = '';
+    dgBtn({ cameraPhotoIn: 'cam_photo', cameraVideoIn: 'cam_video', galleryPhotoIn: 'gal_photo', galleryVideoIn: 'gal_video', videoAltIn: 'video_alt' }[input.id]);
     if (!files.length) return;
     if (forced === 'video' || files.some(f => mediaKind(f) === 'video')) { vidGot = true; $('vidHelp').classList.add('hidden'); }
     if (DRAFT_RESTORING) return showErr('انتظر لحظة — تُستعاد المرفقات المحفوظة.');
@@ -836,8 +889,8 @@
       if (!waitTimer) { waitFake = Math.max(waitFake, 8); waitTimer = setInterval(() => { waitFake = Math.min(92, waitFake + 2); refreshSendBtn(); }, 400); }
       const items = photos.map(p => p.uploading ? 0 : 100).concat(video ? [video.uploading ? (video.progress || 0) : 100] : []);
       const real = items.length ? Math.round(items.reduce((a, x) => a + x, 0) / items.length) : 0;
-      const p = video && video.uploading ? Math.max(real, 5) : Math.max(real, waitFake);   // فيديو: النسبة الفعلية، صور: تقدّم تقديري
-      b.disabled = true; b.classList.add('waiting'); b.style.setProperty('--p', p + '%'); b.textContent = '⏳ جاري رفع المرفقات… ' + p + '%';
+      const vu = video && video.uploading, p = vu ? Math.max(video.preparing ? (video.prep || 0) : real, 3) : Math.max(real, waitFake);   // فيديو: النسبة الفعلية، صور: تقدّم تقديري
+      b.disabled = true; b.classList.add('waiting'); b.style.setProperty('--p', p + '%'); b.textContent = vu ? (video.preparing ? '⚙️ نجهّز الفيديو… ' : '⏳ رفع الفيديو… ') + p + '%' : '⏳ جاري رفع المرفقات… ' + p + '%';
     } else {
       if (waitTimer) { clearInterval(waitTimer); waitTimer = null; }
       waitFake = 0; b.classList.remove('waiting'); b.style.removeProperty('--p');
@@ -848,10 +901,10 @@
   function drawThumbs() {
     const badge = x => x.uploading ? '<div style="position:absolute;top:30%;left:30%;font-size:20px">⏳</div>' : (false ? '' : `<div style="position:absolute;bottom:4px;right:4px;color:#fff;background:${x.error ? 'var(--danger)' : 'var(--ok, #16a34a)'};border-radius:50%;width:20px;height:20px;text-align:center;font-size:12px">${x.error ? '!' : '✓'}</div>`);
     const h = photos.map((p, i) => `<div class="thumb" style="${p.uploading ? 'opacity:.5' : ''}"><img src="${p.url}">${badge(p)}<button onclick="rmPhoto(${i})">✕</button></div>`);
-    if (video) h.push(`<div class="thumb" style="${video.uploading ? 'opacity:.55' : ''}"><video src="${video.url}" muted></video>${video.uploading ? `<span style="position:absolute;inset:0;display:grid;place-items:center;color:#fff;background:#0008;font-size:12px;font-weight:800">${video.progress || 0}%</span>` : badge(video)}<button onclick="rmVideo()">✕</button></div>`);
+    if (video) h.push(`<div class="thumb" style="${video.uploading ? 'opacity:.55' : ''}"><video src="${video.url}" muted></video>${video.uploading ? `<span style="position:absolute;inset:0;display:grid;place-items:center;color:#fff;background:#0008;font-size:12px;font-weight:800">${video.preparing ? '⚙️ ' + (video.prep || 0) : (video.progress || 0)}%</span>` : badge(video)}<button onclick="rmVideo()">✕</button></div>`);
     $('thumbs').innerHTML = h.join('');
     const up = photos.filter(p => p.uploading).length + (video && video.uploading ? 1 : 0), pr = $('uploadProgress');
-    if (pr) { pr.style.display = up ? 'block' : 'none'; pr.textContent = '⏳ جاري رفع ' + up + ' مرفق… انتظر قبل الإرسال'; }
+    if (pr) { pr.style.display = up ? 'block' : 'none'; pr.textContent = video && video.uploading ? (video.preparing ? '⚙️ نجهّز الفيديو ليُرفع أسرع… ' + (video.prep || 0) + '% (لحظات)' : '⏳ رفع الفيديو: ' + (video.file.size * (video.progress || 0) / 1e8 | 0) / 10 + ' من ' + (video.file.size / 1e6).toFixed(1) + ' ميجا — لا تغلق الصفحة') : '⏳ جاري رفع ' + up + ' مرفق… انتظر قبل الإرسال'; }
     $('f_desc').classList.remove('bad'); refreshSteps(); refreshSendBtn();
   }
   function rmPhoto(i) { const p = photos[i]; if (!p) return; p.cancelled = true; photos.splice(i, 1); run('removeTempPhoto', TEMP_KEY, 0, p.clientId).catch(() => {}); dbDel('photo', p.clientId); drawThumbs(); }
@@ -947,12 +1000,12 @@
       gWhat = ({ water: '💧 وايت ماء', sewage: '🚽 وايت صرف', maint: '🔧 صيانة', paint: '🖌️ بوية' }[gKind] || '') + ' — ' + (gScope === 'apt' ? '🚪 شقة ' + gapt : '🏢 كل العمارة');
       const _gc = await uiAsk('إرسال البلاغ: ' + gWhat + '؟', 'نعم، أرسل');   // تأكيد قبل الإرسال (يمنع بلاغ بالخطأ)
       if (!_gc.ok) return;
-      call = () => run('submitGuard', GUARD, gScope === 'apt' ? gapt : '', gKind, photos.length + (video ? 1 : 0), sendKey, 1, photos.length ? TEMP_KEY : '', video ? VIDEO_TEMP_KEY : '');
+      call = () => run('submitGuard', GUARD, gScope === 'apt' ? gapt : '', gKind, photos.length + (video ? 1 : 0), sendKey, 1, photos.length ? TEMP_KEY : '', video ? VIDEO_TEMP_KEY : '', diagPayload());
     } else {
       if (photos.some(p => p.uploading) || (video && video.uploading)) return showErr('انتظر اكتمال رفع المرفقات ثم أرسل');
       if (photos.some(p => p.error) || (video && video.error)) return showErr('بعض المرفقات لم تُرفع — احذفها (✕) وأعد اختيارها');
       f = { desc: $('desc').value.trim(), type: selType, urgent: $('urgent').checked, website: $('website').value, mediaCount: photos.length + (video ? 1 : 0), tmpKey: photos.length ? TEMP_KEY : '', videoTmpKey: video ? VIDEO_TEMP_KEY : '' };
-      f.outside = locOut ? 1 : 0; f.reqKey = sendKey;
+      f.outside = locOut ? 1 : 0; f.reqKey = sendKey; f.diag = diagPayload();
       if (ident) {
         f.lk = ident.lk; f.pick = ident.pick;
         if (ident.needPhone) { f.phone = toLatin($('phone2').value).trim(); if (!phoneOk(f.phone)) return bad('phone2'); }
