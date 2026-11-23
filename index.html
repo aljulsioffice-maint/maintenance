@@ -223,6 +223,11 @@
   /* الحارس */
   #gAptList .chip { min-width: 70px; padding: 14px 12px; font-size: 24px; font-weight: 800; justify-content: center; }
   #gAptList .chip.on { background: #16a34a !important; color: #fff !important; border-color: #16a34a !important; }
+  @keyframes gwob { 0%,100% { transform: rotate(0) scale(1); } 20% { transform: rotate(-3deg) scale(1.05); } 40% { transform: rotate(3deg) scale(1.05); } 60% { transform: rotate(-2deg) scale(1.03); } 80% { transform: rotate(2deg) scale(1.03); } }
+  @keyframes gshake { 0%,100% { transform: translateX(0); } 15% { transform: translateX(-9px); } 30% { transform: translateX(9px); } 45% { transform: translateX(-7px); } 60% { transform: translateX(7px); } 75% { transform: translateX(-4px); } 90% { transform: translateX(4px); } }
+  #gKinds.nudge .type { animation: gwob 1.6s ease-in-out infinite; }
+  #gKinds.nudge .type:nth-child(2) { animation-delay: .25s; } #gKinds.nudge .type:nth-child(3) { animation-delay: .5s; }
+  #gKinds.shake .type { animation: gshake .6s ease-in-out 3; outline: 3px solid #dc2626; }
   .gdoor { text-align: center; margin-top: 14px; padding: 14px 10px; border-radius: 18px; background: #e8f7ee; border: 3px solid #16a34a; }
   .gd-art { font-size: 46px; line-height: 1.2; } .gd-num { font-size: 60px; font-weight: 900; color: #15803d; line-height: 1.05; } .gd-txt { font-size: 19px; font-weight: 800; color: #15803d; margin-top: 4px; }
   @media (prefers-color-scheme: dark) { .gdoor { background: #10301f; } .gd-num, .gd-txt { color: #86efac; } }
@@ -593,10 +598,10 @@
   refreshMyBtn();
   if (GUARD) {
     ['tenCard', 'probCard', 'tgBtn', 'shBtn'].forEach(k => { const e = $(k); if (e) e.classList.add('hidden'); });
-    $('guardCard').classList.remove('hidden'); $('mediaH').textContent = 'صورة أو فيديو';   // الحارس يرفع صورة أو فيديو (زر 🎥 يفتح الكاميرا مباشرة للتصوير)
+    $('guardCard').classList.remove('hidden'); $('gKinds').classList.add('nudge'); $('mediaH').textContent = 'صورة أو فيديو';   // الحارس يرفع صورة أو فيديو (زر 🎥 يفتح الكاميرا مباشرة للتصوير)
     $('gKinds').addEventListener('click', e => {
       const b = e.target.closest('.type'); if (!b) return;
-      gKind = b.dataset.k;
+      gKind = b.dataset.k; $('gKinds').classList.remove('nudge', 'shake');
       document.querySelectorAll('#gKinds .type').forEach(x => x.classList.toggle('on', x === b));
       const tk = gKind === 'water' || gKind === 'sewage';   // وايت/صرف: بلا اختيار شقة
       $('gScope').classList.toggle('hidden', tk); if (tk) { setGScope('bld'); $('gAptBox').classList.add('hidden'); }
@@ -663,11 +668,10 @@
 
   async function addPhoto(f, restoredId) {
     if (photos.length >= MAX_PHOTOS) { showErr('الحد الأقصى ' + MAX_PHOTOS + ' صور'); return; }
-    const p = { file: f, url: URL.createObjectURL(f), clientId: restoredId || newKey().slice(4), uploading: !GUARD };
+    const p = { file: f, url: URL.createObjectURL(f), clientId: restoredId || newKey().slice(4), uploading: true };
     photos.push(p); drawThumbs();
-    if (GUARD) return;
     try {
-      if (!restoredId) await dbPut('photo', p.clientId, f);
+      if (!restoredId && !GUARD) await dbPut('photo', p.clientId, f);
       const r = await retryRun('uploadTempPhoto', await compress(f), TEMP_KEY, p.clientId);
       if (!r || !r.ok) throw new Error((r && r.msg) || 'upload');
       p.uploading = false;
@@ -682,11 +686,10 @@
     const dur = await videoDuration(f);
     if (dur > MAX_VIDEO_SEC + 1) return showErr('الفيديو أطول من ' + MAX_VIDEO_SEC + ' ثانية — صوّر مقطعاً أقصر');
     if (f.size > MAX_VIDEO_MB * 1024 * 1024) return showErr('حجم الفيديو كبير — صوّر مقطعاً أقصر');
-    if (!restored && !GUARD) { VIDEO_TEMP_KEY = newKey('_v'); lsSet('mr_video_temp_key', VIDEO_TEMP_KEY); }
-    const v = { file: f, url: URL.createObjectURL(f), uploading: !GUARD, progress: 0 };
+    if (!restored) { VIDEO_TEMP_KEY = newKey('_v'); lsSet('mr_video_temp_key', VIDEO_TEMP_KEY); }
+    const v = { file: f, url: URL.createObjectURL(f), uploading: true, progress: 0 };
     video = v; drawThumbs();
-    if (GUARD) return;
-    if (!restored) await dbPut('video', 'video', f);
+    if (!restored && !GUARD) await dbPut('video', 'video', f);
     await uploadVideoTemp(v, VIDEO_TEMP_KEY);
   }
   async function uploadVideoTemp(v, key) {
@@ -756,7 +759,7 @@
   // زر الإرسال أثناء الرفع: معطّل لكنه «يمتلئ» تدريجياً مع نسبة، فلا يحسّ المستخدم أن شيئاً متوقف
   let sendingNow = false, waitFake = 0, waitTimer = null;
   function refreshSendBtn() {
-    if (sendingNow || GUARD) return;
+    if (sendingNow) return;
     const b = $('sendBtn'), up = photos.some(p => p.uploading) || !!(video && video.uploading);
     if (up) {
       if (!waitTimer) { waitFake = Math.max(waitFake, 8); waitTimer = setInterval(() => { waitFake = Math.min(92, waitFake + 2); refreshSendBtn(); }, 400); }
@@ -768,11 +771,11 @@
       if (waitTimer) { clearInterval(waitTimer); waitTimer = null; }
       waitFake = 0; b.classList.remove('waiting'); b.style.removeProperty('--p');
       const blocked = typeof waterSelected === 'function' && waterSelected() && waterMode === 'net';
-      b.disabled = blocked; b.textContent = blocked ? 'لا حاجة لرفع بلاغ — انقطاع الشبكة' : 'إرسال البلاغ';
+      b.disabled = blocked; b.textContent = blocked ? 'لا حاجة لرفع بلاغ — انقطاع الشبكة' : (GUARD ? '📤 إرسال' : 'إرسال البلاغ');
     }
   }
   function drawThumbs() {
-    const badge = x => x.uploading ? '<div style="position:absolute;top:30%;left:30%;font-size:20px">⏳</div>' : (GUARD ? '' : `<div style="position:absolute;bottom:4px;right:4px;color:#fff;background:${x.error ? 'var(--danger)' : 'var(--ok, #16a34a)'};border-radius:50%;width:20px;height:20px;text-align:center;font-size:12px">${x.error ? '!' : '✓'}</div>`);
+    const badge = x => x.uploading ? '<div style="position:absolute;top:30%;left:30%;font-size:20px">⏳</div>' : (false ? '' : `<div style="position:absolute;bottom:4px;right:4px;color:#fff;background:${x.error ? 'var(--danger)' : 'var(--ok, #16a34a)'};border-radius:50%;width:20px;height:20px;text-align:center;font-size:12px">${x.error ? '!' : '✓'}</div>`);
     const h = photos.map((p, i) => `<div class="thumb" style="${p.uploading ? 'opacity:.5' : ''}"><img src="${p.url}">${badge(p)}<button onclick="rmPhoto(${i})">✕</button></div>`);
     if (video) h.push(`<div class="thumb" style="${video.uploading ? 'opacity:.55' : ''}"><video src="${video.url}" muted></video>${video.uploading ? `<span style="position:absolute;inset:0;display:grid;place-items:center;color:#fff;background:#0008;font-size:12px;font-weight:800">${video.progress || 0}%</span>` : badge(video)}<button onclick="rmVideo()">✕</button></div>`);
     $('thumbs').innerHTML = h.join('');
@@ -780,10 +783,10 @@
     if (pr) { pr.style.display = up ? 'block' : 'none'; pr.textContent = '⏳ جاري رفع ' + up + ' مرفق… انتظر قبل الإرسال'; }
     $('f_desc').classList.remove('bad'); refreshSteps(); refreshSendBtn();
   }
-  function rmPhoto(i) { const p = photos[i]; if (!p) return; p.cancelled = true; photos.splice(i, 1); if (!GUARD) { run('removeTempPhoto', TEMP_KEY, 0, p.clientId).catch(() => {}); dbDel('photo', p.clientId); } drawThumbs(); }
+  function rmPhoto(i) { const p = photos[i]; if (!p) return; p.cancelled = true; photos.splice(i, 1); run('removeTempPhoto', TEMP_KEY, 0, p.clientId).catch(() => {}); dbDel('photo', p.clientId); drawThumbs(); }
   function rmVideo() {
-    const old = video; if (old) { old.cancelled = true; if (!GUARD) { run('removeTempVideo', VIDEO_TEMP_KEY).catch(() => {}); dbDel('video', 'video'); } }
-    video = null; if (!GUARD) { VIDEO_TEMP_KEY = newKey('_v'); lsSet('mr_video_temp_key', VIDEO_TEMP_KEY); } drawThumbs();
+    const old = video; if (old) { old.cancelled = true; run('removeTempVideo', VIDEO_TEMP_KEY).catch(() => {}); dbDel('video', 'video'); }
+    video = null; VIDEO_TEMP_KEY = newKey('_v'); lsSet('mr_video_temp_key', VIDEO_TEMP_KEY); drawThumbs();
   }
 
   async function compress(file) {
@@ -830,6 +833,10 @@
     el.classList.toggle('hidden', !a.length);
     el.innerHTML = a.length ? '<b>🕘 آخر بلاغاتك</b>' + a.map(x => '<div style="margin-top:8px;display:flex;gap:8px;align-items:center;flex-wrap:wrap"><span>#' + x.id + ' · ' + String(x.w).replace(/</g, '&lt;') + ' · ' + x.t + (x.c ? ' · <b>⛔ مسحوب</b>' : '') + '</span>' + (!x.c && x.tok && x.ts && Date.now() - x.ts < 120000 ? '<button type="button" class="chip" onclick="undoRecent(\'' + x.id + '\')">↩️ تراجع</button>' : '') + '</div>').join('') : '';
   }
+  function nudgeKinds(strong) {   // لم يختر النوع: الأشكال تتحرك لتلفت نظره
+    const k = $('gKinds'); if (!k || gKind) return;
+    k.classList.add('nudge'); if (strong) { k.classList.remove('shake'); void k.offsetWidth; k.classList.add('shake'); try { k.scrollIntoView({ behavior: 'smooth', block: 'center' }); navigator.vibrate && navigator.vibrate([120, 60, 120]); } catch (e) {} setTimeout(() => k.classList.remove('shake'), 2000); }
+  }
   function updDoor() {   // رسم بصري بلا قراءة: ✓ على الوحدة المختارة + الباب والعلامة ورقم الشقة بخط ضخم
     const v = $('gapt').value;
     document.querySelectorAll('#gAptList .chip').forEach(b => { const on = b.dataset.a === v && !!v; b.classList.toggle('on', on); b.textContent = (on ? '✓ ' : '') + b.dataset.a; });
@@ -844,13 +851,15 @@
     let f, call;
     if (GUARD) {
       const gapt = $('gapt').value.trim();
-      if (!gKind) return showErr('اختر: وايت ماء أو وايت صرف أو صيانة');
+      if (!gKind) { nudgeKinds(true); return showErr('اختر: وايت ماء أو وايت صرف أو صيانة'); }
+      if (photos.some(p => p.uploading) || (video && video.uploading)) return showErr('انتظر… الصورة قيد الرفع ⏳');
+      if (photos.some(p => p.error) || (video && video.error)) return showErr('⚠️ صورة لم تُرفع — اضغط ✕ عليها ثم صوّرها من جديد');
       if (gScope === 'apt' && !gapt) return showErr('اختر رقم الشقة أو اضغط «المبنى بالكامل»');
       if (gKind === 'maint' && !photos.length && !video) return showErr('صوّر المشكلة');
       gWhat = ({ water: '💧 وايت ماء', sewage: '🚽 وايت صرف', maint: '🔧 صيانة' }[gKind] || '') + ' — ' + (gScope === 'apt' ? '🚪 شقة ' + gapt : '🏢 كل العمارة');
       const _gc = await uiAsk('إرسال البلاغ: ' + gWhat + '؟', 'نعم، أرسل');   // تأكيد قبل الإرسال (يمنع بلاغ بالخطأ)
       if (!_gc.ok) return;
-      call = () => run('submitGuard', GUARD, gScope === 'apt' ? gapt : '', gKind, photos.length + (video ? 1 : 0), sendKey, 1);
+      call = () => run('submitGuard', GUARD, gScope === 'apt' ? gapt : '', gKind, photos.length + (video ? 1 : 0), sendKey, 1, photos.length ? TEMP_KEY : '', video ? VIDEO_TEMP_KEY : '');
     } else {
       if (photos.some(p => p.uploading) || (video && video.uploading)) return showErr('انتظر اكتمال رفع المرفقات ثم أرسل');
       if (photos.some(p => p.error) || (video && video.error)) return showErr('بعض المرفقات لم تُرفع — احذفها (✕) وأعد اختيارها');
@@ -895,9 +904,9 @@
     else { setGScope('bld'); gKind = ''; document.querySelectorAll('#gKinds .type').forEach(x => x.classList.remove('on')); }
 
     // رقم البلاغ يظهر فوراً؛ المرفقات تكمل رفعها بالخلفية وتظهر حالتها بشاشة «تم الاستلام»
-    const ph = GUARD ? photos.slice() : [], vd = GUARD ? video : null;   // المستأجر رُفعت مرفقاته مسبقاً؛ الحارس يرفع بعد الإرسال
-    const preUp = !GUARD && !!(photos.length || video);
-    if (!GUARD) { TEMP_KEY = newKey(); lsSet('mr_temp_key', TEMP_KEY); VIDEO_TEMP_KEY = newKey('_v'); lsSet('mr_video_temp_key', VIDEO_TEMP_KEY); lsSet('mr_draft', {}); dbClear(); }
+    const ph = [], vd = null;   // المرفقات (للمستأجر والحارس) رُفعت مسبقاً قبل الإرسال
+    const preUp = !!(photos.length || video);
+    TEMP_KEY = newKey(); lsSet('mr_temp_key', TEMP_KEY); VIDEO_TEMP_KEY = newKey('_v'); lsSet('mr_video_temp_key', VIDEO_TEMP_KEY); if (!GUARD) { lsSet('mr_draft', {}); dbClear(); }
     // إنهاء البلاغ بالخلفية (نقل المرفقات + إرسال البطاقة للفريق) — الشاشة لا تنتظره
     const fin = res.deferred && res.id ? run('finishRequest', res.id, res.token).catch(() => {}) : Promise.resolve();
     if (preUp && res.id) fin.then(() => fire('flushMedia', res.id, res.token));
