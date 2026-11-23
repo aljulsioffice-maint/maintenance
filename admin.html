@@ -286,7 +286,7 @@
   const API_URL = 'https://script.google.com/macros/s/AKfycby4tmfamJKcw5g29sgp45Rp6j_jSC_1TB5a28VDDbqjznHfN8aZFDdc8Bn9pcWkLs6u7g/exec';
   const $ = id => document.getElementById(id);
   const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
-  const TYPE_LIST = ['سباكة', 'كهرباء', 'مصعد', 'أخرى', 'وايت ماء', 'وايت صرف صحي'];
+  const TYPE_LIST = ['سباكة', 'كهرباء', 'مصعد', 'أخرى', 'وايت ماء', 'وايت صرف صحي', 'بوية'];
   const TITLES = { req: 'الطلبات', rat: 'تقييمات الفنيين', vis: 'جدول المواعيد', rep: 'الإحصاءات', perf: 'الأداء', team: 'الفريق والحراس', dir: 'العمائر والمستأجرون', set: 'الإعدادات والميزات' };
   let KEY = '', DATA = null, FILTER = 'open', SEL = '', DETAIL = null, busy = false, TAB = 'req', BLDS = null;
   let TEAM = null, GUARDS = null, TENROWS = [];
