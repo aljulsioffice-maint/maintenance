@@ -113,6 +113,9 @@
   .tabs2 .tabbtn { margin-bottom: 0; }
   .tabbtn.on { background: var(--pri, #0b6bcb); color: #fff; border-color: transparent; }
   .media-btns { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .media-label { font-weight: 800; font-size: 15px; margin: 0 0 8px; }
+  .media-label small { font-weight: 600; color: var(--muted, #667); font-size: 12px; }
+  #mediaBox { margin-bottom: 14px; padding-bottom: 12px; border-bottom: 1px dashed var(--line); }
   .media-btns.icons { display: flex; gap: 8px; }
   .media-btns.icons .mbtn { flex: 1; min-width: 0; padding: 12px 0; }
   .media-btns.icons .mbtn .ic { font-size: 30px; line-height: 1; }
@@ -279,8 +282,9 @@
       <div class="fld" id="f_desc"><textarea id="desc" placeholder="اكتب المشكلة باختصار… أو اختر من الأعلى"></textarea><div class="em">اكتب وصف المشكلة أو أرفق صورة</div></div>
     </div>
 
-    <div class="card">
+    <div class="card" id="mediaCard">
       <div class="sec" id="sec3"><div class="num">3</div><h2 id="mediaH">صور أو فيديو <small>(اختياري)</small></h2></div>
+      <div id="mediaBox">
       <div class="media-btns icons">
         <button class="mbtn" type="button" title="تصوير صورة" aria-label="تصوير صورة" onclick="document.getElementById('cameraPhotoIn').click()"><span class="ic">📷</span></button>
         <button class="mbtn vid" type="button" title="تصوير فيديو" aria-label="تصوير فيديو" onclick="document.getElementById('cameraVideoIn').click()"><span class="ic">🎥</span></button>
@@ -289,11 +293,12 @@
       </div>
       <input type="file" id="cameraPhotoIn" accept="image/*" capture="environment" class="hidden">
       <input type="file" id="cameraVideoIn" accept="video/*" capture="environment" class="hidden">
-      <input type="file" id="galleryPhotoIn" accept="image/jpeg,image/png,image/webp,image/heic,image/heif" multiple class="hidden">
-      <input type="file" id="galleryVideoIn" accept="video/mp4,video/quicktime,video/webm,video/3gpp,video/x-m4v" class="hidden">
+      <input type="file" id="galleryPhotoIn" accept="image/*" multiple class="hidden">
+      <input type="file" id="galleryVideoIn" accept="video/*" class="hidden">
       <div class="thumbs" id="thumbs"></div>
       <div class="hint">حتى 4 صور، وفيديو واحد لا يزيد عن 30 ثانية. الصورة تسرّع الحل. المرفقات تُرفع فور اختيارها وتُحفظ لو أغلقت الصفحة.</div>
       <div id="uploadProgress" class="hint" style="color:var(--accent);font-weight:800;display:none;margin-top:8px"></div>
+      </div>
     </div>
 
     <div class="hp" aria-hidden="true"><input type="text" id="website" tabindex="-1" autocomplete="off"></div>
@@ -348,7 +353,7 @@
   // مشاكل خارج الشقة (المبنى/الأسياب/الأحواش…)
   const QUICK_OUT = {
     plumb: [{ t: 'تسرب مياه بالحوش' }, { t: 'انسداد مجاري' }, { t: 'مشكلة بالخزان أو المضخة' }],
-    elec: [{ t: 'إنارة الدرج معطلة' }, { t: 'إنارة المدخل' }, { t: 'إنارة الأسياب' }],
+    elec: [{ t: 'إنارة معطلة' }],
     elev: [{ t: 'المصعد معطّل' }, { t: 'باب المصعد لا يغلق' }],
     other: [{ t: 'باب المدخل' }, { t: 'البوابة' }, { t: 'الحوش' }],
   };
@@ -394,6 +399,7 @@
   $('types').innerHTML = TYPES.map(t => `<button type="button" class="type" data-k="${t[0]}" style="--c:${t[3]}"><span class="ic">${t[1]}</span>${t[2]}</button>`).join('');
   $('types').addEventListener('click', e => {
     const b = e.target.closest('.type'); if (!b) return;
+    clearChipsFromDesc();   // عبارات النوع السابق لا تبقى بالوصف (نوع واحد لكل بلاغ)
     selType = b.dataset.k;
     document.querySelectorAll('#types .type').forEach(x => x.classList.toggle('on', x === b));
     $('f_type').classList.remove('bad');
@@ -405,6 +411,11 @@
     chipSel = [];
     paintChips();
     needSrc = false; srcMode = ''; $('f_src').classList.add('hidden'); $('srcSame').classList.remove('on'); $('srcUp').classList.remove('on'); $('srcRoof').classList.remove('on'); $('srcUnk').classList.remove('on'); $('srcApt').classList.add('hidden');
+  }
+  function clearChipsFromDesc() {
+    if (!chipSel.length) return;
+    const d = $('desc'); d.value = d.value.split('،').map(x => x.trim()).filter(x => x && chipSel.indexOf(x) < 0).join('، ');
+    chipSel = []; needSrc = false; saveDraftText();
   }
   function paintChips() {
     const list = curQuick();
@@ -649,6 +660,11 @@
     } catch (e) { console.warn('draft restore', e); }
   }
   if (!GUARD) {
+    // المستأجر: الصور/الفيديو بأول «وش المشكلة؟» حتى يبدأ الرفع وهو يكمل التعبئة
+    const mb = $('mediaBox'), lb = document.createElement('div');
+    lb.className = 'media-label'; lb.innerHTML = '📸 صوّر المشكلة أو أرفق صوراً/فيديو <small>(اختياري — تُرفع وأنت تكمل التعبئة)</small>';
+    mb.insertBefore(lb, mb.firstChild);
+    $('probCard').insertBefore(mb, $('f_loc')); $('mediaCard').classList.add('hidden'); $('st3').style.display = 'none';
     setTimeout(() => restoreDraft().finally(() => { DRAFT_RESTORING = false; drawThumbs(); }), 150);
     $('desc').addEventListener('input', saveDraftText); $('urgent').addEventListener('change', saveDraftText);
   }
