@@ -344,7 +344,7 @@
   let PR = 'week', PD = null;
   const pad2 = n => ('0' + n).slice(-2), fmtD = d => d.getFullYear() + '-' + pad2(d.getMonth() + 1) + '-' + pad2(d.getDate());
   function perfRange(k) {
-    const t = new Date(); t.setHours(12); const sun = new Date(t); sun.setDate(t.getDate() - t.getDay());
+    const t = new Date(); t.setHours(12); const sun = new Date(t); sun.setDate(t.getDate() - (t.getDay() + 1) % 7);   // بداية الأسبوع = السبت
     if (k === 'week') { const e = new Date(sun); e.setDate(sun.getDate() + 6); return [fmtD(sun), fmtD(e)]; }
     if (k === 'last') { const a = new Date(sun); a.setDate(sun.getDate() - 7); const e = new Date(sun); e.setDate(sun.getDate() - 1); return [fmtD(a), fmtD(e)]; }
     if (k === 'month') return [fmtD(new Date(t.getFullYear(), t.getMonth(), 1)), fmtD(t)];
@@ -364,24 +364,24 @@
     h += `<div class="hint" style="margin-bottom:8px">الفترة: ${d.from} ← ${d.to} · الصباح = قبل الساعة ${d.split - 12} عصراً، العصر = بعدها</div>`;
     h += '<div class="kpis">' + [['وارد', t.created], ['عولج', t.closed], ['مفتوح الآن', t.openNow], ['طارئ', t.urgent], ['مرفوض', t.rejected], ['متوسط الإنجاز (ساعة)', t.avgH], ['التكلفة (ر.س)', t.cost]].map(x => `<div class="kpi"><b>${x[1]}</b><span>${x[0]}</span></div>`).join('') + '</div>';
     h += '<div class="panel" style="margin-bottom:14px"><h3 style="margin-top:0">👷 الفنيون — أيام العمل</h3>';
-    h += d.techs.length ? '<table><tr><th>الفني</th><th>أنجز</th><th>أيام العمل</th><th>☀️ صباح</th><th>🌙 عصر</th><th>الاثنان</th><th>صباح فقط</th><th>عصر فقط</th><th>متوسط (س)</th></tr>' + d.techs.map((x, i) => `<tr onclick="document.getElementById('pw${i}').classList.toggle('hidden')" style="cursor:pointer"><td><b>${esc(x.name)}</b></td><td>${x.done}</td><td>${x.days}</td><td>${x.m}</td><td>${x.a}</td><td>${x.both}</td><td>${x.mOnly}</td><td>${x.aOnly}</td><td>${x.avgH}</td></tr><tr id="pw${i}" class="hidden"><td colspan="9">${x.weeks.map(w => `<div style="margin:6px 0"><b>أسبوع ${w.w}</b> <span class="hint">(الاثنان ${w.both} · صباح فقط ${w.mOnly} · عصر فقط ${w.aOnly})</span><br>${w.days.map(dy => `<span class="chip2">${esc(dy.dn)} ${dy.d.slice(5)} ${dy.m ? '<span class="sm">☀️' + dy.m + '</span>' : ''} ${dy.a ? '<span class="sa">🌙' + dy.a + '</span>' : ''}</span>`).join('')}</div>`).join('')}</td></tr>`).join('') + '</table><div class="hint noprint">اضغط على الفني لرؤية أيامه أسبوعاً أسبوعاً</div>' : '<div class="empty">لا إنجازات بهذه الفترة</div>';
+    h += d.techs.length ? '<table><tr><th>الفني</th><th>أنجز</th><th>أيام العمل</th><th>☀️ صباح</th><th>🌙 عصر</th><th>الاثنان</th><th>صباح فقط</th><th>عصر فقط</th><th>متوسط (س)</th></tr>' + d.techs.map((x, i) => `<tr onclick="document.getElementById('pw${i}').classList.toggle('hidden')" style="cursor:pointer"><td><b>${esc(x.name)}</b></td><td>${x.done}</td><td>${x.days}</td><td>${x.m}</td><td>${x.a}</td><td>${x.both}</td><td>${x.mOnly}</td><td>${x.aOnly}</td><td>${x.avgH}</td></tr><tr id="pw${i}" class="hidden"><td colspan="9">${x.weeks.map(w => `<div style="margin:6px 0"><b>أسبوع ${w.w}</b> <span class="hint">(الاثنان ${w.both} · صباح فقط ${w.mOnly} · عصر فقط ${w.aOnly})</span><br>${w.days.map(dy => `<span class="chip2">${esc(dy.dn)} ${dy.d.slice(5)} ${dy.m ? '<span class="sm">☀️' + dy.m + '</span>' : ''} ${dy.a ? '<span class="sa">🌙' + dy.a + '</span>' : ''} ${dy.n ? '<span class="hint">⚪' + dy.n + '</span>' : ''}</span>`).join('')}</div>`).join('')}</td></tr>`).join('') + '</table><div class="hint noprint">اضغط على الفني لرؤية أيامه أسبوعاً أسبوعاً</div>' : '<div class="empty">لا إنجازات بهذه الفترة</div>';
     h += '</div><div class="panel" style="margin-bottom:14px"><h3 style="margin-top:0">📊 حسب النوع</h3>' + barsH(d.byType) + '<h3>🏢 حسب العمارة</h3>' + barsH(d.byBuilding) + '</div>';
-    h += '<div class="panel" style="margin-bottom:14px"><h3 style="margin-top:0">📈 أسبوعياً</h3>' + (d.weeks.length ? '<table><tr><th>الأسبوع (من الأحد)</th><th>وارد</th><th>عولج</th></tr>' + d.weeks.map(w => `<tr><td>${w.w}</td><td>${w.created}</td><td>${w.closed}</td></tr>`).join('') + '</table>' : '<div class="hint">لا بيانات</div>') + '</div>';
+    h += '<div class="panel" style="margin-bottom:14px"><h3 style="margin-top:0">📈 أسبوعياً</h3>' + (d.weeks.length ? '<table><tr><th>الأسبوع (من السبت)</th><th>وارد</th><th>عولج</th></tr>' + d.weeks.map(w => `<tr><td>${w.w}</td><td>${w.created}</td><td>${w.closed}</td></tr>`).join('') + '</table>' : '<div class="hint">لا بيانات</div>') + '</div>';
     h += '<div class="panel" style="margin-bottom:14px"><h3 style="margin-top:0">🔁 مشاكل متكررة (آخر 90 يوماً — 3 بلاغات فأكثر)</h3>' + (d.recurring.length ? '<table><tr><th>العمارة</th><th>العطل</th><th>مرات</th><th>شقق</th></tr>' + d.recurring.map(x => `<tr><td>${esc(x.b)}</td><td>${esc(x.t)}</td><td><b>${x.n}</b></td><td>${x.apts}</td></tr>`).join('') + '</table>' : '<div class="hint">لا تكرار يستحق الانتباه ✅</div>') + '</div>';
     h += '<div class="panel"><h3 style="margin-top:0">💰 التكلفة حسب العمارة</h3>' + barsH(d.costBy, ' ر.س') + (d.warranty.length ? '<h3>🛡️ ضمانات سارية</h3>' + d.warranty.map(x => `<div class="hint">#${x.id} · ${esc(x.b)} · ${esc(x.t)} · حتى ${esc(x.until)} ${x.by ? '· ' + esc(x.by) : ''}</div>`).join('') : '') + '<div class="hint noprint" style="margin-top:8px">أدخل التكلفة/المقاول/الضمان من «✏️ تعديل» داخل الطلب</div></div>';
     $('vperf').innerHTML = '<div id="wkrep" class="panel" style="margin-bottom:14px"></div>' + h; loadWeek();
   }
-  // ---------- تقرير الأسبوع (الأحد ← السبت): يوم بيوم، شمس وليل ----------
+  // ---------- تقرير الأسبوع (السبت ← الجمعة): يوم بيوم، شمس وليل ----------
   let WK = null;
   async function loadWeek(date) {
     const box = $('wkrep'); if (!box) return;
     const r = await call('weekrep', JSON.stringify({ date: date || (WK && !date ? WK.from : '') }), '', ''); if (!r) { box.innerHTML = '<div class="hint">تعذّر تحميل تقرير الأسبوع</div>'; return; }
     WK = r; const cell = (arr) => arr.length ? arr.map(x => `<div style="margin:3px 0;cursor:pointer" onclick="goReq('${esc(x.id)}')">#${esc(x.id)} · ${esc(x.b)}${x.apt ? ' ' + esc(x.apt) : ''} · ${esc(x.type)}${x.tech ? ' · 👷' + esc(x.tech) : ''}${x.set ? ' <small title="محددة يدوياً">📌</small>' : ''}</div>`).join('') : '<span class="hint">—</span>';
-    let tm = 0, ta = 0; r.days.forEach(d => { tm += d.m.length; ta += d.a.length; });
+    let tm = 0, ta = 0, tn = 0; r.days.forEach(d => { tm += d.m.length; ta += d.a.length; tn += d.n.length; });
     box.innerHTML = `<h3 style="margin-top:0">📅 تقرير الأسبوع (${esc(r.from)} ← ${esc(r.to)})</h3>
       <div class="row noprint"><button class="btn" onclick="loadWeek('${r.prev}')">→ الأسبوع السابق</button><button class="btn" onclick="loadWeek('${r.next}')">الأسبوع التالي ←</button><button class="btn" onclick="loadWeek(fmtD(new Date()))">هذا الأسبوع</button></div>
-      <div class="hint" style="margin:6px 0">المجموع: ☀️ شمس ${tm} · 🌙 ليل ${ta} · 📌 = فترة محددة يدوياً</div>
-      <table><tr><th>اليوم</th><th>☀️ شمس (صباح)</th><th>🌙 ليل (مساء)</th></tr>${r.days.map(d => `<tr><td style="white-space:nowrap"><b>${esc(d.dn)}</b><br><small>${esc(d.d.slice(5))}</small></td><td>${cell(d.m)}</td><td>${cell(d.a)}</td></tr>`).join('')}</table>`;
+      <div class="hint" style="margin:6px 0">المجموع: ☀️ شمس ${tm} · 🌙 ليل ${ta} · ⚪ بدون فترة ${tn} · 📌 = فترة محددة يدوياً</div>
+      <table><tr><th>اليوم</th><th>☀️ شمس (صباح)</th><th>🌙 ليل (مساء)</th><th>⚪ بدون فترة</th></tr>${r.days.map(d => `<tr><td style="white-space:nowrap"><b>${esc(d.dn)}</b><br><small>${esc(d.d.slice(5))}</small></td><td>${cell(d.m)}</td><td>${cell(d.a)}</td><td>${cell(d.n)}</td></tr>`).join('')}</table>`;
   }
   function perfCsv() {
     if (!PD) return; const q = x => '"' + String(x == null ? '' : x).replace(/"/g, '""') + '"';
@@ -445,11 +445,11 @@
   // يوم وفترة الإنجاز (للمنتهي): الفترة المحددة أو التلقائية من الساعة (قبل 3 عصراً = صباح)
   function workTag(r) {
     if (r.st !== 'تمت المعالجة' && r.st !== 'أنجزه الفني') return null;
-    const ts = String(r.cl || r.dn || ''); if (ts.length < 13) return null;
+    const ts = String(r.dn || r.cl || ''); if (ts.length < 13) return null;
     const dt = new Date(ts.slice(0, 10) + 'T12:00:00'), sh = r.shift || (Number(ts.slice(11, 13)) < 15 ? 'm' : 'a');
     return { day: DN_AR[dt.getDay()], sh, set: !!r.shift, d: ts.slice(5, 10) };
   }
-  const tagHtml = r => { const t = workTag(r); return t ? `<span class="chip2" title="${t.set ? 'محددة' : 'تلقائية'}" style="${t.set ? '' : 'opacity:.6'}">${esc(t.day)} ${t.sh === 'm' ? '☀️ شمس' : '🌙 ليل'}</span>` : ''; };
+  const tagHtml = r => { const t = workTag(r); return t ? `<span class="chip2" title="${t.set ? 'محددة' : 'تلقائية'}" style="${t.set ? '' : 'opacity:.6'}">${esc(t.day)} ${t.sh === 'm' ? '☀️ شمس' : t.sh === 'a' ? '🌙 ليل' : '⚪ بدون فترة'}</span>` : ''; };
   const can = k => !DATA || !DATA.perms || DATA.perms[k] !== false;
   const isDone = s => s === 'تمت المعالجة' || s === 'مرفوض' || s === 'ملغي';
   const bcls = s => 'b-' + String(s).split(' ')[0];
@@ -572,7 +572,7 @@
           ${can('cancel_request') ? `<button class="btn bad" onclick="ask2('cancelreq','⛔ إلغاء الطلب','سبب الإلغاء (اختياري)', true)">⛔ إلغاء</button>` : ''}
           ${DATA.superAdmin && DATA.groupReady ? `<button class="btn" onclick="act('publishgroup')">📢 نشر للمجموعة</button>` : ''}
         </div>`}
-      ${DATA.superAdmin ? (() => { const t = workTag(r); return `<h3>🗓️ فترة العمل</h3><div class="row"><span class="hint" style="align-self:center">${t ? 'اليوم: <b>' + esc(t.day) + '</b> (' + esc(t.d) + ') · ' + (t.sh === 'm' ? '☀️ شمس (صباح)' : '🌙 ليل (مساء)') + (t.set ? ' — محددة' : ' — تلقائية من وقت الإنجاز') : (r.shift ? (r.shift === 'm' ? '☀️ شمس (صباح)' : '🌙 ليل (مساء)') + ' — محددة' : 'لم تُحدد')}</span><button class="btn ${r.shift === 'm' ? 'on' : ''}" onclick="act('setshift','m')">☀️ شمس</button><button class="btn ${r.shift === 'a' ? 'on' : ''}" onclick="act('setshift','a')">🌙 ليل</button>${r.shift ? '<button class="btn" onclick="act(\'setshift\',\'\')">↺ تلقائي</button>' : ''}</div>`; })() : ''}
+      ${DATA.superAdmin ? (() => { const t = workTag(r); return `<h3>🗓️ فترة العمل</h3><div class="row"><span class="hint" style="align-self:center">${t ? 'اليوم: <b>' + esc(t.day) + '</b> (' + esc(t.d) + ') · ' + (t.sh === 'm' ? '☀️ شمس (صباح)' : t.sh === 'a' ? '🌙 ليل (مساء)' : '⚪ بدون فترة') + (t.set ? ' — محددة' : ' — تلقائية من وقت الإنجاز') : (r.shift === 'n' ? '⚪ بدون فترة' : r.shift ? (r.shift === 'm' ? '☀️ شمس (صباح)' : '🌙 ليل (مساء)') + ' — محددة' : 'لم تُحدد')}</span><button class="btn ${r.shift === 'm' ? 'on' : ''}" onclick="act('setshift','m')">☀️ شمس</button><button class="btn ${r.shift === 'a' ? 'on' : ''}" onclick="act('setshift','a')">🌙 ليل</button><button class="btn ${r.shift === 'n' ? 'on' : ''}" onclick="act('setshift','n')">⚪ بدون فترة</button>${r.shift ? '<button class="btn" onclick="act(\'setshift\',\'\')">↺ تلقائي</button>' : ''}</div>`; })() : ''}
       ${can('edit_request') || can('delete_request') ? `<h3>تعديل</h3>
       <div class="row">${can('edit_request') ? '<button class="btn" onclick="editReq()">✏️ تعديل البيانات</button>' : ''}${can('delete_request') ? '<button class="btn bad" onclick="delReq()">🗑️ حذف الطلب</button>' : ''}</div>` : ''}
       <h3>🕓 السجل</h3>
@@ -671,7 +671,7 @@
     const diff = w.total - w.last, arrow = diff > 0 ? '▲ ' + diff : diff < 0 ? '▼ ' + Math.abs(diff) : '＝';
     v.innerHTML = `
       <div class="panel" style="border:2px solid var(--pri)">
-        <b>📅 هذا الأسبوع (الأحد ← السبت) · ${esc(w.start)} إلى ${esc(w.end)}</b>
+        <b>📅 هذا الأسبوع (السبت ← الجمعة) · ${esc(w.start)} إلى ${esc(w.end)}</b>
         <div class="stats">
           <div class="stat"><b>${w.total}</b><span>طلبات هذا الأسبوع</span></div>
           <div class="stat"><b>${w.last}</b><span>الأسبوع الماضي (${arrow})</span></div>
