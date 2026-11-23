@@ -145,7 +145,19 @@
   .media-label small { font-weight: 600; color: var(--muted, #667); font-size: 12px; }
   #mediaBox { margin-bottom: 14px; padding-bottom: 12px; border-bottom: 1px dashed var(--line); }
   .media-btns.icons { display: flex; gap: 8px; }
-  .media-btns.icons .mbtn { flex: 1; min-width: 0; padding: 12px 0; }
+  .media-btns.icons .mbtn { flex: 1; min-width: 0; padding: 12px 2px; }
+  .mbtn .mt { display: block; font-size: 13px; font-weight: 800; margin-top: 4px; line-height: 1.2; }
+  .vidHelp { margin-top: 10px; padding: 12px; border: 2px solid #f59e0b; border-radius: 16px; background: #fff7e6; color: #7a4a00; }
+  .vidHelp .vh1 { font-weight: 800; font-size: 17px; margin-bottom: 8px; }
+  .vidHelp .vhb { display: block; width: 100%; margin-top: 8px; padding: 14px 8px; border-radius: 14px; border: 0; background: #1f7ae0; color: #fff; font: inherit; font-weight: 800; font-size: 18px; }
+  .vidHelp .vhb.red { background: #dc2626; }
+  .inapp { position: sticky; top: 0; z-index: 50; margin: 0 -16px 10px; padding: 12px 14px; background: #f59e0b; color: #3b2400; font-weight: 800; font-size: 17px; text-align: center; }
+  .inapp a { display: inline-block; margin-top: 6px; padding: 10px 16px; border-radius: 12px; background: #1b2a3a; color: #fff; text-decoration: none; }
+  #recOv { position: fixed; inset: 0; z-index: 100; background: #000; display: flex; flex-direction: column; align-items: center; justify-content: space-between; padding: 12px; }
+  #recOv video { width: 100%; flex: 1; min-height: 0; object-fit: cover; border-radius: 14px; background: #111; }
+  #recOv .rb { margin: 12px 0 4px; width: 100%; padding: 18px; border-radius: 18px; border: 0; font: inherit; font-size: 22px; font-weight: 900; color: #fff; background: #dc2626; }
+  #recOv .rb.stop { background: #444; } #recOv .rc { color: #fff; font-size: 26px; font-weight: 900; min-height: 34px; }
+  #recOv .rx { background: transparent; color: #fff; border: 2px solid #fff6; border-radius: 12px; padding: 8px 18px; font: inherit; font-weight: 800; }
   .media-btns.icons .mbtn .ic { font-size: 30px; line-height: 1; }
   .mbtn { border: 2px dashed var(--accent); border-radius: 16px; background: var(--accent-soft); color: var(--accent);
     padding: 14px 6px; font: inherit; font-weight: 800; cursor: pointer; text-align: center; font-size: 15px; }
@@ -225,9 +237,9 @@
   #gAptList .chip.on { background: #16a34a !important; color: #fff !important; border-color: #16a34a !important; }
   @keyframes gwob { 0%,100% { transform: rotate(0) scale(1); } 20% { transform: rotate(-3deg) scale(1.05); } 40% { transform: rotate(3deg) scale(1.05); } 60% { transform: rotate(-2deg) scale(1.03); } 80% { transform: rotate(2deg) scale(1.03); } }
   @keyframes gshake { 0%,100% { transform: translateX(0); } 15% { transform: translateX(-9px); } 30% { transform: translateX(9px); } 45% { transform: translateX(-7px); } 60% { transform: translateX(7px); } 75% { transform: translateX(-4px); } 90% { transform: translateX(4px); } }
-  #gKinds.nudge .type { animation: gwob 1.6s ease-in-out infinite; }
-  #gKinds.nudge .type:nth-child(2) { animation-delay: .25s; } #gKinds.nudge .type:nth-child(3) { animation-delay: .5s; }
-  #gKinds.shake .type { animation: gshake .6s ease-in-out 3; outline: 3px solid #dc2626; }
+  .nudge .type, .nudge .chip { animation: gwob 1.6s ease-in-out infinite; }
+  .nudge .type:nth-child(2), .nudge .chip:nth-child(2n) { animation-delay: .25s; } .nudge .type:nth-child(3) { animation-delay: .5s; }
+  .shake .type, .shake .chip { animation: gshake .6s ease-in-out 3; outline: 3px solid #dc2626; }
   .gdoor { text-align: center; margin-top: 14px; padding: 14px 10px; border-radius: 18px; background: #e8f7ee; border: 3px solid #16a34a; }
   .gd-art { font-size: 46px; line-height: 1.2; } .gd-num { font-size: 60px; font-weight: 900; color: #15803d; line-height: 1.05; } .gd-txt { font-size: 19px; font-weight: 800; color: #15803d; margin-top: 4px; }
   @media (prefers-color-scheme: dark) { .gdoor { background: #10301f; } .gd-num, .gd-txt { color: #86efac; } }
@@ -265,7 +277,7 @@
         <button type="button" class="type" data-k="sewage" style="--c:#8a5a2b"><span class="ic">🚽🚛</span>وايت صرف</button>
         <button type="button" class="type" data-k="maint" style="--c:#7a4bd1;grid-column:1/-1"><span class="ic">🔧🪛</span>صيانة (صوّر المشكلة)</button>
       </div>
-      <div class="types" id="gScope" style="margin-top:10px"><button type="button" class="type on" id="gBld" style="--c:#16a34a" onclick="setGScope('bld')"><span class="ic">🏢</span>كل العمارة</button><button type="button" class="type" id="gApt" style="--c:#2563eb" onclick="setGScope('apt')"><span class="ic">🚪</span>شقة محددة</button></div>
+      <div class="types" id="gScope" style="margin-top:10px"><button type="button" class="type" id="gBld" style="--c:#16a34a" onclick="setGScope('bld')"><span class="ic">🏢</span>كل العمارة</button><button type="button" class="type" id="gApt" style="--c:#2563eb" onclick="setGScope('apt')"><span class="ic">🚪</span>شقة محددة</button></div>
       <div id="gAptBox" class="hidden">
       <div class="chips" id="gAptList" style="flex-wrap:wrap;margin-top:8px"></div>
       <input type="hidden" id="gapt" value="">
@@ -336,11 +348,17 @@
       <div class="sec" id="sec3"><div class="num">3</div><h2 id="mediaH">صور أو فيديو <small>(اختياري)</small></h2></div>
       <div id="mediaBox">
       <div class="media-btns icons">
-        <button class="mbtn" type="button" title="تصوير صورة" aria-label="تصوير صورة" onclick="document.getElementById('cameraPhotoIn').click()"><span class="ic">📷</span></button>
-        <button class="mbtn vid" type="button" title="تصوير فيديو" aria-label="تصوير فيديو" onclick="document.getElementById('cameraVideoIn').click()"><span class="ic">🎥</span></button>
-        <button class="mbtn" type="button" title="صور من الاستديو" aria-label="صور من الاستديو" onclick="document.getElementById('galleryPhotoIn').click()"><span class="ic">🖼️</span></button>
-        <button class="mbtn vid" type="button" title="فيديو من الاستديو" aria-label="فيديو من الاستديو" onclick="document.getElementById('galleryVideoIn').click()"><span class="ic">🎞️</span></button>
+        <button class="mbtn" type="button" aria-label="تصوير صورة" onclick="document.getElementById('cameraPhotoIn').click()"><span class="ic">📷</span><span class="mt">صوّر صورة</span></button>
+        <button class="mbtn vid" type="button" aria-label="تصوير فيديو" onclick="onVideoCam()"><span class="ic">🎥</span><span class="mt">صوّر فيديو</span></button>
+        <button class="mbtn" type="button" aria-label="صور من الجوال" onclick="document.getElementById('galleryPhotoIn').click()"><span class="ic">🖼️</span><span class="mt">صورة من الجوال</span></button>
+        <button class="mbtn vid" type="button" aria-label="فيديو من الجوال" onclick="document.getElementById('galleryVideoIn').click()"><span class="ic">🎞️</span><span class="mt">فيديو من الجوال</span></button>
       </div>
+      <div id="vidHelp" class="vidHelp hidden">
+        <div class="vh1">🎥 ما انفتحت كاميرا الفيديو؟ جرّب:</div>
+        <button type="button" class="vhb" onclick="document.getElementById('videoAltIn').click()">1️⃣ 🎥 طريقة ثانية للفيديو</button>
+        <button type="button" class="vhb red" onclick="openRecorder()">2️⃣ 🔴 صوّر من هنا (داخل الصفحة)</button>
+      </div>
+      <input type="file" id="videoAltIn" accept="video/*,android/allowCamera" class="hidden">
       <input type="file" id="cameraPhotoIn" accept="image/*" capture="environment" class="hidden">
       <input type="file" id="cameraVideoIn" accept="video/*" capture="environment" class="hidden">
       <input type="file" id="galleryPhotoIn" accept="image/*" multiple class="hidden">
@@ -604,8 +622,7 @@
       gKind = b.dataset.k; $('gKinds').classList.remove('nudge', 'shake');
       document.querySelectorAll('#gKinds .type').forEach(x => x.classList.toggle('on', x === b));
       const tk = gKind === 'water' || gKind === 'sewage';   // وايت/صرف: بلا اختيار شقة
-      $('gScope').classList.toggle('hidden', tk); if (tk) { setGScope('bld'); $('gAptBox').classList.add('hidden'); }
-      $('mediaCard').classList.toggle('hidden', tk);   // الوايت بلا صور
+      if (tk) setGScope('bld'); gFlow();   // الوايت: بلا شقة ولا صور — الإرسال مباشرة
       $('mediaH').innerHTML = gKind === 'maint' ? '📷🎥 صورة أو فيديو المشكلة <small>(مطلوب)</small>' : '📷🎥 صورة أو فيديو <small>(اختياري)</small>';
     });
     $('sendBtn').textContent = '📤 إرسال'; drawGRecent();
@@ -614,7 +631,7 @@
       const b = e.target.closest('button'); if (!b) return;
       let v = $('gapt').value; const k = b.dataset.k;
       if (k === 'b') v = v.slice(0, -1); else if (k === 'c') v = ''; else if (v.length < 4) v += k;
-      $('gapt').value = v; $('gaptv').textContent = v || '—'; updDoor();
+      $('gapt').value = v; $('gaptv').textContent = v || '—'; updDoor(); gFlow();
     });
     run('guardInfo', GUARD).then(r => {
       if (r && r.ok) { $('guardH').textContent = 'حارس عمارة ' + r.building; $('gAptList').innerHTML = (r.apartments || []).map(a => { const q = String(a).replace(/[^0-9A-Za-z\-]/g, ''); return `<button type="button" class="chip" data-a="${q}" onclick="pickGApt('${q}')">${q}</button>`; }).join(''); if (!(r.apartments || []).length) $('keypad').classList.remove('hidden'); }
@@ -684,7 +701,7 @@
   async function addVideo(f, restored) {
     if (video) return showErr('يوجد فيديو بالفعل — احذفه من المعاينة لإضافة غيره.');
     const dur = await videoDuration(f);
-    if (dur > MAX_VIDEO_SEC + 1) return showErr('الفيديو أطول من ' + MAX_VIDEO_SEC + ' ثانية — صوّر مقطعاً أقصر');
+    if (isFinite(dur) && dur > MAX_VIDEO_SEC + 1) return showErr('الفيديو أطول من ' + MAX_VIDEO_SEC + ' ثانية — صوّر مقطعاً أقصر');
     if (f.size > MAX_VIDEO_MB * 1024 * 1024) return showErr('حجم الفيديو كبير — صوّر مقطعاً أقصر');
     if (!restored) { VIDEO_TEMP_KEY = newKey('_v'); lsSet('mr_video_temp_key', VIDEO_TEMP_KEY); }
     const v = { file: f, url: URL.createObjectURL(f), uploading: true, progress: 0 };
@@ -718,10 +735,62 @@
     if (m.indexOf('video/') === 0 || /\.(mp4|mov|m4v|webm|3gp|mkv|avi)$/.test(n)) return 'video';
     return '';
   }
+
+  // ---------- تشخيص الجهاز (لمعرفة أي جوال/متصفح يفشل) ----------
+  const _rep = {};
+  function report(kind, detail) { if (_rep[kind]) return; _rep[kind] = 1; try { fire('clientNote', kind, String(detail || '').slice(0, 120), navigator.userAgent.slice(0, 170)); } catch (e) {} }
+  // ---------- كاميرا الفيديو: لو ما انفتحت تظهر طرق بديلة بالصفحة ----------
+  let vidGot = false;
+  function onVideoCam() {
+    vidGot = false; $('vidHelp').classList.add('hidden');
+    const back = () => { setTimeout(() => { if (!vidGot) { $('vidHelp').classList.remove('hidden'); report('video_no_camera', 'no file after camera video'); } }, 900); };
+    window.addEventListener('focus', back, { once: true }); document.addEventListener('visibilitychange', function f() { if (document.visibilityState === 'visible') { document.removeEventListener('visibilitychange', f); back(); } });
+    $('cameraVideoIn').click();
+  }
+  // ---------- التسجيل من داخل الصفحة (بدون تطبيق الكاميرا) ----------
+  async function openRecorder() {
+    $('vidHelp').classList.add('hidden');
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia || !window.MediaRecorder) { report('rec_unsupported', 'no MediaRecorder'); return showErr('هذا الجوال/المتصفح ما يدعم التسجيل هنا — افتح الرابط في كروم'); }
+    let stream;
+    try { stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' }, audio: true }); }
+    catch (e) { try { stream = await navigator.mediaDevices.getUserMedia({ video: true }); } catch (e2) { report('rec_denied', (e2 && e2.name) || ''); return showErr('اسمح للكاميرا: اضغط 🔒 بجانب الرابط ثم «السماح» وأعد المحاولة'); } }
+    const ov = document.createElement('div'); ov.id = 'recOv';
+    ov.innerHTML = '<button class="rx" type="button">✖ إلغاء</button><video autoplay muted playsinline></video><div class="rc" id="recC">جاهز</div><button class="rb" type="button">🔴 ابدأ التصوير</button>';
+    document.body.appendChild(ov);
+    const vd = ov.querySelector('video'), btn = ov.querySelector('.rb'), cn = ov.querySelector('.rc'); vd.srcObject = stream;
+    const close = () => { try { stream.getTracks().forEach(t => t.stop()); } catch (e) {} ov.remove(); };
+    ov.querySelector('.rx').onclick = () => { try { if (mr && mr.state === 'recording') { mr.onstop = null; mr.stop(); } } catch (e) {} close(); };
+    const types = ['video/mp4', 'video/webm;codecs=vp9,opus', 'video/webm;codecs=vp8,opus', 'video/webm'], mt = types.filter(t => MediaRecorder.isTypeSupported(t))[0] || '';
+    let mr = null, chunks = [], sec = 0, timer = null;
+    btn.onclick = () => {
+      if (mr && mr.state === 'recording') { mr.stop(); return; }
+      try { mr = new MediaRecorder(stream, mt ? { mimeType: mt } : undefined); } catch (e) { report('rec_fail', (e && e.name) || ''); close(); return showErr('تعذّر التسجيل من الصفحة'); }
+      chunks = []; mr.ondataavailable = ev => { if (ev.data && ev.data.size) chunks.push(ev.data); };
+      mr.onstop = async () => {
+        clearInterval(timer); const type = (mr.mimeType || mt || 'video/webm').split(';')[0], ext = /mp4/.test(type) ? 'mp4' : 'webm';
+        close(); const f = new File(chunks, 'rec.' + ext, { type }); if (f.size < 1000) return showErr('الفيديو فاضي — حاول مرة ثانية');
+        vidGot = true; await addVideo(f);
+      };
+      mr.start(); sec = 0; btn.textContent = '⏹ إيقاف'; btn.classList.add('stop');
+      timer = setInterval(() => { sec++; cn.textContent = '🔴 ' + sec + ' / ' + MAX_VIDEO_SEC + ' ثانية'; if (sec >= MAX_VIDEO_SEC) mr.stop(); }, 1000);
+    };
+  }
+  // ---------- المتصفح داخل تطبيق (واتساب/تليجرام/…): الكاميرا والاستديو غالباً ممنوعة ----------
+  (function () {
+    const ua = navigator.userAgent, android = /Android/i.test(ua), ios = /iPhone|iPad|iPod/i.test(ua);
+    const inApp = /; wv\)|\bwv\b|FBAN|FBAV|Instagram|Line\/|Snapchat|MicroMessenger|Telegram|TikTok|Twitter/i.test(ua) || (ios && !/Safari\//i.test(ua));
+    if (!inApp) return;
+    report('inapp_browser', ua.slice(0, 80));
+    const d = document.createElement('div'); d.className = 'inapp';
+    const intent = 'intent://' + location.host + location.pathname + location.search + '#Intent;scheme=https;package=com.android.chrome;end';
+    d.innerHTML = '⚠️ الصفحة مفتوحة داخل تطبيق — الكاميرا قد ما تشتغل<br>' + (android ? '<a href="' + intent + '">🌐 اضغط هنا: افتح في كروم</a>' : 'اضغط ⋯ ثم «فتح في سفاري»');
+    const w = document.querySelector('.wrap'); (w || document.body).insertBefore(d, (w || document.body).firstChild);
+  })();
   async function processPick(input) {
-    const files = Array.from(input.files || []), forced = /PhotoIn$/.test(input.id) ? 'image' : /VideoIn$/.test(input.id) ? 'video' : '';
+    const files = Array.from(input.files || []), forced = /PhotoIn$/.test(input.id) ? 'image' : /(VideoIn|videoAltIn)$/.test(input.id) ? 'video' : '';
     input.value = '';
     if (!files.length) return;
+    if (forced === 'video' || files.some(f => mediaKind(f) === 'video')) { vidGot = true; $('vidHelp').classList.add('hidden'); }
     if (DRAFT_RESTORING) return showErr('انتظر لحظة — تُستعاد المرفقات المحفوظة.');
     for (const f of files) {   // بالتتابع: يمنع تداخل الرفع
       const k = forced || mediaKind(f);
@@ -730,7 +799,7 @@
     }
     drawThumbs();
   }
-  ['cameraPhotoIn', 'cameraVideoIn', 'galleryPhotoIn', 'galleryVideoIn'].forEach(id => $(id).addEventListener('change', e => processPick(e.currentTarget)));
+  ['cameraPhotoIn', 'cameraVideoIn', 'galleryPhotoIn', 'galleryVideoIn', 'videoAltIn'].forEach(id => $(id).addEventListener('change', e => processPick(e.currentTarget)));
   async function restoreDraft() {
     try {
       lsSet('mr_draft', {});   // الصفحة تبدأ فاضية: لا نص ولا اختيار قديم يُسترجع
@@ -816,8 +885,23 @@
   }
   function progress(text, pct) { $('ovText').textContent = text; $('ovBar').style.width = Math.round(pct) + '%'; }
 
-  let gScope = 'bld';
-  function setGScope(m) { gScope = m; $('gBld').classList.toggle('on', m === 'bld'); $('gApt').classList.toggle('on', m === 'apt'); $('gAptBox').classList.toggle('hidden', m !== 'apt'); if (m === 'bld') { $('gapt').value = ''; $('gaptv').textContent = '—'; updDoor(); } }
+  let gScope = '';
+  function setGScope(m) { gScope = m; $('gBld').classList.toggle('on', m === 'bld'); $('gApt').classList.toggle('on', m === 'apt'); if (m === 'bld') { $('gapt').value = ''; $('gaptv').textContent = '—'; updDoor(); } gFlow(); }
+  // كشف تدريجي (الحارس لا يرى كل شيء معاً): النوع ← العمارة/الشقة ← الصور ← الإرسال. كل خطوة غير منجزة تتحرك حتى يختار
+  function gFlow() {
+    if (!GUARD) return;
+    const tk = gKind === 'water' || gKind === 'sewage', maint = gKind === 'maint', apt = $('gapt').value;
+    $('gScope').classList.toggle('hidden', !maint);
+    $('gAptBox').classList.toggle('hidden', !(maint && gScope === 'apt'));
+    const scopeDone = maint && (gScope === 'bld' || (gScope === 'apt' && !!apt));
+    $('gKinds').classList.toggle('nudge', !gKind);
+    $('gScope').classList.toggle('nudge', maint && !gScope);
+    $('gAptList').classList.toggle('nudge', maint && gScope === 'apt' && !apt);
+    $('mediaCard').classList.toggle('hidden', !scopeDone);
+    const bar = document.querySelector('.barfix'); if (bar) bar.classList.toggle('hidden', !(tk || scopeDone));
+  }
+  setTimeout(gFlow, 0);
+  function nudgeScope() { const k = $('gScope'); k.classList.add('nudge'); k.classList.remove('shake'); void k.offsetWidth; k.classList.add('shake'); try { k.scrollIntoView({ behavior: 'smooth', block: 'center' }); navigator.vibrate && navigator.vibrate([120, 60, 120]); } catch (e) {} setTimeout(() => k.classList.remove('shake'), 2000); }
   // آخر بلاغات الحارس (من هذا الجوال): يطمئن أنها وصلت فلا يكررها
   function gRecentAdd(id, what, tok) { const a = lsGet('mr_gseen', []); a.unshift({ id: id, w: what, t: new Date().toTimeString().slice(0, 5), ts: Date.now(), tok: tok || '' }); lsSet('mr_gseen', a.slice(0, 4)); drawGRecent(); }
   async function undoRecent(id) {
@@ -842,7 +926,7 @@
     document.querySelectorAll('#gAptList .chip').forEach(b => { const on = b.dataset.a === v && !!v; b.classList.toggle('on', on); b.textContent = (on ? '✓ ' : '') + b.dataset.a; });
     $('gDoor').classList.toggle('hidden', !v);
   }
-  function pickGApt(a) { $('gapt').value = a; $('gaptv').textContent = a; updDoor(); }
+  function pickGApt(a) { $('gapt').value = a; $('gaptv').textContent = a; updDoor(); gFlow(); }
   let sendKey = '', gWhat = '', undoTs = 0;
   async function send() {
     if (sendingNow) return;
@@ -854,6 +938,7 @@
       if (!gKind) { nudgeKinds(true); return showErr('اختر: وايت ماء أو وايت صرف أو صيانة'); }
       if (photos.some(p => p.uploading) || (video && video.uploading)) return showErr('انتظر… الصورة قيد الرفع ⏳');
       if (photos.some(p => p.error) || (video && video.error)) return showErr('⚠️ صورة لم تُرفع — اضغط ✕ عليها ثم صوّرها من جديد');
+      if (gKind === 'maint' && !gScope) { nudgeScope(); return showErr('اختر: كل العمارة أو شقة محددة'); }
       if (gScope === 'apt' && !gapt) return showErr('اختر رقم الشقة أو اضغط «المبنى بالكامل»');
       if (gKind === 'maint' && !photos.length && !video) return showErr('صوّر المشكلة');
       gWhat = ({ water: '💧 وايت ماء', sewage: '🚽 وايت صرف', maint: '🔧 صيانة' }[gKind] || '') + ' — ' + (gScope === 'apt' ? '🚪 شقة ' + gapt : '🏢 كل العمارة');
@@ -901,7 +986,7 @@
     catch (e) { return endSend('تعذر الإرسال، تأكد من الإنترنت وحاول مرة ثانية'); }
     if (!res || !res.ok) return endSend(res && res.msg ? res.msg : 'تعذر الإرسال');
     if (!GUARD) lsSet('mr_profile', ident ? { lk: ident.lk, pick: ident.pick, name: ident.name, bld: ident.bld, apt: ident.apt, needPhone: ident.needPhone, ph: ident.ph || '', phone2: f.phone || '' } : { manual: true, name: f.name, bld: f.district, apt: f.apt, phone: f.phone });
-    else { setGScope('bld'); gKind = ''; document.querySelectorAll('#gKinds .type').forEach(x => x.classList.remove('on')); }
+    else { gScope = ''; $('gapt').value = ''; $('gaptv').textContent = '—'; gKind = ''; document.querySelectorAll('#gKinds .type, #gScope .type').forEach(x => x.classList.remove('on')); updDoor(); gFlow(); }
 
     // رقم البلاغ يظهر فوراً؛ المرفقات تكمل رفعها بالخلفية وتظهر حالتها بشاشة «تم الاستلام»
     const ph = [], vd = null;   // المرفقات (للمستأجر والحارس) رُفعت مسبقاً قبل الإرسال
