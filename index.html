@@ -421,7 +421,7 @@
   // انقطاع المياه: يحدد السبب. شبكة ⇒ اعتذار ولا يُرسل. داخلي ⇒ مضخة/خزان/غير متأكد
   let waterMode = '', waterSub = '';
   const waterSelected = () => chipSel.indexOf('انقطاع المياه') >= 0;
-  const WATER_NET_MSG = 'نعتذر، انقطاع المياه من الشبكة خارج إرادتنا ولا نقدر نتعامل معه، فلا حاجة لرفع بلاغ.';
+  const WATER_NET_MSG = 'نعتذر عن انقطاع المياه، فنحن لسنا مزوّد الخدمة (الشبكة)، ولا حاجة لرفع بلاغ.';
   function waterUi() {
     const on = waterSelected(); $('f_water').classList.toggle('hidden', !on);
     if (!on) { waterMode = ''; waterSub = ''; }
