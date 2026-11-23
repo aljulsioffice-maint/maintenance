@@ -761,9 +761,37 @@
     if (!restored && !GUARD) await dbPut('video', 'video', up);
     await uploadVideoTemp(v, VIDEO_TEMP_KEY);
   }
+  // رفع مباشر من الجوال إلى Drive (بلا base64 وبلا وسيط Apps Script) — أسرع؛ أي فشل ⇒ يرجع false فيُستخدم الطريق العادي أدناه
+  async function directVideo(v, key) {
+    const f = v.file;
+    try {
+      const st = await retryRun('startTempVideoDirect', key, f.size, f.type || 'video/mp4', location.origin);
+      if (!st || !st.ok || (!st.complete && !st.url)) return false;
+      if (!st.complete) {
+        const DC = 2 * 1024 * 1024;   // مضاعف 256KB (شرط Drive)
+        for (let off = 0; off < f.size; off += DC) {
+          const end = Math.min(off + DC, f.size); let ok = false;
+          for (let t = 0; t < 3 && !ok; t++) {
+            try { const r = await fetch(st.url, { method: 'PUT', headers: { 'Content-Range': 'bytes ' + off + '-' + (end - 1) + '/' + f.size }, body: f.slice(off, end) }); ok = r.status === 308 || r.status === 200 || r.status === 201; }
+            catch (e) { await new Promise(res => setTimeout(res, 800 * (t + 1))); }
+          }
+          if (!ok) return false;
+          v.progress = Math.min(99, Math.round(end * 100 / f.size)); if (video === v) drawThumbs();
+        }
+      }
+      const d = await retryRun('finishTempVideoDirect', key, f.size);   // الخادم يتأكد أن الملف كامل بحجمه
+      return !!(d && d.ok);
+    } catch (e) { return false; }
+  }
   async function uploadVideoTemp(v, key) {
     const f = v.file, t0 = Date.now();
     try {
+      if (API_URL && await directVideo(v, key)) {
+        if (video !== v || v.cancelled) { run('removeTempVideo', key).catch(() => {}); return; }
+        v.uploading = false; v.progress = 100; DG.m.push({ k: 'v', mb: +(f.size / 1e6).toFixed(1), c: v.cmpFrom || 0, s: Math.round((Date.now() - t0) / 1000), dr: 1 });
+        drawThumbs(); return;
+      }
+      v.progress = 0;
       const st = await retryRun('startTempVideo', key, f.size, f.type || 'video/mp4');
       if (!st || !st.ok || (!st.key && !st.complete)) throw new Error((st && st.msg) || 'start');
       let off = Number(st.nextOffset || 0);
