@@ -113,6 +113,10 @@
   .fchip b { background: var(--soft); border-radius: 99px; padding: 0 8px; font-size: 12.5px; }
   .fchip.on { background: var(--pri); border-color: var(--pri); color: #fff; }
   .fchip.on b { background: rgba(255,255,255,.25); }
+  .dcard { border: 1.5px solid var(--bd); background: var(--card); border-radius: 12px; padding: 10px 12px; margin: 8px 0; }
+  .dcard h4 { margin: 0 0 4px; display: flex; justify-content: space-between; align-items: center; }
+  .dsh { margin: 8px 0 2px; font-weight: 700; font-size: 13px; }
+  .dit { padding: 6px 0; border-top: 1px dashed var(--bd); cursor: pointer; font-size: 13.5px; }
   .fchip.red b { background: var(--bad-soft); color: var(--bad); }
   .wrap { display: grid; grid-template-columns: minmax(340px, 470px) 1fr; gap: 16px; align-items: start; }
   @media (max-width: 1000px) { .wrap { grid-template-columns: 1fr; } #detail { display: none; } body.showd #list, body.showd .sumline, body.showd .chipsbar { display: none; } body.showd #detail { display: block; } }
@@ -465,7 +469,7 @@
   const FILTERS = [
     ['open', 'مفتوحة', r => !isDone(r.st)], ['new', 'جديدة', r => r.st === 'جديد'], ['wip', 'قيد المعالجة', r => r.st === 'قيد المعالجة'],
     ['wait', 'بانتظار تأكيدك', r => r.st === 'أنجزه الفني'], ['ask', 'بانتظار المستأجر', r => r.st === 'بانتظار المستأجر'],
-    ['urg', '🔴 عاجلة', r => r.urg && !isDone(r.st)], ['closed', 'مغلقة', r => isDone(r.st)], ['all', 'الكل', () => true],
+    ['urg', '🔴 عاجلة', r => r.urg && !isDone(r.st)], ['done', '✅ منجزة', r => r.st === 'تمت المعالجة'], ['rej', '🚫 مرفوضة', r => r.st === 'مرفوض'], ['can', '⛔ ملغية', r => r.st === 'ملغي'], ['all', 'الكل', () => true],
   ];
   const cnt = k => DATA.reqs.filter(FILTERS.find(f => f[0] === k)[2]).length;
   function draw() {
@@ -484,7 +488,8 @@
     const q = $('q').value.trim().toLowerCase(), f = FILTERS.find(x => x[0] === FILTER)[2];
     let list = DATA.reqs.filter(f);
     if (q) list = list.filter(r => [r.id, r.name, r.bld, r.apt, r.tenant, r.tech, r.type, r.phone, r.desc].join(' ').toLowerCase().includes(q));
-    if (FILTER !== 'closed' && FILTER !== 'all') list = list.slice().sort((a, b) => (b.urg - a.urg) || (Number(a.id) - Number(b.id)));
+    if (FILTER !== 'done' && FILTER !== 'rej' && FILTER !== 'can' && FILTER !== 'all') list = list.slice().sort((a, b) => (b.urg - a.urg) || (Number(a.id) - Number(b.id)));
+    if (FILTER === 'done') { $('items').innerHTML = doneCards(q); return; }
     $('items').innerHTML = list.length ? list.map(r => `
       <div class="item ${scls(r.st)} ${SEL === r.id ? 'sel' : ''}" onclick="openReq('${esc(r.id)}')">
         <div class="av">${esc(r.icon)}</div>
@@ -495,6 +500,34 @@
       </div>`).join('') : '<div class="empty">🎉 لا توجد طلبات هنا</div>';
   }
   function setFilter(f) { FILTER = f; draw(); }
+  // ---------- المنجزة: بطاقات أيام (شمس / ليل / بدون فترة) ----------
+  let DR = 'week';
+  function setDR(k) { DR = k; draw(); }
+  function doneRange() {
+    const t = new Date(); t.setHours(12, 0, 0, 0); const sat = new Date(t); sat.setDate(t.getDate() - (t.getDay() + 1) % 7);
+    let a = new Date(sat);
+    if (DR === 'last') a.setDate(sat.getDate() - 7); else if (DR === '7') { a = new Date(t); a.setDate(t.getDate() - 6); }
+    const days = []; for (let i = 0; i < 7; i++) { const d = new Date(a); d.setDate(a.getDate() + i); days.push(d); }
+    return days;
+  }
+  function doneCards(q) {
+    const days = doneRange(), fd = d => d.getFullYear() + '-' + ('0' + (d.getMonth() + 1)).slice(-2) + '-' + ('0' + d.getDate()).slice(-2);
+    const idx = {}; days.forEach(d => { idx[fd(d)] = { d, m: [], a: [], n: [] }; });
+    DATA.reqs.forEach(r => {
+      if (r.st !== 'تمت المعالجة' && r.st !== 'أنجزه الفني') return;
+      if (q && ![r.id, r.name, r.bld, r.apt, r.tenant, r.tech, r.type, r.phone, r.desc].join(' ').toLowerCase().includes(q)) return;
+      const ts = String(r.dn || r.cl || ''), o = idx[ts.slice(0, 10)]; if (!o) return;
+      const sh = r.shift === 'n' ? 'n' : (r.shift || (Number(ts.slice(11, 13)) < 15 ? 'm' : 'a'));
+      o[sh].push(r);
+    });
+    const it = r => `<div class="dit" onclick="openReq('${esc(r.id)}')">#${esc(r.id)} · ${esc(place(r))} · ${esc(r.type)}${r.tech ? ' · 👷 ' + esc(r.tech) : ''}${r.st === 'أنجزه الفني' ? ' ⏳' : ''}</div>`;
+    const sec = (ttl, arr) => arr.length ? `<div class="dsh">${ttl} <span class="hint">(${arr.length})</span></div>${arr.map(it).join('')}` : '';
+    const rg = [['week', 'هذا الأسبوع'], ['7', 'آخر ٧ أيام'], ['last', 'الأسبوع الماضي']];
+    let tot = 0; Object.keys(idx).forEach(k => { tot += idx[k].m.length + idx[k].a.length + idx[k].n.length; });
+    return '<div class="rng" style="margin:6px 0">' + rg.map(x => `<button class="fchip ${DR === x[0] ? 'on' : ''}" onclick="setDR('${x[0]}')">${x[1]}</button>`).join('') + `</div><div class="hint" style="margin-bottom:6px">المنجز: ${tot} · الأسبوع من السبت إلى الجمعة · ⏳ = بانتظار تأكيدك</div>`
+      + days.map(d => { const o = idx[fd(d)], n = o.m.length + o.a.length + o.n.length;
+        return `<div class="dcard"><h4><span>${DN_AR[d.getDay()]} <small class="hint">${fd(d).slice(5)}</small></span><b>${n}</b></h4>${n ? sec('☀️ شمس', o.m) + sec('🌙 ليل', o.a) + sec('⚪ بدون فترة', o.n) : '<div class="hint">لا منجز</div>'}</div>`; }).join('');
+  }
 
   async function openReq(id, quiet) {
     SEL = id; draw(); document.body.classList.add('showd');
