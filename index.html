@@ -91,6 +91,23 @@
   .type.on::after { content: '✓'; position: absolute; top: 8px; inset-inline-start: 10px; width: 22px; height: 22px; border-radius: 50%; background: var(--c); color: #fff; font-size: 13px; line-height: 22px; }
   .chips { display: flex; gap: 8px; overflow-x: auto; padding: 2px 0 8px; margin: 0 -2px; scrollbar-width: none; }
   .chips::-webkit-scrollbar { display: none; }
+
+  /* مراجعة الواجهة: نصوص مفيدة لا تقل عن 14-15px، وألوان التنبيه تتبع الوضع الغامق */
+  :root { --danger: #b91c1c; }
+  @media (prefers-color-scheme: dark) { :root { --danger: #f48a8a; } }
+  .em, .hint, .lkst, .sub, .tl, .steps span { font-size: 15px; }
+  .urgent small { font-size: 14px; line-height: 1.5; }
+  .media-label small { font-size: 13px; }
+  .warnTxt { color: var(--warn); font-weight: 800; }
+  .errTxt { color: var(--danger); font-weight: 800; }
+  .dlgbk { position: fixed; inset: 0; background: rgba(0,0,0,.55); z-index: 30; display: flex; align-items: center; justify-content: center; padding: 20px; }
+  .dlg { background: var(--card); color: var(--text); border-radius: 20px; padding: 22px 18px 16px; width: 100%; max-width: 360px; box-shadow: 0 20px 60px rgba(0,0,0,.35); }
+  .dlg p { margin: 0 0 14px; font-size: 18px; font-weight: 700; line-height: 1.6; }
+  .dlg .chips { flex-wrap: wrap; margin-bottom: 12px; }
+  .dlg .bt { display: flex; gap: 10px; }
+  .dlg .bt button { flex: 1; min-height: 50px; border-radius: 14px; border: 0; font: inherit; font-size: 17px; font-weight: 800; cursor: pointer; }
+  .dlg .yes { background: var(--accent); color: #fff; }
+  .dlg .no { background: var(--field); color: var(--text); border: 1.5px solid var(--line); }
   .chip { min-height: 44px; }
   .chip.on { background: var(--pri, #0b6bcb); color: #fff; border-color: transparent; }
   .chip { flex: none; border: 1.5px solid var(--line); background: var(--card); color: var(--text); border-radius: 999px; padding: 7px 14px; font: inherit; font-size: 15px; font-weight: 700; cursor: pointer; }
@@ -168,6 +185,8 @@
   .tl div.on::before { background: var(--ok); }
   .btn2 { display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%; border: 2px solid var(--line); background: var(--card); border-radius: 16px; padding: 14px;
     font: inherit; font-weight: 800; font-size: 17px; margin-top: 10px; cursor: pointer; color: var(--text); text-decoration: none; }
+  .btn2.pri { background: var(--accent); border-color: var(--accent); color: #fff; }
+  .btn2.mini { padding: 10px; font-size: 14px; opacity: .85; }
   .btn2.wa { background: #25d366; border-color: #25d366; color: #fff; }
 
   /* طلباتي */
@@ -277,13 +296,13 @@
         <span class="sw"></span>
         <span>🔴 طارئ<small>ضرر يزيد بالعمارة: تسريب مياه، انكسار ماسورة، ماس كهربائي، فيضان</small></span>
       </label>
-      <div class="hint" id="urgAuto" style="display:none;color:#b45309;font-weight:700;margin-top:6px">⚠️ حدّدناه «طارئ» تلقائياً لأن الضرر قد يزيد — تقدر تلغيه</div>
+      <div class="hint warnTxt" id="urgAuto" style="display:none;margin-top:6px">⚠️ حدّدناه «طارئ» تلقائياً لأن الضرر قد يزيد — تقدر تلغيه</div>
       <label for="desc" style="margin-top:18px">اشرح باختصار</label>
       <div class="chips hidden" id="chips"></div>
       <div class="fld hidden" id="f_water"><label>سبب انقطاع المياه؟</label>
         <div class="chips" style="flex-wrap:wrap"><button type="button" class="chip" id="wNet" onclick="setWater('net')">🌐 من شبكة المياه</button><button type="button" class="chip" id="wIn" onclick="setWater('in')">🏢 عطل داخل المبنى</button></div>
         <div class="chips hidden" id="wSubs" style="flex-wrap:wrap"><button type="button" class="chip" data-s="المضخة (الماطور)" onclick="setWSub(this)">⚙️ المضخة (الماطور)</button><button type="button" class="chip" data-s="الخزان" onclick="setWSub(this)">🛢️ الخزان</button><button type="button" class="chip" data-s="غير متأكد" onclick="setWSub(this)">❔ غير متأكد</button></div>
-        <div id="waterNote" style="display:none;color:#b91c1c;font-weight:800;margin-top:8px;font-size:14px"></div><div class="em">اختر سبب الانقطاع</div></div>
+        <div id="waterNote" class="errTxt" style="display:none;margin-top:8px;font-size:15px"></div><div class="em">اختر سبب الانقطاع</div></div>
       <div class="fld hidden" id="f_src"><label>من أين المشكلة؟</label>
         <div class="chips" style="flex-wrap:wrap"><button type="button" class="chip" id="srcSame" onclick="setSrc('same')">من شقتي</button><button type="button" class="chip" id="srcUp" onclick="setSrc('up')">من شقة أخرى</button><button type="button" class="chip" id="srcRoof" onclick="setSrc('roof')">من السطح أو المبنى</button><button type="button" class="chip" id="srcUnk" onclick="setSrc('unk')">لا أعرف</button></div>
         <input type="text" id="srcApt" class="hidden" inputmode="numeric" placeholder="رقم الشقة اللي فوقك" style="margin-top:6px"><div class="em">اختر مصدر المشكلة، ولو من الشقة اللي فوقك اكتب رقمها</div></div>
@@ -327,8 +346,8 @@
       <div class="hint" id="doneWarn" style="color:var(--warn);font-weight:700"></div>
     </div>
     <a class="btn2 wa" id="tgBtn" target="_blank" rel="noopener">💬 أرسل رقم بلاغك لمكتب الجلسي على واتساب</a>
-    <button class="btn2" id="trkBtn" onclick="showTrack()">📋 متابعة حالة طلباتي</button>
-    <button class="btn2" id="shBtn" onclick="shareLink()">🔗 احفظ رابط المتابعة</button>
+    <button class="btn2 pri" id="trkBtn" onclick="showTrack()">📋 متابعة حالة طلباتي</button>
+    <button class="btn2 mini" id="shBtn" onclick="shareLink()">🔗 احفظ رابط المتابعة</button>
     <button class="btn2" onclick="newRequest()">➕ بلاغ جديد</button>
   </div>
 
@@ -730,7 +749,7 @@
     }
   }
   function drawThumbs() {
-    const badge = x => x.uploading ? '<div style="position:absolute;top:30%;left:30%;font-size:20px">⏳</div>' : (GUARD ? '' : `<div style="position:absolute;bottom:4px;right:4px;color:#fff;background:${x.error ? '#b91c1c' : 'green'};border-radius:50%;width:20px;height:20px;text-align:center;font-size:12px">${x.error ? '!' : '✓'}</div>`);
+    const badge = x => x.uploading ? '<div style="position:absolute;top:30%;left:30%;font-size:20px">⏳</div>' : (GUARD ? '' : `<div style="position:absolute;bottom:4px;right:4px;color:#fff;background:${x.error ? 'var(--danger)' : 'var(--ok, #16a34a)'};border-radius:50%;width:20px;height:20px;text-align:center;font-size:12px">${x.error ? '!' : '✓'}</div>`);
     const h = photos.map((p, i) => `<div class="thumb" style="${p.uploading ? 'opacity:.5' : ''}"><img src="${p.url}">${badge(p)}<button onclick="rmPhoto(${i})">✕</button></div>`);
     if (video) h.push(`<div class="thumb" style="${video.uploading ? 'opacity:.55' : ''}"><video src="${video.url}" muted></video>${video.uploading ? `<span style="position:absolute;inset:0;display:grid;place-items:center;color:#fff;background:#0008;font-size:12px;font-weight:800">${video.progress || 0}%</span>` : badge(video)}<button onclick="rmVideo()">✕</button></div>`);
     $('thumbs').innerHTML = h.join('');
@@ -995,28 +1014,44 @@
     uploadingMore = false;
     showTrack();
   }
+  // نافذة حوار داخل الصفحة (بدل نوافذ المتصفح): رسالة كبيرة وزرّان، واختيار سبب جاهز اختياري
+  function uiAsk(msg, okText, reasons, single) {
+    return new Promise(res => {
+      const bk = document.createElement('div'); bk.className = 'dlgbk';
+      let reason = '';
+      bk.innerHTML = '<div class="dlg" role="dialog"><p></p>' + (reasons && reasons.length ? '<div class="chips">' + reasons.map(r => '<button type="button" class="chip" data-r="' + r + '">' + r + '</button>').join('') + '</div>' : '') + '<div class="bt"><button class="yes" type="button"></button>' + (single ? '' : '<button class="no" type="button">رجوع</button>') + '</div></div>';
+      bk.querySelector('p').textContent = msg; bk.querySelector('.yes').textContent = okText || 'حسناً';
+      const done = ok => { bk.remove(); res({ ok: ok, reason: reason }); };
+      bk.querySelectorAll('.chip').forEach(b => b.onclick = () => { reason = reason === b.dataset.r ? '' : b.dataset.r; bk.querySelectorAll('.chip').forEach(x => x.classList.toggle('on', x.dataset.r === reason)); });
+      bk.querySelector('.yes').onclick = () => done(true);
+      const no = bk.querySelector('.no'); if (no) no.onclick = () => done(false);
+      document.body.appendChild(bk);
+    });
+  }
+  const uiNote = msg => uiAsk(msg, 'حسناً', null, true);
   async function cancelMine(id, token) {
-    if (!confirm('هل تريد سحب هذا البلاغ؟ سيُلغى ولا يُرسل أحد لمعالجته.')) return;
-    const why = (prompt('سبب السحب (اختياري):') || '').trim();
-    try { const r = await run('cancelMine', id, token, why); if (!r || !r.ok) { alert(r && r.msg ? r.msg : 'تعذر السحب'); return; } }
-    catch (e) { alert('تعذر السحب، حاول مرة ثانية'); return; }
+    const _a = await uiAsk('هل تريد سحب هذا البلاغ؟ سيُلغى ولا يُرسل أحد لمعالجته.', 'نعم، اسحبه', ['تغيّر الوضع', 'أرسلته بالخطأ', 'انحلّت المشكلة']);
+    if (!_a.ok) return;
+    const why = _a.reason || '';
+    try { const r = await run('cancelMine', id, token, why); if (!r || !r.ok) { await uiNote(r && r.msg ? r.msg : 'تعذر السحب'); return; } }
+    catch (e) { await uiNote('تعذر السحب، حاول مرة ثانية'); return; }
     showTrack();
   }
   const STARS = {};
   function pickStar(id, n) { STARS[id] = n; document.querySelectorAll('#st' + id + ' .star').forEach((b, i) => { b.textContent = i < n ? '★' : '☆'; }); }
   async function sendRate(id, token) {
-    const n = STARS[id]; if (!n) { alert('اختر عدد النجوم أولاً'); return; }
+    const n = STARS[id]; if (!n) { await uiNote('اختر عدد النجوم أولاً'); return; }
     const note = ($('rn' + id).value || '').trim();
-    try { const r = await run('rateTech', id, token, n, note); if (!r || !r.ok) { alert(r && r.msg ? r.msg : 'تعذر الإرسال'); return; } }
-    catch (e) { alert('تعذر الإرسال، حاول مرة ثانية'); return; }
-    delete STARS[id]; alert('شكراً لتقييمك 🌟'); showTrack();
+    try { const r = await run('rateTech', id, token, n, note); if (!r || !r.ok) { await uiNote(r && r.msg ? r.msg : 'تعذر الإرسال'); return; } }
+    catch (e) { await uiNote('تعذر الإرسال، حاول مرة ثانية'); return; }
+    delete STARS[id]; await uiNote('شكراً لتقييمك 🌟'); showTrack();
   }
   async function sendReply(id, token) {
     const ta = $('rp' + id), text = (ta.value || '').trim();
     if (text.length < 2) { ta.focus(); return; }
     ta.disabled = true;
-    try { const r = await run('replyInfo', id, token, text); if (!r || !r.ok) { alert(r && r.msg ? r.msg : 'تعذر الإرسال'); ta.disabled = false; return; } }
-    catch (e) { alert('تعذر الإرسال، حاول مرة ثانية'); ta.disabled = false; return; }
+    try { const r = await run('replyInfo', id, token, text); if (!r || !r.ok) { await uiNote(r && r.msg ? r.msg : 'تعذر الإرسال'); ta.disabled = false; return; } }
+    catch (e) { await uiNote('تعذر الإرسال، حاول مرة ثانية'); ta.disabled = false; return; }
     showTrack();
   }
 </script>
