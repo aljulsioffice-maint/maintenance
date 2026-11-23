@@ -24,7 +24,7 @@
   }
   * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
   html, body { margin: 0; background: var(--bg); color: var(--text); }
-  body { font-family: 'Tajawal', 'Segoe UI', Tahoma, sans-serif; font-size: 17px; line-height: 1.55; }
+  body { font-family: 'Tajawal', 'Segoe UI', system-ui, -apple-system, Tahoma, Arial, sans-serif; font-size: 17px; line-height: 1.55; }
   .hidden { display: none !important; }
   .wrap { max-width: 540px; margin: 0 auto; padding: 0 16px 120px; }
 
@@ -37,7 +37,7 @@
   .office { font-size: 18px; font-weight: 800; line-height: 1.3; }
   .sub { font-size: 14px; opacity: .85; margin-top: 2px; }
   .pills { display: flex; gap: 8px; margin-top: 16px; flex-wrap: wrap; }
-  .pill { background: rgba(255,255,255,.16); color: #fff; border: 1px solid rgba(255,255,255,.3); border-radius: 999px; padding: 7px 14px;
+  .pill { background: rgba(255,255,255,.16); color: #fff; border: 1px solid rgba(255,255,255,.3); border-radius: 999px; padding: 11px 16px; min-height: 44px;
     font: inherit; font-size: 15px; font-weight: 700; cursor: pointer; text-decoration: none; }
   .pill:active { background: rgba(255,255,255,.3); }
 
@@ -71,7 +71,7 @@
   .prof .tx { flex: 1; min-width: 0; line-height: 1.35; }
   .prof .tx b { display: block; font-size: 17px; }
   .prof .tx small { color: var(--muted); font-size: 14px; }
-  .link { background: none; border: 0; color: var(--accent); font: inherit; font-weight: 800; font-size: 15px; cursor: pointer; padding: 6px; }
+  .link { background: none; border: 0; color: var(--accent); font: inherit; font-weight: 800; font-size: 15px; cursor: pointer; padding: 12px 10px; min-height: 44px; }
 
   .lkst { font-size: 14px; font-weight: 700; margin-top: 6px; min-height: 20px; color: var(--muted); }
   .lkst.ok { color: var(--ok); } .lkst.no { color: var(--warn); }
@@ -125,7 +125,7 @@
 
   /* الوسائط */
   .stars { display: flex; gap: 4px; margin: 8px 0; }
-  .star { border: 0; background: none; font-size: 32px; color: #e0a800; padding: 0 2px; line-height: 1; }
+  .star { border: 0; background: none; font-size: 32px; color: #e0a800; padding: 0 2px; line-height: 1; min-width: 44px; min-height: 44px; }
   .tabs2 { display: flex; gap: 8px; margin-bottom: 12px; }
   .tabbtn { flex: 1; border: 1.5px solid var(--bd, #d0d7e2); background: var(--card, #fff); color: inherit; border-radius: 12px; padding: 10px; font-weight: 700; font-size: 15px; margin-bottom: 10px; }
   .tabs2 .tabbtn { margin-bottom: 0; }
@@ -340,6 +340,7 @@
       <div class="tick"><svg viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></div>
       <h3>تم استلام بلاغك</h3>
       <div class="num" id="doneNum"></div>
+      <button type="button" class="link" onclick="try{navigator.clipboard.writeText($('doneNum').textContent.replace('#',''));this.textContent='✅ نُسخ'}catch(e){}">📋 نسخ رقم البلاغ</button>
       <div id="doneWhat" style="font-size:20px;font-weight:800;margin:6px 0"></div>
       <div class="msg">ستصلك رسالة تأكيد الاستلام على واتساب 💬<br>وسيتواصل معك فريق الصيانة قريباً</div>
       <div class="tl"><div class="on">تم الاستلام</div><div>تعيين فني</div><div>تم الإنجاز</div></div>
@@ -589,7 +590,7 @@
     run('guardInfo', GUARD).then(r => {
       if (r && r.ok) { $('guardH').textContent = 'حارس عمارة ' + r.building; $('gAptList').innerHTML = (r.apartments || []).map(a => `<button type="button" class="chip" onclick="pickGApt('${String(a).replace(/[^0-9A-Za-z\-]/g, '')}')">${String(a).replace(/[^0-9A-Za-z\-]/g, '')}</button>`).join(''); }
       else { $('formView').innerHTML = '<div class="card"><h2>⚠️</h2>' + ((r && r.msg) || 'الرابط غير صالح') + '</div>'; }
-    }).catch(() => {});
+    }).catch(() => { $('guardH').textContent = '⚠️ تعذّر الاتصال — تأكد من الإنترنت ثم أعد فتح الصفحة'; });
   } else refreshSteps();
   if (TRACK && !GUARD) { const t = lsGet('mr_tokens', []); if (t.indexOf(TRACK) < 0) { t.push(TRACK); lsSet('mr_tokens', t); } showTrack(); }
 
@@ -812,6 +813,8 @@
       if (gScope === 'apt' && !gapt) return showErr('اختر رقم الشقة أو اضغط «المبنى بالكامل»');
       if (gKind === 'maint' && !photos.length && !video) return showErr('صوّر المشكلة');
       gWhat = ({ water: '💧 وايت ماء', sewage: '🚽 وايت صرف', maint: '🔧 صيانة' }[gKind] || '') + ' — ' + (gScope === 'apt' ? '🚪 شقة ' + gapt : '🏢 كل العمارة');
+      const _gc = await uiAsk('إرسال البلاغ: ' + gWhat + '؟', 'نعم، أرسل');   // تأكيد قبل الإرسال (يمنع بلاغ بالخطأ)
+      if (!_gc.ok) return;
       call = () => run('submitGuard', GUARD, gScope === 'apt' ? gapt : '', gKind, photos.length + (video ? 1 : 0), sendKey);
     } else {
       if (photos.some(p => p.uploading) || (video && video.uploading)) return showErr('انتظر اكتمال رفع المرفقات ثم أرسل');
