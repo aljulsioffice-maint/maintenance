@@ -273,9 +273,10 @@
       <label class="urgent" id="urgentBox">
         <input type="checkbox" id="urgent" onchange="this.parentNode.classList.toggle('on', this.checked)">
         <span class="sw"></span>
-        <span>🔴 طارئ<small>خطر أو ضرر يزيد: تسريب مياه، انكسار ماسورة، ماس كهربائي، رائحة غاز أو دخان، مصعد محتجز فيه أحد</small></span>
+        <span>🔴 طارئ<small>ضرر يزيد بالعمارة: تسريب مياه، انكسار ماسورة، ماس كهربائي، فيضان</small></span>
       </label>
-      <div class="hint" id="urgAuto" style="display:none;color:#b45309;font-weight:700;margin-top:6px">⚠️ حدّدناه «طارئ» تلقائياً لأن المشكلة قد تكون خطرة — تقدر تلغيه</div>
+      <div class="hint" id="urgAuto" style="display:none;color:#b45309;font-weight:700;margin-top:6px">⚠️ حدّدناه «طارئ» تلقائياً لأن الضرر قد يزيد — تقدر تلغيه</div>
+      <div class="hint" style="margin-top:4px">🚒 للحريق أو رائحة الغاز أو احتجاز شخص بالمصعد: اتصل بالدفاع المدني <b>998</b> أولاً</div>
       <label for="desc" style="margin-top:18px">اشرح باختصار</label>
       <div class="chips hidden" id="chips"></div>
       <div class="fld hidden" id="f_src"><label>من أين المشكلة؟</label>
@@ -576,9 +577,9 @@
   async function dbClear() {
     try { const all = await dbAll(), db = await dbOpen(); await new Promise((res, rej) => { const tx = db.transaction('files', 'readwrite'), st = tx.objectStore('files'); all.forEach(x => st.delete(x.id)); tx.oncomplete = res; tx.onerror = () => rej(tx.error); }); db.close(); } catch (e) {}
   }
-  // طارئ تلقائي لو الوصف فيه خطر (تسريب/انكسار ماسورة/ماس/غاز/دخان/محتجز…) ما لم يغيّره المستخدم بنفسه
+  // طارئ صيانة تلقائي (تسريب/انكسار ماسورة/ماس كهربائي/فيضان) ما لم يغيّره المستخدم. الحريق والغاز والاحتجاز بالمصعد: دفاع مدني لا صيانة
   let urgentTouched = false;
-  const URG_RE = /تسريب|تسرب|تهريب\s*مياه|انكسار|كسر\s*(ال)?ماسورة|انفجار|ماس\s*كهربائي|التماس|شرارة|حريق|دخان|غاز|محتجز|عالق|غرق|فيضان/;
+  const URG_RE = /تسريب|تسرب|تهريب\s*مياه|انكسار\s*(ال)?ماسورة|كسر\s*(ال)?ماسورة|ماسورة\s*مكسورة|انفجار\s*(ال)?ماسورة|ماس\s*كهربائي|التماس|فيضان|غرق/;
   function autoUrgent() {
     if (urgentTouched || $('urgent').checked || !URG_RE.test($('desc').value)) return;
     $('urgent').checked = true; $('urgentBox').classList.add('on'); $('urgAuto').style.display = 'block';
