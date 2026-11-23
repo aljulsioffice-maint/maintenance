@@ -445,7 +445,7 @@
   // يوم وفترة الإنجاز (للمنتهي): الفترة المحددة أو التلقائية من الساعة (قبل 3 عصراً = صباح)
   function workTag(r) {
     if (r.st !== 'تمت المعالجة' && r.st !== 'أنجزه الفني') return null;
-    const ts = String(r.dn || r.cl || ''); if (ts.length < 13) return null;
+    const ts = String(r.cl || r.dn || ''); if (ts.length < 13) return null;
     const dt = new Date(ts.slice(0, 10) + 'T12:00:00'), sh = r.shift || (Number(ts.slice(11, 13)) < 15 ? 'm' : 'a');
     return { day: DN_AR[dt.getDay()], sh, set: !!r.shift, d: ts.slice(5, 10) };
   }
@@ -600,7 +600,7 @@
       { label: 'الجوال', type: 'tel', v: '', ph: '05xxxxxxxx' },
       { label: 'النوع', type: 'select', v: TYPE_LIST[0], opts: TYPE_LIST.map(t => [t, t]) },
       { label: 'الوصف', type: 'textarea', v: '' },
-    ], async v => { const r = await call('newreq', '', JSON.stringify({ bld: v[0], apt: v[1], name: v[2], phone: v[3], type: v[4], desc: v[5] }), '✅ أُضيف الطلب'); if (r) { await load(true); goReq(r.id); } }, 'إضافة');
+    ].concat(DATA.superAdmin ? [{ label: 'فترة العمل (للتقرير الأسبوعي)', type: 'select', v: '', opts: [['', '— تلقائي من وقت الإغلاق —'], ['m', '☀️ شمس (صباح)'], ['a', '🌙 ليل (مساء)']] }] : []), async v => { const r = await call('newreq', '', JSON.stringify({ bld: v[0], apt: v[1], name: v[2], phone: v[3], type: v[4], desc: v[5], shift: v[6] || '' }), '✅ أُضيف الطلب'); if (r) { await load(true); goReq(r.id); } }, 'إضافة');
   }
   async function newTask() {
     const blds = await getBlds();
@@ -622,7 +622,12 @@
     if (r) { await load(false); await openReq(SEL, true); }
   }
   function assign() { const v = $('techSel').value; if (!v) { toast('اختر الفني أولاً'); return; } act('assign', v); }
+  function closeAsk(title) {
+    openForm(title, [{ type: 'textarea', label: 'ملاحظة الإغلاق (اختياري)', v: '' }, { label: 'فترة العمل (للتقرير الأسبوعي)', type: 'select', v: '', opts: [['', '— تلقائي: قبل 3 عصراً شمس، بعدها ليل —'], ['m', '☀️ شمس (صباح)'], ['a', '🌙 ليل (مساء)']] }],
+      async ([note, sh]) => { const ok = await call('close', SEL, note); if (!ok) return false; if (sh) await call('setshift', SEL, sh, ''); await load(false); await openReq(SEL, true); }, 'إغلاق');
+  }
   function ask2(op, title, ph, optional) {
+    if (op === 'close' && DATA.superAdmin) return closeAsk(title);
     openForm(title, [{ type: 'textarea', label: ph, v: '', ph }], ([v]) => { if (!optional && v.length < 2) { toast('اكتب النص'); return; } return act(op, v); }, 'تأكيد');
   }
   async function editReq() {
