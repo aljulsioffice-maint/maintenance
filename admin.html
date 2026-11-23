@@ -533,7 +533,7 @@
       <button class="btn back" onclick="closeDetail()">→ رجوع للقائمة</button>
       <div class="dh">
         <h2>${esc(r.icon)} طلب #${esc(r.id)} ${r.urg ? '<span class="urg">🔴 عاجل</span>' : ''}</h2>
-        <span class="badge ${bcls(r.st)}">${esc(r.st)}</span> ${r.ts2 ? '<span class="badge b-قيد">' + esc(r.ts2) + '</span>' : ''} <span style="color:var(--mut);font-size:13.5px;margin-inline-start:6px">${esc(r.ts)}</span>
+        <span class="badge ${bcls(r.st)}">${esc(r.st)}</span> ${r.ts2 ? '<span class="badge b-قيد">' + esc(r.ts2) + '</span>' : ''} <span style="color:var(--mut);font-size:13.5px;margin-inline-start:6px">${esc(r.ts)}</span> ${tagHtml(r)}
       </div>
       <div class="db">
       <div class="kv">
