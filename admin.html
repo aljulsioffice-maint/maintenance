@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="robots" content="noindex,nofollow">
 <meta name="theme-color" content="#0f4c81">
-<title>لوحة الصيانة</title>
+<title>مكتب عبد الله الجلسي للعقارات — لوحة التحكم</title>
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🛠️</text></svg>">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet">
@@ -43,8 +43,10 @@
   .side { position: fixed; inset-block: 0; inset-inline-start: 0; width: 230px; background: linear-gradient(180deg, var(--brand), #0a2f52); color: #fff; display: flex; flex-direction: column; padding: 18px 12px; z-index: 6; }
   .side .brandrow { display: flex; align-items: center; gap: 10px; padding: 6px 8px 18px; }
   .side .logo { width: 40px; height: 40px; border-radius: 12px; background: rgba(255,255,255,.16); display: grid; place-items: center; font-size: 22px; }
-  .side .bt { font-weight: 800; line-height: 1.25; font-size: 16px; }
-  .side .bt small { display: block; font-weight: 500; opacity: .75; font-size: 12.5px; }
+  .side .bt { font-weight: 800; line-height: 1.3; font-size: 17px; }
+  .side .bt small { display: block; font-weight: 500; opacity: .75; font-size: 12px; margin-top: 3px; }
+  .ofc { font-size: 12.5px; color: var(--mut); font-weight: 700; display: block; margin-bottom: 2px; }
+  @media (min-width: 901px) { .ofc { display: none; } }
   .nav { display: flex; flex-direction: column; gap: 4px; }
   .tab { display: flex; align-items: center; gap: 11px; border: 0; background: transparent; color: rgba(255,255,255,.78); padding: 12px 14px; border-radius: 12px; font-weight: 700; text-align: start; width: 100%; }
   .tab .ico { font-size: 19px; width: 24px; text-align: center; }
@@ -127,6 +129,12 @@
   .item::before { content: ''; position: absolute; inset-inline-start: 0; top: 12px; bottom: 12px; width: 4px; border-radius: 4px; background: var(--sc, var(--bd)); }
   .item:hover { border-color: var(--pri); transform: translateY(-1px); }
   .item.sel { border-color: var(--pri); background: var(--pri-soft); }
+  .item { padding-top: 34px; }
+  .item .ck { position: absolute; top: 7px; inset-inline-start: 12px; width: 20px; height: 20px; accent-color: var(--pri); cursor: pointer; }
+  .item .xdel { position: absolute; top: 4px; inset-inline-end: 8px; border: 0; background: transparent; color: var(--bad); font-size: 17px; padding: 3px 8px; border-radius: 8px; cursor: pointer; }
+  .item .xdel:hover { background: var(--bad-soft); }
+  .item.chk { border-color: var(--bad); background: var(--bad-soft); }
+  .selbar { position: sticky; top: 0; z-index: 3; display: flex; gap: 8px; align-items: center; flex-wrap: wrap; background: var(--card); border: 1.5px solid var(--bad); border-radius: 14px; padding: 8px 12px; margin-bottom: 10px; }
   .item .av { grid-row: span 3; width: 46px; height: 46px; border-radius: 14px; background: var(--soft); display: grid; place-items: center; font-size: 24px; }
   .item .t { font-weight: 800; font-size: 16px; }
   .item .s { color: var(--mut); font-size: 13.5px; }
@@ -209,13 +217,14 @@
 <body>
 <div id="gate" style="display:none">
   <div class="gi">🛠️</div>
-  <h2>لوحة الصيانة</h2>
+  <h2 style="margin-bottom:2px">مكتب عبد الله الجلسي للعقارات</h2>
+  <div style="color:var(--mut);font-weight:700;margin-bottom:10px">لوحة التحكم — الصيانة</div>
   <p id="gateMsg" style="color:var(--mut)">افتح اللوحة من الرابط الشخصي الذي يرسله لك البوت (زر «🖥️ لوحة الويب»).</p>
 </div>
 
 <div id="app" style="display:none">
   <aside class="side">
-    <div class="brandrow"><div class="logo">🛠️</div><div class="bt">لوحة الصيانة<small>مكتب عبد الله الجلسي</small></div></div>
+    <div class="brandrow"><div class="logo">🏢</div><div class="bt">مكتب عبد الله الجلسي للعقارات<small>لوحة التحكم — الصيانة</small></div></div>
     <nav class="nav">
       <button class="tab on" id="tab_req" onclick="setTab('req')"><span class="ico">📋</span><span>الطلبات</span><span class="cnt hidden" id="cntOpen"></span></button>
       <button class="tab" id="tab_vis" onclick="setTab('vis')"><span class="ico">📅</span><span>المواعيد</span></button>
@@ -238,7 +247,7 @@
 
   <main>
     <div class="topbar">
-      <h1 id="ttl">الطلبات</h1>
+      <div><span class="ofc">مكتب عبد الله الجلسي للعقارات · لوحة التحكم</span><h1 id="ttl">الطلبات</h1></div>
       <span class="upd" id="upd"></span>
       <div class="mob"><button class="ib" onclick="load(true)">🔄</button><button class="ib" onclick="toggleTheme()">🌓</button><button class="ib" onclick="renewKey()">🔑</button></div>
     </div>
@@ -368,7 +377,7 @@
     h += `<div class="hint" style="margin-bottom:8px">الفترة: ${d.from} ← ${d.to} · الصباح = قبل الساعة ${d.split - 12} عصراً، العصر = بعدها</div>`;
     h += '<div class="kpis">' + [['وارد', t.created], ['عولج', t.closed], ['مفتوح الآن', t.openNow], ['طارئ', t.urgent], ['مرفوض', t.rejected], ['متوسط الإنجاز (ساعة)', t.avgH], ['التكلفة (ر.س)', t.cost]].map(x => `<div class="kpi"><b>${x[1]}</b><span>${x[0]}</span></div>`).join('') + '</div>';
     h += '<div class="panel" style="margin-bottom:14px"><h3 style="margin-top:0">👷 الفنيون — أيام العمل</h3>';
-    h += d.techs.length ? '<table><tr><th>الفني</th><th>أنجز</th><th>أيام العمل</th><th>☀️ صباح</th><th>🌙 عصر</th><th>الاثنان</th><th>صباح فقط</th><th>عصر فقط</th><th>متوسط (س)</th></tr>' + d.techs.map((x, i) => `<tr onclick="document.getElementById('pw${i}').classList.toggle('hidden')" style="cursor:pointer"><td><b>${esc(x.name)}</b></td><td>${x.done}</td><td>${x.days}</td><td>${x.m}</td><td>${x.a}</td><td>${x.both}</td><td>${x.mOnly}</td><td>${x.aOnly}</td><td>${x.avgH}</td></tr><tr id="pw${i}" class="hidden"><td colspan="9">${x.weeks.map(w => `<div style="margin:6px 0"><b>أسبوع ${w.w}</b> <span class="hint">(الاثنان ${w.both} · صباح فقط ${w.mOnly} · عصر فقط ${w.aOnly})</span><br>${w.days.map(dy => `<span class="chip2">${esc(dy.dn)} ${dy.d.slice(5)} ${dy.m ? '<span class="sm">☀️' + dy.m + '</span>' : ''} ${dy.a ? '<span class="sa">🌙' + dy.a + '</span>' : ''} ${dy.n ? '<span class="hint">⚪' + dy.n + '</span>' : ''}</span>`).join('')}</div>`).join('')}</td></tr>`).join('') + '</table><div class="hint noprint">اضغط على الفني لرؤية أيامه أسبوعاً أسبوعاً</div>' : '<div class="empty">لا إنجازات بهذه الفترة</div>';
+    h += d.techs.length ? '<table><tr><th>الفني</th><th>أنجز</th><th>❄️ مكيفات</th><th>أيام العمل</th><th>☀️ صباح</th><th>🌙 عصر</th><th>الاثنان</th><th>صباح فقط</th><th>عصر فقط</th><th>متوسط (س)</th></tr>' + d.techs.map((x, i) => `<tr onclick="document.getElementById('pw${i}').classList.toggle('hidden')" style="cursor:pointer"><td><b>${esc(x.name)}</b></td><td>${x.done}</td><td>${x.ac || 0}</td><td>${x.days}</td><td>${x.m}</td><td>${x.a}</td><td>${x.both}</td><td>${x.mOnly}</td><td>${x.aOnly}</td><td>${x.avgH}</td></tr><tr id="pw${i}" class="hidden"><td colspan="10">${x.weeks.map(w => `<div style="margin:6px 0"><b>أسبوع ${w.w}</b> <span class="hint">(الاثنان ${w.both} · صباح فقط ${w.mOnly} · عصر فقط ${w.aOnly})</span><br>${w.days.map(dy => `<span class="chip2">${esc(dy.dn)} ${dy.d.slice(5)} ${dy.m ? '<span class="sm">☀️' + dy.m + '</span>' : ''} ${dy.a ? '<span class="sa">🌙' + dy.a + '</span>' : ''} ${dy.n ? '<span class="hint">⚪' + dy.n + '</span>' : ''}</span>`).join('')}</div>`).join('')}</td></tr>`).join('') + '</table><div class="hint noprint">اضغط على الفني لرؤية أيامه أسبوعاً أسبوعاً</div>' : '<div class="empty">لا إنجازات بهذه الفترة</div>';
     h += '</div><div class="panel" style="margin-bottom:14px"><h3 style="margin-top:0">📊 حسب النوع</h3>' + barsH(d.byType) + '<h3>🏢 حسب العمارة</h3>' + barsH(d.byBuilding) + '</div>';
     h += '<div class="panel" style="margin-bottom:14px"><h3 style="margin-top:0">📈 أسبوعياً</h3>' + (d.weeks.length ? '<table><tr><th>الأسبوع (من السبت)</th><th>وارد</th><th>عولج</th></tr>' + d.weeks.map(w => `<tr><td>${w.w}</td><td>${w.created}</td><td>${w.closed}</td></tr>`).join('') + '</table>' : '<div class="hint">لا بيانات</div>') + '</div>';
     h += '<div class="panel" style="margin-bottom:14px"><h3 style="margin-top:0">🔁 مشاكل متكررة (آخر 90 يوماً — 3 بلاغات فأكثر)</h3>' + (d.recurring.length ? '<table><tr><th>العمارة</th><th>العطل</th><th>مرات</th><th>شقق</th></tr>' + d.recurring.map(x => `<tr><td>${esc(x.b)}</td><td>${esc(x.t)}</td><td><b>${x.n}</b></td><td>${x.apts}</td></tr>`).join('') + '</table>' : '<div class="hint">لا تكرار يستحق الانتباه ✅</div>') + '</div>';
@@ -380,7 +389,7 @@
   async function loadWeek(date) {
     const box = $('wkrep'); if (!box) return;
     const r = await call('weekrep', JSON.stringify({ date: date || (WK && !date ? WK.from : '') }), '', ''); if (!r) { box.innerHTML = '<div class="hint">تعذّر تحميل تقرير الأسبوع</div>'; return; }
-    WK = r; const cell = (arr) => arr.length ? arr.map(x => `<div style="margin:3px 0;cursor:pointer" onclick="goReq('${esc(x.id)}')">#${esc(x.id)} · ${esc(x.b)}${x.apt ? ' ' + esc(x.apt) : ''} · ${esc(x.type)}${x.tech ? ' · 👷' + esc(x.tech) : ''}${x.set ? ' <small title="محددة يدوياً">📌</small>' : ''}</div>`).join('') : '<span class="hint">—</span>';
+    WK = r; const cell = (arr) => arr.length ? arr.map(x => `<div style="margin:3px 0;cursor:pointer" onclick="goReq('${esc(x.id)}')">#${esc(x.id)} · ${esc(x.b)}${x.apt ? ' ' + esc(x.apt) : ''} · ${esc(x.type)}${x.ac ? ' · ❄️' + x.ac : ''}${x.tech ? ' · 👷' + esc(x.tech) : ''}${x.set ? ' <small title="محددة يدوياً">📌</small>' : ''}</div>`).join('') : '<span class="hint">—</span>';
     let tm = 0, ta = 0, tn = 0; r.days.forEach(d => { tm += d.m.length; ta += d.a.length; tn += d.n.length; });
     box.innerHTML = `<h3 style="margin-top:0">📅 تقرير الأسبوع (${esc(r.from)} ← ${esc(r.to)})</h3>
       <div class="row noprint"><button class="btn" onclick="loadWeek('${r.prev}')">→ الأسبوع السابق</button><button class="btn" onclick="loadWeek('${r.next}')">الأسبوع التالي ←</button><button class="btn" onclick="loadWeek(fmtD(new Date()))">هذا الأسبوع</button></div>
@@ -389,7 +398,7 @@
   }
   function perfCsv() {
     if (!PD) return; const q = x => '"' + String(x == null ? '' : x).replace(/"/g, '""') + '"';
-    const rows = [['الفني', 'أنجز', 'أيام العمل', 'أيام صباح', 'أيام عصر', 'الاثنان', 'صباح فقط', 'عصر فقط', 'متوسط ساعات']].concat(PD.techs.map(x => [x.name, x.done, x.days, x.m, x.a, x.both, x.mOnly, x.aOnly, x.avgH]));
+    const rows = [['الفني', 'أنجز', 'مكيفات', 'أيام العمل', 'أيام صباح', 'أيام عصر', 'الاثنان', 'صباح فقط', 'عصر فقط', 'متوسط ساعات']].concat(PD.techs.map(x => [x.name, x.done, x.ac || 0, x.days, x.m, x.a, x.both, x.mOnly, x.aOnly, x.avgH]));
     const blob = new Blob(['\ufeff' + rows.map(r => r.map(q).join(',')).join('\r\n')], { type: 'text/csv;charset=utf-8' });
     const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'اداء-الفنيين-' + PD.from + '.csv'; a.click();
   }
@@ -491,14 +500,31 @@
     if (q) list = list.filter(r => [r.id, r.name, r.bld, r.apt, r.tenant, r.tech, r.type, r.phone, r.desc].join(' ').toLowerCase().includes(q));
     if (FILTER !== 'done' && FILTER !== 'rej' && FILTER !== 'can' && FILTER !== 'all') list = list.slice().sort((a, b) => (b.urg - a.urg) || (Number(a.id) - Number(b.id)));
     if (FILTER === 'done') { $('items').innerHTML = doneCards(q); return; }
-    $('items').innerHTML = list.length ? list.map(r => `
-      <div class="item ${scls(r.st)} ${SEL === r.id ? 'sel' : ''}" onclick="openReq('${esc(r.id)}')">
+    VISIBLE = list.map(r => r.id); const canDel = can('delete_request');
+    const selbar = SELS.size ? `<div class="selbar"><b>تم تحديد ${SELS.size}</b><button class="btn bad" onclick="delSel()">🗑️ حذف المحدد</button><button class="btn" onclick="selAll()">تحديد الكل</button><button class="btn" onclick="clearSel()">إلغاء</button></div>` : '';
+    $('items').innerHTML = selbar + (list.length ? list.map(r => `
+      <div class="item ${scls(r.st)} ${SEL === r.id ? 'sel' : ''} ${SELS.has(r.id) ? 'chk' : ''}" onclick="openReq('${esc(r.id)}')">
+        ${canDel ? `<input type="checkbox" class="ck" ${SELS.has(r.id) ? 'checked' : ''} onclick="event.stopPropagation();toggleSel('${esc(r.id)}')" title="تحديد"><button class="xdel" title="حذف هذا الطلب" onclick="event.stopPropagation();delOne('${esc(r.id)}')">🗑️</button>` : ''}
         <div class="av">${esc(r.icon)}</div>
         <div class="t">#${esc(r.id)} · ${esc(place(r))} ${r.urg ? '<span class="urg">🔴</span>' : ''}</div>
         <div class="s">${esc(r.type)} · ${esc(r.tenant || r.name)}</div>
         <div class="m"><span class="badge ${bcls(r.st)}">${esc(r.st)}</span>${r.tech ? '<span class="s">👷 ' + esc(r.tech) + '</span>' : ''}${r.media ? '<span class="s">📎 ' + r.media + '</span>' : ''}${tagHtml(r)}</div>
         <div class="r">${esc(age(r.ts))}</div>
-      </div>`).join('') : '<div class="empty">🎉 لا توجد طلبات هنا</div>';
+      </div>`).join('') : '<div class="empty">🎉 لا توجد طلبات هنا</div>');
+  }
+  // ---------- تحديد وحذف عدة طلبات ----------
+  let SELS = new Set(), VISIBLE = [];
+  function toggleSel(id) { if (SELS.has(id)) SELS.delete(id); else SELS.add(id); draw(); }
+  function clearSel() { SELS.clear(); draw(); }
+  function selAll() { VISIBLE.forEach(i => SELS.add(i)); draw(); }
+  function delOne(id) { SELS = new Set([id]); delSel(); }
+  function delSel() {
+    const ids = Array.from(SELS); if (!ids.length) return;
+    confirmBox('🗑️ حذف ' + ids.length + (ids.length === 1 ? ' طلب' : ' طلبات'), 'سيُحذف نهائياً من الجدول ومن تليجرام ولا يمكن التراجع: #' + ids.join(' #') + '\n(لإنهاء طلب فقط استخدم «إغلاق» أو «رفض».)', async () => {
+      let ok = 0; for (const id of ids) { const r = await call('delreq', id, '', ''); if (r) ok++; }
+      SELS.clear(); if (ids.includes(SEL)) { SEL = ''; DETAIL = null; closeDetail(); $('detail').innerHTML = '<div class="empty">👈 اختر طلباً من القائمة لعرض تفاصيله</div>'; }
+      toast('🗑️ حُذف ' + ok + ' من ' + ids.length); await load(false);
+    }, 'حذف نهائي');
   }
   function setFilter(f) { FILTER = f; draw(); }
   // ---------- المنجزة: بطاقات أيام (شمس / ليل / بدون فترة) ----------
@@ -521,7 +547,7 @@
       const sh = r.shift === 'n' ? 'n' : (r.shift || (Number(ts.slice(11, 13)) < 15 ? 'm' : 'a'));
       o[sh].push(r);
     });
-    const it = r => `<div class="dit" onclick="openReq('${esc(r.id)}')"><b>#${esc(r.id)}</b> · 🏢 <bdi>${esc(r.bld || '')}</bdi> · ${esc(aptTxt(r.apt))}<br><small>${esc(r.type)}${r.tech ? ' · 👷 ' + esc(r.tech) : ''}${r.st === 'أنجزه الفني' ? ' ⏳' : ''}${r.desc ? '<br>📝 ' + esc(String(r.desc).slice(0, 70)) + (String(r.desc).length > 70 ? '…' : '') : ''}</small></div>`;
+    const it = r => `<div class="dit" onclick="openReq('${esc(r.id)}')"><b>#${esc(r.id)}</b> · 🏢 <bdi>${esc(r.bld || '')}</bdi> · ${esc(aptTxt(r.apt))}<br><small>${esc(r.type)}${r.ac ? ' · ❄️' + esc(r.ac) : ''}${r.tech ? ' · 👷 ' + esc(r.tech) : ''}${r.st === 'أنجزه الفني' ? ' ⏳' : ''}${r.desc ? '<br>📝 ' + esc(String(r.desc).slice(0, 70)) + (String(r.desc).length > 70 ? '…' : '') : ''}</small></div>`;
     const sec = (ttl, arr) => arr.length ? `<div class="dsh">${ttl} <span class="hint">(${arr.length})</span></div>${arr.map(it).join('')}` : '';
     const rg = [['week', 'هذا الأسبوع'], ['7', 'آخر ٧ أيام'], ['last', 'الأسبوع الماضي']];
     let tot = 0; Object.keys(idx).forEach(k => { tot += idx[k].m.length + idx[k].a.length + idx[k].n.length; });
@@ -575,8 +601,9 @@
         <div>المكان</div><div><b>${esc(place(r))}</b></div>
         <div>المبلّغ</div><div>${esc(r.name)}</div>
         <div>المستأجر</div><div>${esc(r.tenant || '—')} <small style="color:var(--mut)">${esc(r.match)}</small></div>
-        <div>الجوال</div><div dir="ltr" style="text-align:end">${esc(r.phone || '—')}</div>
+        <div>الجوال</div><div dir="ltr" style="text-align:end">${esc(r.phone || '—')}${r.pref ? ' <small dir="rtl">⭐ رقم مفضّل</small>' : ''}</div>
         <div>الفني</div><div>${r.tech ? '👷 ' + esc(r.tech) : '—'}</div>
+        ${r.ac ? `<div>❄️ مكيفات</div><div><b>${esc(r.ac)}</b></div>` : ''}
         ${r.src ? `<div>المصدر</div><div>⬆️ شقة ${esc(r.src)}</div>` : ''}
       </div>
       <div class="desc">${esc(r.fullDesc) || '—'}</div>
@@ -673,10 +700,11 @@
       { k: 'bld', label: 'العمارة', type: 'select', v: r.bld, opts: [['', '— بدون —']].concat(blds.map(b => [b.name, b.name])) },
       { k: 'apt', label: 'الشقة', v: r.apt },
       { k: 'desc', label: 'الوصف', type: 'textarea', v: r.fullDesc },
+      { k: 'ac', label: '❄️ عدد المكيفات (شباك)', type: 'tel', v: r.ac || '', ph: '0' },
       { k: 'cost', label: '💰 التكلفة (ر.س) — اختياري', type: 'tel', v: r.cost || '' },
       { k: 'contractor', label: '🔧 المقاول/الجهة', v: r.contractor || '' },
       { k: 'warranty', label: '🛡️ الضمان حتى (سنة-شهر-يوم)', type: 'tel', v: r.warranty || '', ph: '2027-01-31' },
-    ], async v => { const o = { name: v[0], phone: v[1], type: v[2], bld: v[3], apt: v[4], desc: v[5], cost: v[6], contractor: v[7], warranty: v[8] }; const ok = await call('editreq', SEL, JSON.stringify(o), '✅ حُفظ التعديل'); if (!ok) return false; await load(false); await openReq(SEL, true); });
+    ], async v => { const o = { name: v[0], phone: v[1], type: v[2], bld: v[3], apt: v[4], desc: v[5], ac: v[6], cost: v[7], contractor: v[8], warranty: v[9] }; const ok = await call('editreq', SEL, JSON.stringify(o), '✅ حُفظ التعديل'); if (!ok) return false; await load(false); await openReq(SEL, true); });
   }
   function delReq() {
     confirmBox('🗑️ حذف الطلب #' + SEL, 'سيُحذف الطلب نهائياً من الجدول ومن تليجرام ولا يمكن التراجع. (لإنهائه فقط استخدم «إغلاق» أو «رفض».)', async () => {
