@@ -180,6 +180,20 @@
     font-size: 20px; font-weight: 800; padding: 16px; cursor: pointer; box-shadow: 0 8px 22px rgba(31,122,224,.35); }
   .submit:active { transform: translateY(1px); }
   .submit:disabled { opacity: .6; box-shadow: none; }
+  /* بلاغ الحارس: حالة المرفق بلون وعلامة كبيرة؛ الأحمر يُضغط لإعادة الرفع */
+  .tover { position: absolute; display: grid; place-items: center; color: #fff; font-weight: 900; }
+  .tover.ok { left: 0; right: 0; bottom: 0; height: 28px; background: rgba(22,163,74,.92); font-size: 20px; }
+  .tover.bad { inset: 0; background: rgba(220,38,38,.9); font-size: 34px; cursor: pointer; align-content: center; line-height: 1.1; }
+  .tover.bad small { font-size: 13px; display: block; }
+  .thumb { width: 92px; height: 92px; }
+  @keyframes gpulse { 0%,100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(22,163,74,.5); } 50% { transform: scale(1.03); box-shadow: 0 0 0 12px rgba(22,163,74,0); } }
+  .submit.ready { animation: gpulse 1.3s ease-in-out infinite; background: linear-gradient(135deg, #22c55e, #16a34a); font-size: 22px; }
+  body.guard #doneView .msg, body.guard #doneView .tl, body.guard #doneView #trkBtn, body.guard #doneView #shBtn, body.guard #doneView #tgBtn, body.guard #doneView .link, body.guard #doneView #doneWarn:empty { display: none; }
+  body.guard #doneView h3 { font-size: 26px; }
+  body.guard #doneView .num { font-size: 18px; opacity: .7; }
+  body.guard #doneView #doneWhat { font-size: 24px; }
+  body.guard #sec3 .num, body.guard .stepper { display: none; }
+  body.guard .err { position: fixed; left: 12px; right: 12px; bottom: 96px; z-index: 25; margin: 0; font-size: 19px; font-weight: 800; box-shadow: 0 8px 28px rgba(0,0,0,.35); text-align: center; }
   .submit.waiting { opacity: 1; background: linear-gradient(to left, var(--brand) var(--p, 0%), #9fb4cf var(--p, 0%)); box-shadow: none; transition: background .45s ease; }
   .err { background: var(--danger-soft); color: var(--danger); border-radius: 14px; padding: 12px 14px; margin-bottom: 14px; font-weight: 800; display: none; }
   /* مخفي بلا إزاحة يسار (الإزاحة في صفحة عربية RTL تسبب تمرير أفقي) */
@@ -618,6 +632,7 @@
   refreshMyBtn();
   if (GUARD) {
     ['tenCard', 'probCard', 'tgBtn', 'shBtn'].forEach(k => { const e = $(k); if (e) e.classList.add('hidden'); });
+    document.body.classList.add('guard'); { const mh = document.querySelector('#mediaBox .hint'); if (mh) mh.textContent = '📷 صوّر — وتنرفع لحالها. انتظر ✓ الأخضر'; const dh = document.querySelector('#doneView h3'); if (dh) dh.textContent = '✅ تم الإرسال'; }
     $('guardCard').classList.remove('hidden'); $('gKinds').classList.add('nudge'); $('mediaH').textContent = 'صورة أو فيديو';   // الحارس يرفع صورة أو فيديو (زر 🎥 يفتح الكاميرا مباشرة للتصوير)
     $('gKinds').addEventListener('click', e => {
       const b = e.target.closest('.type'); if (!b) return;
@@ -627,8 +642,8 @@
       if (tk) setGScope('bld'); else if (gKind === 'paint') setGScope('apt'); else gFlow();   // الوايت: بلا شقة ولا صور — الإرسال مباشرة؛ البوية: شقة مباشرة
       $('mediaH').innerHTML = gKind === 'maint' ? '📷🎥 صورة أو فيديو المشكلة <small>(مطلوب)</small>' : '📷🎥 صورة أو فيديو <small>(اختياري)</small>';
     });
-    $('sendBtn').textContent = '📤 إرسال'; drawGRecent();
-    $('subHint').textContent = 'اختر النوع، ثم المبنى بالكامل أو شقة محددة، ثم أرسل';
+    $('sendBtn').textContent = '✅ أرسل'; drawGRecent();
+    $('subHint').textContent = '1️⃣ اختر  ←  2️⃣ الشقة  ←  3️⃣ صوّر  ←  4️⃣ أرسل';
     $('keypad').addEventListener('click', e => {
       const b = e.target.closest('button'); if (!b) return;
       let v = $('gapt').value; const k = b.dataset.k;
@@ -705,20 +720,27 @@
     if (photos.length >= MAX_PHOTOS) { showErr('الحد الأقصى ' + MAX_PHOTOS + ' صور'); return; }
     const p = { file: f, url: URL.createObjectURL(f), clientId: restoredId || newKey().slice(4), uploading: true };
     photos.push(p); drawThumbs();
-    const t0 = Date.now();
+    if (!restoredId && !GUARD) { try { await dbPut('photo', p.clientId, f); } catch (e) {} }
+    await sendPhotoUp(p);
+  }
+  async function sendPhotoUp(p) {
+    const f = p.file, t0 = Date.now();
     try {
-      if (!restoredId && !GUARD) await dbPut('photo', p.clientId, f);
       const r = await retryRun('uploadTempPhoto', await compress(f), TEMP_KEY, p.clientId);
       if (!r || !r.ok) throw new Error((r && r.msg) || 'upload');
       DG.m.push({ k: 'p', mb: +(f.size / 1e6).toFixed(1), s: Math.round((Date.now() - t0) / 1000) });
-      p.uploading = false;
+      p.uploading = false; p.error = false;
       if (p.cancelled) run('removeTempPhoto', TEMP_KEY, 0, p.clientId).catch(() => {});
+      if (!photos.some(x => x.error) && !(video && video.error)) showErr('');
     } catch (e) {
       DG.m.push({ k: 'p', mb: +(f.size / 1e6).toFixed(1), e: String((e && (e.name || e.message)) || 'fail').slice(0, 30) });
-      p.uploading = false; p.error = true; showErr('تعذر رفع إحدى الصور — احذفها وأعد اختيارها.');
+      p.uploading = false; p.error = true; showErr('🔴 صورة ما انرفعت — اضغط على الصورة الحمراء 🔄');
     }
     drawThumbs();
   }
+  function retryPhoto(i) { const p = photos[i]; if (!p || p.uploading) return; p.error = false; p.uploading = true; drawThumbs(); sendPhotoUp(p); }
+  function retryVideo() { const v = video; if (!v || v.uploading) return; v.error = false; v.uploading = true; v.progress = 0; drawThumbs(); uploadVideoTemp(v, VIDEO_TEMP_KEY); }
+
   // ---------- ضغط الفيديو قبل الرفع (يرفع أسرع بكثير): إعادة ترميز بجودة أقل عبر المتصفح ----------
   const CMP_MIN_MB = 8;
   function canCompress() { try { return !!(window.MediaRecorder && HTMLVideoElement.prototype.captureStream && MediaRecorder.isTypeSupported('video/mp4')); } catch (e) { return false; } }
@@ -806,7 +828,7 @@
       v.uploading = false; v.progress = 100; DG.m.push({ k: 'v', mb: +(f.size / 1e6).toFixed(1), c: v.cmpFrom || 0, s: Math.round((Date.now() - t0) / 1000) });
     } catch (e) {
       DG.m.push({ k: 'v', mb: +(f.size / 1e6).toFixed(1), c: v.cmpFrom || 0, e: String((e && (e.name || e.message)) || 'fail').slice(0, 30) });
-      if (video === v) { v.uploading = false; v.error = true; showErr('تعذر رفع الفيديو — احذفه وأعد اختياره.'); }
+      if (video === v) { v.uploading = false; v.error = true; showErr('🔴 الفيديو ما انرفع — اضغط على الفيديو الأحمر 🔄'); }
     }
     drawThumbs();
   }
@@ -910,6 +932,16 @@
   }
   // زر الإرسال أثناء الرفع: معطّل لكنه «يمتلئ» تدريجياً مع نسبة، فلا يحسّ المستخدم أن شيئاً متوقف
   let sendingNow = false, waitFake = 0, waitTimer = null;
+  // الحارس: هل كل الخطوات اكتملت؟ (الزر الأخضر ينبض عندها)
+  function gReady() {
+    try {
+      const ap = $('gapt').value, er = photos.some(x => x.error) || !!(video && video.error);
+      if (gKind === 'water' || gKind === 'sewage') return true;
+      if (gKind === 'maint') return (gScope === 'bld' || (gScope === 'apt' && !!ap)) && !!(photos.length || video) && !er;
+      if (gKind === 'paint') return !!ap && !er;
+    } catch (e) {}
+    return false;
+  }
   function refreshSendBtn() {
     if (sendingNow) return;
     const b = $('sendBtn'), up = photos.some(p => p.uploading) || !!(video && video.uploading);
@@ -923,13 +955,14 @@
       if (waitTimer) { clearInterval(waitTimer); waitTimer = null; }
       waitFake = 0; b.classList.remove('waiting'); b.style.removeProperty('--p');
       const blocked = typeof waterSelected === 'function' && waterSelected() && waterMode === 'net';
-      b.disabled = blocked; b.textContent = blocked ? 'لا حاجة لرفع بلاغ — انقطاع الشبكة' : (GUARD ? '📤 إرسال' : 'إرسال البلاغ');
+      b.disabled = blocked; b.textContent = blocked ? 'لا حاجة لرفع بلاغ — انقطاع الشبكة' : (GUARD ? '✅ أرسل' : 'إرسال البلاغ');
+      b.classList.toggle('ready', !!GUARD && !blocked && gReady());
     }
   }
   function drawThumbs() {
-    const badge = x => x.uploading ? '<div style="position:absolute;top:30%;left:30%;font-size:20px">⏳</div>' : (false ? '' : `<div style="position:absolute;bottom:4px;right:4px;color:#fff;background:${x.error ? 'var(--danger)' : 'var(--ok, #16a34a)'};border-radius:50%;width:20px;height:20px;text-align:center;font-size:12px">${x.error ? '!' : '✓'}</div>`);
-    const h = photos.map((p, i) => `<div class="thumb" style="${p.uploading ? 'opacity:.5' : ''}"><img src="${p.url}">${badge(p)}<button onclick="rmPhoto(${i})">✕</button></div>`);
-    if (video) h.push(`<div class="thumb" style="${video.uploading ? 'opacity:.55' : ''}"><video src="${video.url}" muted></video>${video.uploading ? `<span style="position:absolute;inset:0;display:grid;place-items:center;color:#fff;background:#0008;font-size:12px;font-weight:800">${video.preparing ? '⚙️ ' + (video.prep || 0) : (video.progress || 0)}%</span>` : badge(video)}<button onclick="rmVideo()">✕</button></div>`);
+    const badge = (x, retry) => x.uploading ? '<div style="position:absolute;top:30%;left:30%;font-size:22px">⏳</div>' : (x.error ? `<div class="tover bad" onclick="${retry}">🔄<small>أعد</small></div>` : '<div class="tover ok">✓</div>');
+    const h = photos.map((p, i) => `<div class="thumb" style="${p.uploading ? 'opacity:.5' : ''}"><img src="${p.url}">${badge(p, 'retryPhoto(' + i + ')')}<button onclick="rmPhoto(${i})">✕</button></div>`);
+    if (video) h.push(`<div class="thumb" style="${video.uploading ? 'opacity:.55' : ''}"><video src="${video.url}" muted></video>${video.uploading ? `<span style="position:absolute;inset:0;display:grid;place-items:center;color:#fff;background:#0008;font-size:15px;font-weight:800">${video.preparing ? '⚙️ ' + (video.prep || 0) : (video.progress || 0)}%</span>` : badge(video, 'retryVideo()')}<button onclick="rmVideo()">✕</button></div>`);
     $('thumbs').innerHTML = h.join('');
     const up = photos.filter(p => p.uploading).length + (video && video.uploading ? 1 : 0), pr = $('uploadProgress');
     if (pr) { pr.style.display = up ? 'block' : 'none'; pr.textContent = video && video.uploading ? (video.preparing ? '⚙️ نجهّز الفيديو ليُرفع أسرع… ' + (video.prep || 0) + '% (لحظات)' : '⏳ رفع الفيديو: ' + (video.file.size * (video.progress || 0) / 1e8 | 0) / 10 + ' من ' + (video.file.size / 1e6).toFixed(1) + ' ميجا — لا تغلق الصفحة') : '⏳ جاري رفع ' + up + ' مرفق… انتظر قبل الإرسال'; }
@@ -956,7 +989,8 @@
   }
 
   // ---------- الإرسال ----------
-  function showErr(m) { const e = $('err'); e.textContent = m; e.style.display = m ? 'block' : 'none'; if (m) window.scrollTo({ top: 0, behavior: 'smooth' }); }
+  let _errT = null;
+  function showErr(m) { const e = $('err'); e.textContent = m; e.style.display = m ? 'block' : 'none'; clearTimeout(_errT); if (m && !GUARD) window.scrollTo({ top: 0, behavior: 'smooth' }); if (m && GUARD) { try { navigator.vibrate && navigator.vibrate(120); } catch (x) {} _errT = setTimeout(() => { e.style.display = 'none'; }, 7000); } }   // الحارس: الخطأ يظهر فوق زر الإرسال (حيث ينظر) بدل أعلى الصفحة
   // خطأ على حقل بعينه: يلوّنه ويمرّر إليه
   function bad(field, msg) {
     showErr('');
@@ -982,6 +1016,7 @@
     $('gAptList').classList.toggle('nudge', ((maint && gScope === 'apt') || paint) && !apt);
     $('mediaCard').classList.toggle('hidden', !scopeDone);
     const bar = document.querySelector('.barfix'); if (bar) bar.classList.toggle('hidden', !(tk || scopeDone));
+    try { refreshSendBtn(); } catch (e) {}
   }
   setTimeout(gFlow, 0);
   function nudgeScope() { const k = $('gScope'); k.classList.add('nudge'); k.classList.remove('shake'); void k.offsetWidth; k.classList.add('shake'); try { k.scrollIntoView({ behavior: 'smooth', block: 'center' }); navigator.vibrate && navigator.vibrate([120, 60, 120]); } catch (e) {} setTimeout(() => k.classList.remove('shake'), 2000); }
@@ -1020,18 +1055,17 @@
       const gapt = $('gapt').value.trim();
       if (!gKind) { nudgeKinds(true); return showErr('اختر: وايت ماء أو وايت صرف أو صيانة أو بوية'); }
       if (gKind === 'paint' && !$('gapt').value.trim()) { $('gAptList').classList.add('shake'); setTimeout(() => $('gAptList').classList.remove('shake'), 2000); return showErr('اختر رقم الشقة المطلوب صبغها'); }
-      if (photos.some(p => p.uploading) || (video && video.uploading)) return showErr('انتظر… الصورة قيد الرفع ⏳');
-      if (photos.some(p => p.error) || (video && video.error)) return showErr('⚠️ صورة لم تُرفع — اضغط ✕ عليها ثم صوّرها من جديد');
+      if (photos.some(p => p.uploading) || (video && video.uploading)) return showErr('⏳ انتظر… لين يخضر ✓');
+      if (photos.some(p => p.error) || (video && video.error)) return showErr('🔴 اضغط 🔄 على المرفق الأحمر');
       if (gKind === 'maint' && !gScope) { nudgeScope(); return showErr('اختر: كل العمارة أو شقة محددة'); }
       if (gScope === 'apt' && !gapt) return showErr('اختر رقم الشقة أو اضغط «المبنى بالكامل»');
       if (gKind === 'maint' && !photos.length && !video) return showErr('صوّر المشكلة');
       gWhat = ({ water: '💧 وايت ماء', sewage: '🚽 وايت صرف', maint: '🔧 صيانة', paint: '🖌️ بوية' }[gKind] || '') + ' — ' + (gScope === 'apt' ? '🚪 شقة ' + gapt : '🏢 كل العمارة');
-      const _gc = await uiAsk('إرسال البلاغ: ' + gWhat + '؟', 'نعم، أرسل');   // تأكيد قبل الإرسال (يمنع بلاغ بالخطأ)
-      if (!_gc.ok) return;
+      // بلا نافذة تأكيد (كانت تحيّر الحارس): الخطأ يُصحَّح بزر «↩️ تراجع» بعد الإرسال
       call = () => run('submitGuard', GUARD, gScope === 'apt' ? gapt : '', gKind, photos.length + (video ? 1 : 0), sendKey, 1, photos.length ? TEMP_KEY : '', video ? VIDEO_TEMP_KEY : '', diagPayload());
     } else {
-      if (photos.some(p => p.uploading) || (video && video.uploading)) return showErr('انتظر اكتمال رفع المرفقات ثم أرسل');
-      if (photos.some(p => p.error) || (video && video.error)) return showErr('بعض المرفقات لم تُرفع — احذفها (✕) وأعد اختيارها');
+      if (photos.some(p => p.uploading) || (video && video.uploading)) return showErr('⏳ انتظر لين يخضر ✓ على الصور');
+      if (photos.some(p => p.error) || (video && video.error)) return showErr('🔴 اضغط 🔄 على المرفق الأحمر');
       f = { desc: $('desc').value.trim(), type: selType, urgent: $('urgent').checked, website: $('website').value, mediaCount: photos.length + (video ? 1 : 0), tmpKey: photos.length ? TEMP_KEY : '', videoTmpKey: video ? VIDEO_TEMP_KEY : '' };
       f.outside = locOut ? 1 : 0; f.reqKey = sendKey; f.diag = diagPayload();
       if (ident) {
