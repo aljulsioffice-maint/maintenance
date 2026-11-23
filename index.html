@@ -249,6 +249,7 @@
   .keypad button:active { background: #dbe6ff; }
   #gKinds .type .ic { width: auto; min-width: 70px; height: 70px; padding: 0 12px; white-space: nowrap; font-size: 32px; }
   #gKinds .type { font-size: 17px; }
+  #gKinds .paintic svg { display: block; height: 66px; width: auto; }
 </style>
 </head>
 <body>
@@ -275,7 +276,8 @@
       <div class="types" id="gKinds">
         <button type="button" class="type" data-k="water" style="--c:#1f7ae0"><span class="ic">💧🚚</span>وايت ماء</button>
         <button type="button" class="type" data-k="sewage" style="--c:#8a5a2b"><span class="ic">🚽🚛</span>وايت صرف</button>
-        <button type="button" class="type" data-k="maint" style="--c:#7a4bd1;grid-column:1/-1"><span class="ic">🔧🪛</span>صيانة (صوّر المشكلة)</button>
+        <button type="button" class="type" data-k="maint" style="--c:#7a4bd1"><span class="ic">🔧🪛</span>صيانة (صوّر المشكلة)</button>
+        <button type="button" class="type" data-k="paint" style="--c:#dc2626"><span class="ic paintic"><svg viewBox="0 0 76 58" width="92" height="64" aria-hidden="true"><g><path d="M9 22h30v27a5 5 0 0 1-5 5H14a5 5 0 0 1-5-5z" fill="#cbd5e1" stroke="#334155" stroke-width="2"/><rect x="9" y="33" width="30" height="11" fill="#f59e0b"/><path d="M8 20c0-13 32-13 32 0" fill="none" stroke="#334155" stroke-width="2.6"/><rect x="6" y="18" width="36" height="6" rx="2" fill="#94a3b8" stroke="#334155" stroke-width="2"/><ellipse cx="24" cy="19.5" rx="16" ry="3.6" fill="#dc2626"/><path d="M13 22v10a2.2 2.2 0 0 0 4.4 0V22z" fill="#dc2626"/><path d="M31 22v14a2.2 2.2 0 0 0 4.4 0V22z" fill="#dc2626"/></g><g transform="translate(58 5) rotate(24)"><rect x="-3.2" y="0" width="6.4" height="22" rx="3.2" fill="#b45309"/><rect x="-5.5" y="22" width="11" height="9" rx="1" fill="#94a3b8" stroke="#334155" stroke-width="1.4"/><path d="M-5.5 31h11l-1.2 15h-8.6z" fill="#dc2626"/><path d="M-4 40h8l-.6 6h-6.8z" fill="#7f1d1d"/></g></svg></span>بوية (سطل وفرشة)</button>
       </div>
       <div class="types" id="gScope" style="margin-top:10px"><button type="button" class="type" id="gBld" style="--c:#16a34a" onclick="setGScope('bld')"><span class="ic">🏢</span>كل العمارة</button><button type="button" class="type" id="gApt" style="--c:#2563eb" onclick="setGScope('apt')"><span class="ic">🚪</span>شقة محددة</button></div>
       <div id="gAptBox" class="hidden">
@@ -622,7 +624,7 @@
       gKind = b.dataset.k; $('gKinds').classList.remove('nudge', 'shake');
       document.querySelectorAll('#gKinds .type').forEach(x => x.classList.toggle('on', x === b));
       const tk = gKind === 'water' || gKind === 'sewage';   // وايت/صرف: بلا اختيار شقة
-      if (tk) setGScope('bld'); gFlow();   // الوايت: بلا شقة ولا صور — الإرسال مباشرة
+      if (tk) setGScope('bld'); else if (gKind === 'paint') setGScope('apt'); else gFlow();   // الوايت: بلا شقة ولا صور — الإرسال مباشرة؛ البوية: شقة مباشرة
       $('mediaH').innerHTML = gKind === 'maint' ? '📷🎥 صورة أو فيديو المشكلة <small>(مطلوب)</small>' : '📷🎥 صورة أو فيديو <small>(اختياري)</small>';
     });
     $('sendBtn').textContent = '📤 إرسال'; drawGRecent();
@@ -890,13 +892,13 @@
   // كشف تدريجي (الحارس لا يرى كل شيء معاً): النوع ← العمارة/الشقة ← الصور ← الإرسال. كل خطوة غير منجزة تتحرك حتى يختار
   function gFlow() {
     if (!GUARD) return;
-    const tk = gKind === 'water' || gKind === 'sewage', maint = gKind === 'maint', apt = $('gapt').value;
-    $('gScope').classList.toggle('hidden', !maint);
-    $('gAptBox').classList.toggle('hidden', !(maint && gScope === 'apt'));
-    const scopeDone = maint && (gScope === 'bld' || (gScope === 'apt' && !!apt));
+    const tk = gKind === 'water' || gKind === 'sewage', maint = gKind === 'maint', paint = gKind === 'paint', apt = $('gapt').value;
+    $('gScope').classList.toggle('hidden', !maint);   // البوية: لا «كل العمارة» — شقة مباشرة
+    $('gAptBox').classList.toggle('hidden', !((maint && gScope === 'apt') || paint));
+    const scopeDone = (maint && (gScope === 'bld' || (gScope === 'apt' && !!apt))) || (paint && !!apt);
     $('gKinds').classList.toggle('nudge', !gKind);
     $('gScope').classList.toggle('nudge', maint && !gScope);
-    $('gAptList').classList.toggle('nudge', maint && gScope === 'apt' && !apt);
+    $('gAptList').classList.toggle('nudge', ((maint && gScope === 'apt') || paint) && !apt);
     $('mediaCard').classList.toggle('hidden', !scopeDone);
     const bar = document.querySelector('.barfix'); if (bar) bar.classList.toggle('hidden', !(tk || scopeDone));
   }
@@ -935,13 +937,14 @@
     let f, call;
     if (GUARD) {
       const gapt = $('gapt').value.trim();
-      if (!gKind) { nudgeKinds(true); return showErr('اختر: وايت ماء أو وايت صرف أو صيانة'); }
+      if (!gKind) { nudgeKinds(true); return showErr('اختر: وايت ماء أو وايت صرف أو صيانة أو بوية'); }
+      if (gKind === 'paint' && !$('gapt').value.trim()) { $('gAptList').classList.add('shake'); setTimeout(() => $('gAptList').classList.remove('shake'), 2000); return showErr('اختر رقم الشقة المطلوب صبغها'); }
       if (photos.some(p => p.uploading) || (video && video.uploading)) return showErr('انتظر… الصورة قيد الرفع ⏳');
       if (photos.some(p => p.error) || (video && video.error)) return showErr('⚠️ صورة لم تُرفع — اضغط ✕ عليها ثم صوّرها من جديد');
       if (gKind === 'maint' && !gScope) { nudgeScope(); return showErr('اختر: كل العمارة أو شقة محددة'); }
       if (gScope === 'apt' && !gapt) return showErr('اختر رقم الشقة أو اضغط «المبنى بالكامل»');
       if (gKind === 'maint' && !photos.length && !video) return showErr('صوّر المشكلة');
-      gWhat = ({ water: '💧 وايت ماء', sewage: '🚽 وايت صرف', maint: '🔧 صيانة' }[gKind] || '') + ' — ' + (gScope === 'apt' ? '🚪 شقة ' + gapt : '🏢 كل العمارة');
+      gWhat = ({ water: '💧 وايت ماء', sewage: '🚽 وايت صرف', maint: '🔧 صيانة', paint: '🖌️ بوية' }[gKind] || '') + ' — ' + (gScope === 'apt' ? '🚪 شقة ' + gapt : '🏢 كل العمارة');
       const _gc = await uiAsk('إرسال البلاغ: ' + gWhat + '؟', 'نعم، أرسل');   // تأكيد قبل الإرسال (يمنع بلاغ بالخطأ)
       if (!_gc.ok) return;
       call = () => run('submitGuard', GUARD, gScope === 'apt' ? gapt : '', gKind, photos.length + (video ? 1 : 0), sendKey, 1, photos.length ? TEMP_KEY : '', video ? VIDEO_TEMP_KEY : '');
