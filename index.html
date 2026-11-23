@@ -9,7 +9,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet">
 <style>
   :root {
-    --bg: #eef2f7; --card: #ffffff; --text: #17202e; --muted: #667489; --line: #e1e7f0; --field: #f6f8fb;
+    --bg: #eef2f7; --card: #ffffff; --text: #17202e; --muted: #536175; --line: #e1e7f0; --field: #f6f8fb;
     --brand: #0f4c81; --brand2: #1f7ae0; --accent: #1f7ae0; --accent-soft: #e7f1ff;
     --ok: #16794a; --ok-soft: #e1f5ea; --warn: #a85a00; --warn-soft: #fff1d6;
     --danger: #c8102e; --danger-soft: #fde8eb; --r: 18px; --shadow: 0 1px 2px rgba(16,36,64,.06), 0 6px 20px rgba(16,36,64,.06);
@@ -91,6 +91,7 @@
   .type.on::after { content: '✓'; position: absolute; top: 8px; inset-inline-start: 10px; width: 22px; height: 22px; border-radius: 50%; background: var(--c); color: #fff; font-size: 13px; line-height: 22px; }
   .chips { display: flex; gap: 8px; overflow-x: auto; padding: 2px 0 8px; margin: 0 -2px; scrollbar-width: none; }
   .chips::-webkit-scrollbar { display: none; }
+  .chip { min-height: 44px; }
   .chip.on { background: var(--pri, #0b6bcb); color: #fff; border-color: transparent; }
   .chip { flex: none; border: 1.5px solid var(--line); background: var(--card); color: var(--text); border-radius: 999px; padding: 7px 14px; font: inherit; font-size: 15px; font-weight: 700; cursor: pointer; }
   .chip:active { background: var(--accent-soft); }
@@ -113,6 +114,7 @@
   .tabs2 .tabbtn { margin-bottom: 0; }
   .tabbtn.on { background: var(--pri, #0b6bcb); color: #fff; border-color: transparent; }
   .media-btns { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .thumb button { width: 34px; height: 34px; font-size: 16px; }
   .media-label { font-weight: 800; font-size: 15px; margin: 0 0 8px; }
   .media-label small { font-weight: 600; color: var(--muted, #667); font-size: 12px; }
   #mediaBox { margin-bottom: 14px; padding-bottom: 12px; border-bottom: 1px dashed var(--line); }
@@ -216,7 +218,7 @@
   <!-- ===== النموذج ===== -->
   <div id="formView">
     <div class="err" id="err"></div>
-    <div class="stepper" id="stepper"><span class="st" id="st1"></span><span class="st" id="st2"></span><span class="st" id="st3"></span><span class="lbl" id="stLbl">٠ من ٣</span></div>
+    <div class="stepper" id="stepper"><span class="st" id="st1"></span><span class="st" id="st2"></span><span class="st" id="st3"></span><span class="lbl" id="stLbl">0 من 2</span></div>
 
     <div class="card hidden" id="guardCard">
       <div class="sec"><div class="num">🛡️</div><h2 id="guardH">بلاغ من الحارس</h2></div>
@@ -225,7 +227,7 @@
         <button type="button" class="type" data-k="sewage" style="--c:#8a5a2b"><span class="ic">🚽🚛</span>وايت صرف</button>
         <button type="button" class="type" data-k="maint" style="--c:#7a4bd1;grid-column:1/-1"><span class="ic">🔧🪛</span>صيانة (صوّر المشكلة)</button>
       </div>
-      <div class="chips" id="gScope" style="flex-wrap:wrap;margin-top:10px"><button type="button" class="chip on" id="gBld" onclick="setGScope('bld')">🏢 المبنى بالكامل</button><button type="button" class="chip" id="gApt" onclick="setGScope('apt')">🚪 شقة محددة</button></div>
+      <div class="types" id="gScope" style="margin-top:10px"><button type="button" class="type on" id="gBld" style="--c:#16a34a" onclick="setGScope('bld')"><span class="ic">🏢</span>كل العمارة</button><button type="button" class="type" id="gApt" style="--c:#2563eb" onclick="setGScope('apt')"><span class="ic">🚪</span>شقة محددة</button></div>
       <div id="gAptBox" class="hidden">
       <div class="chips" id="gAptList" style="flex-wrap:wrap;margin-top:8px"></div>
       <div class="gdisp">🚪 اختر رقم الشقة: <span id="gaptv">—</span></div>
@@ -307,6 +309,8 @@
       </div>
     </div>
 
+    <div class="card hidden" id="gRecent" style="font-size:15px"></div>
+
     <div class="hp" aria-hidden="true"><input type="text" id="website" tabindex="-1" autocomplete="off"></div>
     <div class="barfix"><div class="in"><div class="subhint" id="subHint"></div><button class="submit" id="sendBtn" onclick="send()">إرسال البلاغ</button></div></div>
   </div>
@@ -317,6 +321,7 @@
       <div class="tick"><svg viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></div>
       <h3>تم استلام بلاغك</h3>
       <div class="num" id="doneNum"></div>
+      <div id="doneWhat" style="font-size:20px;font-weight:800;margin:6px 0"></div>
       <div class="msg">ستصلك رسالة تأكيد الاستلام على واتساب 💬<br>وسيتواصل معك فريق الصيانة قريباً</div>
       <div class="tl"><div class="on">تم الاستلام</div><div>تعيين فني</div><div>تم الإنجاز</div></div>
       <div class="hint" id="doneWarn" style="color:var(--warn);font-weight:700"></div>
@@ -551,9 +556,10 @@
       document.querySelectorAll('#gKinds .type').forEach(x => x.classList.toggle('on', x === b));
       const tk = gKind === 'water' || gKind === 'sewage';   // وايت/صرف: بلا اختيار شقة
       $('gScope').classList.toggle('hidden', tk); if (tk) { setGScope('bld'); $('gAptBox').classList.add('hidden'); }
+      $('mediaCard').classList.toggle('hidden', tk);   // الوايت بلا صور
       $('mediaH').innerHTML = gKind === 'maint' ? 'صورة المشكلة <small>(مطلوبة)</small>' : 'صورة <small>(اختيارية)</small>';
     });
-    $('sendBtn').textContent = '📤 إرسال';
+    $('sendBtn').textContent = '📤 إرسال'; drawGRecent();
     $('subHint').textContent = 'اختر النوع، ثم المبنى بالكامل أو شقة محددة، ثم أرسل';
     $('keypad').addEventListener('click', e => {
       const b = e.target.closest('button'); if (!b) return;
@@ -767,21 +773,32 @@
 
   let gScope = 'bld';
   function setGScope(m) { gScope = m; $('gBld').classList.toggle('on', m === 'bld'); $('gApt').classList.toggle('on', m === 'apt'); $('gAptBox').classList.toggle('hidden', m !== 'apt'); if (m === 'bld') { $('gapt').value = ''; $('gaptv').textContent = '—'; } }
+  // آخر بلاغات الحارس (من هذا الجوال): يطمئن أنها وصلت فلا يكررها
+  function gRecentAdd(id, what) { const a = lsGet('mr_gseen', []); a.unshift({ id: id, w: what, t: new Date().toTimeString().slice(0, 5) }); lsSet('mr_gseen', a.slice(0, 5)); drawGRecent(); }
+  function drawGRecent() {
+    const a = lsGet('mr_gseen', []), el = $('gRecent'); if (!el) return;
+    el.classList.toggle('hidden', !a.length);
+    el.innerHTML = a.length ? '<b>🕘 آخر بلاغاتك</b>' + a.map(x => '<div style="margin-top:6px">#' + x.id + ' · ' + String(x.w).replace(/</g, '&lt;') + ' · ' + x.t + '</div>').join('') : '';
+  }
   function pickGApt(a) { $('gapt').value = a; $('gaptv').textContent = a; }
+  let sendKey = '', gWhat = '';
   async function send() {
+    if (sendingNow) return;
     showErr('');
+    if (!sendKey) sendKey = newKey();
     let f, call;
     if (GUARD) {
       const gapt = $('gapt').value.trim();
       if (!gKind) return showErr('اختر: وايت ماء أو وايت صرف أو صيانة');
       if (gScope === 'apt' && !gapt) return showErr('اختر رقم الشقة أو اضغط «المبنى بالكامل»');
       if (gKind === 'maint' && !photos.length && !video) return showErr('صوّر المشكلة');
-      call = () => run('submitGuard', GUARD, gScope === 'apt' ? gapt : '', gKind, photos.length + (video ? 1 : 0));
+      gWhat = ({ water: '💧 وايت ماء', sewage: '🚽 وايت صرف', maint: '🔧 صيانة' }[gKind] || '') + ' — ' + (gScope === 'apt' ? '🚪 شقة ' + gapt : '🏢 كل العمارة');
+      call = () => run('submitGuard', GUARD, gScope === 'apt' ? gapt : '', gKind, photos.length + (video ? 1 : 0), sendKey);
     } else {
       if (photos.some(p => p.uploading) || (video && video.uploading)) return showErr('انتظر اكتمال رفع المرفقات ثم أرسل');
       if (photos.some(p => p.error) || (video && video.error)) return showErr('بعض المرفقات لم تُرفع — احذفها (✕) وأعد اختيارها');
       f = { desc: $('desc').value.trim(), type: selType, urgent: $('urgent').checked, website: $('website').value, mediaCount: photos.length + (video ? 1 : 0), tmpKey: photos.length ? TEMP_KEY : '', videoTmpKey: video ? VIDEO_TEMP_KEY : '' };
-      f.outside = locOut ? 1 : 0;
+      f.outside = locOut ? 1 : 0; f.reqKey = sendKey;
       if (ident) {
         f.lk = ident.lk; f.pick = ident.pick;
         if (ident.needPhone) { f.phone = toLatin($('phone2').value).trim(); if (!phoneOk(f.phone)) return bad('phone2'); }
@@ -828,7 +845,8 @@
     $('tgBtn').classList.toggle('hidden', !!res.waAuto);   // الإرسال آلي: لا زر للمستأجر
     $('tgBtn').href = 'https://wa.me/' + OFFICE_WA + '?text=' + encodeURIComponent('بلاغ صيانة رقم #' + res.id + ' — ' + (GUARD ? 'من حارس العمارة' : 'أرجو تأكيد الاستلام'));
     $('overlay').style.display = 'none'; sendingNow = false; $('sendBtn').disabled = false; refreshSendBtn();
-    $('doneNum').textContent = '#' + res.id;
+    $('doneNum').textContent = '#' + res.id; sendKey = '';
+    if (GUARD) { $('doneWhat').textContent = '✅ ' + gWhat; try { navigator.vibrate && navigator.vibrate(200); } catch (e) {} gRecentAdd(res.id, gWhat); }
     const hasMedia = !!(res.id && (ph.length || vd));
     $('doneWarn').textContent = hasMedia ? '⏳ جاري رفع المرفقات… لا تغلق الصفحة حتى تظهر «تم رفع المرفقات»' : '';
     photos = []; video = null; drawThumbs(); $('desc').value = ''; $('urgent').checked = false;
