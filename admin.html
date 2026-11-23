@@ -183,6 +183,15 @@
   .legend i.prev { background: var(--bar2); }
   table { width: 100%; border-collapse: collapse; font-size: 14.5px; }
   .panel { overflow-x: auto; }
+  .hint { color: var(--mut); font-size: 13.5px; }
+  .kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 10px; margin-bottom: 14px; }
+  .kpi { background: var(--card); border: 1px solid var(--bd); border-radius: 14px; padding: 12px; text-align: center; }
+  .kpi b { display: block; font-size: 26px; } .kpi span { font-size: 13px; color: var(--mut); }
+  .bar { display: flex; align-items: center; gap: 8px; margin: 5px 0; font-size: 14px; } .bar i { display: block; height: 12px; border-radius: 6px; background: var(--pri); min-width: 3px; } .bar span:first-child { min-width: 110px; }
+  .chip2 { display: inline-block; padding: 2px 8px; border-radius: 10px; font-size: 13px; background: var(--soft); margin: 2px; }
+  .sm { color: #b45309; } .sa { color: #6d28d9; }
+  .rng { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 12px; } .rng button.on { background: var(--pri); color: #fff; }
+  @media print { aside, .topbar, .rng, .noprint, nav { display: none !important; } main { margin: 0 !important; } body { background: #fff; color: #000; } }
   th, td { text-align: start; padding: 10px 8px; border-bottom: 1px solid var(--bd); vertical-align: top; }
   th { color: var(--mut); font-weight: 800; font-size: 12.5px; background: var(--soft); }
   tr:last-child td { border-bottom: 0; }
@@ -208,6 +217,7 @@
       <button class="tab" id="tab_vis" onclick="setTab('vis')"><span class="ico">📅</span><span>المواعيد</span></button>
       <button class="tab" id="tab_rat" onclick="setTab('rat')"><span class="ico">⭐</span><span>التقييمات</span></button>
       <button class="tab" id="tab_rep" onclick="setTab('rep')"><span class="ico">📊</span><span>الإحصاءات</span></button>
+      <button class="tab" id="tab_perf" onclick="setTab('perf')"><span class="ico">🏆</span><span>الأداء</span></button>
       <button class="tab" id="tab_team" onclick="setTab('team')"><span class="ico">👥</span><span>الفريق</span></button>
       <button class="tab" id="tab_dir" onclick="setTab('dir')"><span class="ico">🏢</span><span>العمائر</span></button>
       <button class="tab" id="tab_set" onclick="setTab('set')"><span class="ico">⚙️</span><span>الإعدادات</span></button>
@@ -244,13 +254,14 @@
     <div id="vvis" class="page" style="display:none"></div>
     <div id="vrat" class="page" style="display:none"></div>
     <div id="vrep" class="page" style="display:none"></div>
+    <div id="vperf" class="page" style="display:none"></div>
     <div id="vteam" class="page" style="display:none"></div>
     <div id="vdir" class="page" style="display:none"></div>
     <div id="vset" class="page" style="display:none"></div>
   </main>
 </div>
 
-<div class="modal" id="modal"><div class="box">
+<div class="modal" id="modal" role="dialog" aria-modal="true" aria-labelledby="mTitle"><div class="box">
   <h3 id="mTitle" style="margin-top:0;color:var(--tx);font-size:17px"></h3>
   <div id="mBody"></div>
   <div class="row"><button class="btn pri" id="mOk">تأكيد</button><button class="btn" onclick="closeModal()">إلغاء</button></div>
@@ -263,7 +274,7 @@
   const $ = id => document.getElementById(id);
   const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
   const TYPE_LIST = ['سباكة', 'كهرباء', 'مصعد', 'أخرى', 'وايت ماء', 'وايت صرف صحي'];
-  const TITLES = { req: 'الطلبات', rat: 'تقييمات الفنيين', vis: 'جدول المواعيد', rep: 'الإحصاءات', team: 'الفريق والحراس', dir: 'العمائر والمستأجرون', set: 'الإعدادات والميزات' };
+  const TITLES = { req: 'الطلبات', rat: 'تقييمات الفنيين', vis: 'جدول المواعيد', rep: 'الإحصاءات', perf: 'الأداء', team: 'الفريق والحراس', dir: 'العمائر والمستأجرون', set: 'الإعدادات والميزات' };
   let KEY = '', DATA = null, FILTER = 'open', SEL = '', DETAIL = null, busy = false, TAB = 'req', BLDS = null;
   let TEAM = null, GUARDS = null, TENROWS = [];
   const IMG = {};
@@ -310,11 +321,12 @@
       return `<label for="${id}">${esc(f.label)}</label><input class="inp" id="${id}" type="text" ${f.type === 'tel' ? 'inputmode="tel" dir="ltr"' : ''} value="${esc(f.v || '')}" placeholder="${esc(f.ph || '')}">`;
     }).join('');
     $('mOk').textContent = okLabel || 'حفظ';
-    $('mOk').onclick = async () => { const vals = fields.map((f, i) => $('f_' + i).value.trim()); closeModal(); await onOk(vals); };
+    $('mOk').onclick = async () => { const vals = fields.map((f, i) => $('f_' + i).value.trim()); $('mOk').disabled = true; try { const r = await onOk(vals); if (r !== false) closeModal(); } finally { $('mOk').disabled = false; } };
     $('modal').classList.add('on');
     const first = $('f_0'); if (first) first.focus();
   }
   function closeModal() { $('modal').classList.remove('on'); }
+  document.addEventListener('keydown', e => { if (e.key === 'Escape') { closeModal(); $('lb').classList.remove('on'); } });
   function confirmBox(title, text, onOk, label) {
     $('mTitle').textContent = title; $('mBody').innerHTML = `<div style="padding:6px 0;line-height:1.8">${esc(text)}</div>`;
     $('mOk').textContent = label || 'تأكيد'; $('mOk').onclick = async () => { closeModal(); await onOk(); }; $('modal').classList.add('on');
@@ -324,9 +336,46 @@
   // ---------- التبويبات ----------
   function setTab(t) {
     TAB = t; $('ttl').textContent = TITLES[t];
-    ['req', 'vis', 'rat', 'rep', 'team', 'dir', 'set'].forEach(k => { $('tab_' + k).classList.toggle('on', k === t); $('v' + k).style.display = k === t ? '' : 'none'; });
+    ['req', 'vis', 'rat', 'rep', 'perf', 'team', 'dir', 'set'].forEach(k => { $('tab_' + k).classList.toggle('on', k === t); $('v' + k).style.display = k === t ? '' : 'none'; });
     window.scrollTo({ top: 0 });
-    if (t === 'rep') loadReport(); if (t === 'team') loadTeam(); if (t === 'dir') loadDir(); if (t === 'set') loadSet(); if (t === 'vis') drawVisits(); if (t === 'rat') loadRatings();
+    if (t === 'rep') loadReport(); if (t === 'perf') loadPerf(); if (t === 'team') loadTeam(); if (t === 'dir') loadDir(); if (t === 'set') loadSet(); if (t === 'vis') drawVisits(); if (t === 'rat') loadRatings();
+  }
+  // ---------- لوحة الأداء ----------
+  let PR = 'week', PD = null;
+  const pad2 = n => ('0' + n).slice(-2), fmtD = d => d.getFullYear() + '-' + pad2(d.getMonth() + 1) + '-' + pad2(d.getDate());
+  function perfRange(k) {
+    const t = new Date(); t.setHours(12); const sun = new Date(t); sun.setDate(t.getDate() - t.getDay());
+    if (k === 'week') { const e = new Date(sun); e.setDate(sun.getDate() + 6); return [fmtD(sun), fmtD(e)]; }
+    if (k === 'last') { const a = new Date(sun); a.setDate(sun.getDate() - 7); const e = new Date(sun); e.setDate(sun.getDate() - 1); return [fmtD(a), fmtD(e)]; }
+    if (k === 'month') return [fmtD(new Date(t.getFullYear(), t.getMonth(), 1)), fmtD(t)];
+    if (k === '30') { const a = new Date(t); a.setDate(t.getDate() - 29); return [fmtD(a), fmtD(t)]; }
+    return [($('pFrom') || {}).value || fmtD(t), ($('pTo') || {}).value || fmtD(t)];
+  }
+  async function loadPerf(k) {
+    if (k) PR = k; const v = $('vperf'); if (!PD) v.innerHTML = skel(4);
+    const [a, b] = perfRange(PR);
+    const r = await call('dash', JSON.stringify({ from: a, to: b }), '', ''); if (!r) { v.innerHTML = '<div class="empty">تعذّر التحميل</div>'; return; }
+    PD = r; drawPerf();
+  }
+  const barsH = (arr, unit) => { const m = Math.max(1, ...arr.map(x => x.n)); return arr.length ? arr.map(x => `<div class="bar"><span>${esc(x.k)}</span><i style="width:${Math.round(x.n / m * 60)}%"></i><b>${x.n}${unit || ''}</b></div>`).join('') : '<div class="hint">لا بيانات</div>'; };
+  function drawPerf() {
+    const d = PD, t = d.totals, rg = [['week', 'هذا الأسبوع'], ['last', 'الأسبوع الماضي'], ['month', 'هذا الشهر'], ['30', 'آخر 30 يوم'], ['custom', 'مخصص']];
+    let h = '<div class="rng noprint">' + rg.map(x => `<button class="btn ${PR === x[0] ? 'on' : ''}" onclick="loadPerf('${x[0]}')">${x[1]}</button>`).join('') + (PR === 'custom' ? `<input type="date" id="pFrom" class="inp" value="${d.from}" style="width:auto"> <input type="date" id="pTo" class="inp" value="${d.to}" style="width:auto"> <button class="btn pri" onclick="loadPerf('custom')">عرض</button>` : '') + '<button class="btn" onclick="perfCsv()">⬇️ CSV</button><button class="btn" onclick="window.print()">🖨️ طباعة</button></div>';
+    h += `<div class="hint" style="margin-bottom:8px">الفترة: ${d.from} ← ${d.to} · الصباح = قبل الساعة ${d.split - 12} عصراً، العصر = بعدها</div>`;
+    h += '<div class="kpis">' + [['وارد', t.created], ['عولج', t.closed], ['مفتوح الآن', t.openNow], ['طارئ', t.urgent], ['مرفوض', t.rejected], ['متوسط الإنجاز (ساعة)', t.avgH], ['التكلفة (ر.س)', t.cost]].map(x => `<div class="kpi"><b>${x[1]}</b><span>${x[0]}</span></div>`).join('') + '</div>';
+    h += '<div class="panel" style="margin-bottom:14px"><h3 style="margin-top:0">👷 الفنيون — أيام العمل</h3>';
+    h += d.techs.length ? '<table><tr><th>الفني</th><th>أنجز</th><th>أيام العمل</th><th>☀️ صباح</th><th>🌙 عصر</th><th>الاثنان</th><th>صباح فقط</th><th>عصر فقط</th><th>متوسط (س)</th></tr>' + d.techs.map((x, i) => `<tr onclick="document.getElementById('pw${i}').classList.toggle('hidden')" style="cursor:pointer"><td><b>${esc(x.name)}</b></td><td>${x.done}</td><td>${x.days}</td><td>${x.m}</td><td>${x.a}</td><td>${x.both}</td><td>${x.mOnly}</td><td>${x.aOnly}</td><td>${x.avgH}</td></tr><tr id="pw${i}" class="hidden"><td colspan="9">${x.weeks.map(w => `<div style="margin:6px 0"><b>أسبوع ${w.w}</b> <span class="hint">(الاثنان ${w.both} · صباح فقط ${w.mOnly} · عصر فقط ${w.aOnly})</span><br>${w.days.map(dy => `<span class="chip2">${esc(dy.dn)} ${dy.d.slice(5)} ${dy.m ? '<span class="sm">☀️' + dy.m + '</span>' : ''} ${dy.a ? '<span class="sa">🌙' + dy.a + '</span>' : ''}</span>`).join('')}</div>`).join('')}</td></tr>`).join('') + '</table><div class="hint noprint">اضغط على الفني لرؤية أيامه أسبوعاً أسبوعاً</div>' : '<div class="empty">لا إنجازات بهذه الفترة</div>';
+    h += '</div><div class="panel" style="margin-bottom:14px"><h3 style="margin-top:0">📊 حسب النوع</h3>' + barsH(d.byType) + '<h3>🏢 حسب العمارة</h3>' + barsH(d.byBuilding) + '</div>';
+    h += '<div class="panel" style="margin-bottom:14px"><h3 style="margin-top:0">📈 أسبوعياً</h3>' + (d.weeks.length ? '<table><tr><th>الأسبوع (من الأحد)</th><th>وارد</th><th>عولج</th></tr>' + d.weeks.map(w => `<tr><td>${w.w}</td><td>${w.created}</td><td>${w.closed}</td></tr>`).join('') + '</table>' : '<div class="hint">لا بيانات</div>') + '</div>';
+    h += '<div class="panel" style="margin-bottom:14px"><h3 style="margin-top:0">🔁 مشاكل متكررة (آخر 90 يوماً — 3 بلاغات فأكثر)</h3>' + (d.recurring.length ? '<table><tr><th>العمارة</th><th>العطل</th><th>مرات</th><th>شقق</th></tr>' + d.recurring.map(x => `<tr><td>${esc(x.b)}</td><td>${esc(x.t)}</td><td><b>${x.n}</b></td><td>${x.apts}</td></tr>`).join('') + '</table>' : '<div class="hint">لا تكرار يستحق الانتباه ✅</div>') + '</div>';
+    h += '<div class="panel"><h3 style="margin-top:0">💰 التكلفة حسب العمارة</h3>' + barsH(d.costBy, ' ر.س') + (d.warranty.length ? '<h3>🛡️ ضمانات سارية</h3>' + d.warranty.map(x => `<div class="hint">#${x.id} · ${esc(x.b)} · ${esc(x.t)} · حتى ${esc(x.until)} ${x.by ? '· ' + esc(x.by) : ''}</div>`).join('') : '') + '<div class="hint noprint" style="margin-top:8px">أدخل التكلفة/المقاول/الضمان من «✏️ تعديل» داخل الطلب</div></div>';
+    $('vperf').innerHTML = h;
+  }
+  function perfCsv() {
+    if (!PD) return; const q = x => '"' + String(x == null ? '' : x).replace(/"/g, '""') + '"';
+    const rows = [['الفني', 'أنجز', 'أيام العمل', 'أيام صباح', 'أيام عصر', 'الاثنان', 'صباح فقط', 'عصر فقط', 'متوسط ساعات']].concat(PD.techs.map(x => [x.name, x.done, x.days, x.m, x.a, x.both, x.mOnly, x.aOnly, x.avgH]));
+    const blob = new Blob(['\ufeff' + rows.map(r => r.map(q).join(',')).join('\r\n')], { type: 'text/csv;charset=utf-8' });
+    const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'اداء-الفنيين-' + PD.from + '.csv'; a.click();
   }
   // ---------- تقييمات الفنيين ----------
   async function loadRatings() {
@@ -365,7 +414,7 @@
       if (!r.ok) { $('app').style.display = 'none'; $('gate').style.display = 'block'; $('gateMsg').textContent = r.msg || 'الرابط غير صالح'; return; }
       DATA = r; $('gate').style.display = 'none'; $('app').style.display = 'block';
       ['team', 'dir', 'set'].forEach(k => $('tab_' + k).classList.toggle('hidden', !r.owner));
-      ['vis', 'rat', 'rep'].forEach(k => $('tab_' + k).classList.toggle('hidden', !can('view_dashboard')));
+      ['vis', 'rat', 'rep', 'perf'].forEach(k => $('tab_' + k).classList.toggle('hidden', !can('view_dashboard')));
       if (!can('view_dashboard') && ['vis', 'rat', 'rep'].includes(TAB)) setTab('req');   // الفريق والعمائر للمالك فقط
       if (!r.owner && (TAB === 'team' || TAB === 'dir' || TAB === 'set')) setTab('req');
       $('me').textContent = '👤 ' + r.me; $('upd').textContent = 'آخر تحديث ' + r.at.slice(11);
@@ -548,7 +597,10 @@
       { k: 'bld', label: 'العمارة', type: 'select', v: r.bld, opts: [['', '— بدون —']].concat(blds.map(b => [b.name, b.name])) },
       { k: 'apt', label: 'الشقة', v: r.apt },
       { k: 'desc', label: 'الوصف', type: 'textarea', v: r.fullDesc },
-    ], async v => { const o = { name: v[0], phone: v[1], type: v[2], bld: v[3], apt: v[4], desc: v[5] }; const ok = await call('editreq', SEL, JSON.stringify(o), '✅ حُفظ التعديل'); if (ok) { await load(false); await openReq(SEL, true); } });
+      { k: 'cost', label: '💰 التكلفة (ر.س) — اختياري', type: 'tel', v: r.cost || '' },
+      { k: 'contractor', label: '🔧 المقاول/الجهة', v: r.contractor || '' },
+      { k: 'warranty', label: '🛡️ الضمان حتى (سنة-شهر-يوم)', type: 'tel', v: r.warranty || '', ph: '2027-01-31' },
+    ], async v => { const o = { name: v[0], phone: v[1], type: v[2], bld: v[3], apt: v[4], desc: v[5], cost: v[6], contractor: v[7], warranty: v[8] }; const ok = await call('editreq', SEL, JSON.stringify(o), '✅ حُفظ التعديل'); if (!ok) return false; await load(false); await openReq(SEL, true); });
   }
   function delReq() {
     confirmBox('🗑️ حذف الطلب #' + SEL, 'سيُحذف الطلب نهائياً من الجدول ومن تليجرام ولا يمكن التراجع. (لإنهائه فقط استخدم «إغلاق» أو «رفض».)', async () => {
@@ -775,7 +827,7 @@
   }
 
   $('items').innerHTML = skel(5);
-  load(true); setInterval(() => { if (!document.hidden && TAB === 'req' && !$('modal').classList.contains('on')) load(false); }, 30000);
+  load(true); setInterval(() => { if (!document.hidden && TAB === 'req' && !$('modal').classList.contains('on') && document.activeElement !== $('techSel') && !($('techSel') && $('techSel').value)) load(false); }, 30000);
 </script>
 </body>
 </html>
