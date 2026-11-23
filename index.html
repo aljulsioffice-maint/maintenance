@@ -464,6 +464,7 @@
   let selType = '', photos = [], video = null, lastToken = '', gKind = '', needSrc = false, srcMode = '';
   // رابط الحارس: ?g=رمز — يعرض نموذجاً مبسطاً (رقم شقة + صورة) بلا تسجيل
   const GUARD = (new URLSearchParams(location.search).get('g') || '').replace(/[^a-f0-9]/g, '').slice(0, 12);
+  const GQ_KEY = 'mr_gq', GQ_MAX_AGE = 20 * 3600 * 1000;   // طابور بلاغات الحارس عند انقطاع الشبكة؛ المرفقات المؤقتة تُحذف من الخادم بعد 24 ساعة
 
   // ---------- تخزين محلي (قد يكون محظوراً بالمتصفح: كل شيء داخل try) ----------
   function lsGet(k, d) { try { const v = localStorage.getItem(k); return v ? JSON.parse(v) : d; } catch (e) { return d; } }
@@ -661,14 +662,14 @@
   if (GUARD && API_URL) (function () {
     try {
       const standalone = (window.matchMedia && matchMedia('(display-mode: standalone)').matches) || navigator.standalone;
-      const abs = f => new URL(f, location.href).href, I192 = 'data:image/png;base64,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';
+      const abs = f => new URL(f, location.href).href, I192 = 'data:image/png;base64,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';
       const mk = I512 => {
-      const man = { name: 'صيانة الجلسي', short_name: 'صيانة', lang: 'ar', dir: 'rtl', start_url: location.href, scope: abs('./'), display: 'standalone', background_color: '#f08a00', theme_color: '#f08a00',
+      const man = { name: 'صيانة الجلسي', short_name: 'صيانة', lang: 'ar', dir: 'rtl', start_url: location.href, scope: abs('./'), display: 'standalone', background_color: '#0b3a63', theme_color: '#0b3a63',
         icons: [{ src: I192, sizes: '192x192', type: 'image/png', purpose: 'any maskable' }, { src: I512, sizes: '512x512', type: 'image/png', purpose: 'any maskable' }] };
       const ml = document.createElement('link'); ml.rel = 'manifest'; ml.href = URL.createObjectURL(new Blob([JSON.stringify(man)], { type: 'application/manifest+json' })); document.head.appendChild(ml); };
       { const im = new Image(); im.onload = () => { let u = I192; try { const c = document.createElement('canvas'); c.width = c.height = 512; c.getContext('2d').drawImage(im, 0, 0, 512, 512); u = c.toDataURL('image/png'); } catch (e) {} mk(u); }; im.onerror = () => mk(I192); im.src = I192; }
       const ai = document.createElement('link'); ai.rel = 'apple-touch-icon'; ai.href = I192; document.head.appendChild(ai);
-      const tc = document.createElement('meta'); tc.name = 'theme-color'; tc.content = '#f08a00'; document.head.appendChild(tc);
+      const tc = document.createElement('meta'); tc.name = 'theme-color'; tc.content = '#0b3a63'; document.head.appendChild(tc);
       if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(() => {});
       if (standalone || lsGet('mr_inst_hide', 0)) return;
       let dp = null;
@@ -1060,10 +1061,32 @@
     x.c = 1; lsSet('mr_gseen', a); drawGRecent(); $('undoBox').classList.add('hidden'); await uiNote('✅ تم التراجع عن البلاغ #' + id);
   }
   setInterval(() => { try { drawGRecent(); const u = $('undoBox'); if (u && Date.now() - undoTs > 120000) u.classList.add('hidden'); } catch (e) {} }, 15000);
+  // ---------- حفظ بلاغ الحارس عند انقطاع الشبكة وإرساله تلقائياً (المرفقات رُفعت مسبقاً فلا تضيع) ----------
+  function gqAdd(it) { const q = lsGet(GQ_KEY, []); q.push(it); lsSet(GQ_KEY, q.slice(-10)); }
+  let gqBusy = false;
+  async function gqFlush() {
+    if (!GUARD || gqBusy || !navigator.onLine) return;
+    let q = lsGet(GQ_KEY, []); if (!q.length) return;
+    gqBusy = true;
+    try {
+      for (const it of q.slice()) {
+        if (Date.now() - it.ts > GQ_MAX_AGE) { q = q.filter(x => x !== it && x.ts !== it.ts); lsSet(GQ_KEY, q); continue; }
+        let r; try { r = await run('submitGuard', ...it.a, 1); } catch (e) { break; }   // الشبكة لسا ضعيفة: نحاول لاحقاً
+        q = lsGet(GQ_KEY, []).filter(x => x.ts !== it.ts); lsSet(GQ_KEY, q);
+        if (r && r.ok && r.id) {
+          gRecentAdd(r.id, it.w, r.token);
+          run('finishRequest', r.id, r.token).catch(() => {}); fire('flushMedia', r.id, r.token);
+          try { navigator.vibrate && navigator.vibrate(150); } catch (e) {}
+        }
+      }
+    } finally { gqBusy = false; try { drawGRecent(); } catch (e) {} }
+  }
+  if (GUARD) { window.addEventListener('online', gqFlush); setInterval(gqFlush, 20000); setTimeout(gqFlush, 1500); }
   function drawGRecent() {
     const a = lsGet('mr_gseen', []), el = $('gRecent'); if (!el) return;
-    el.classList.toggle('hidden', !a.length);
-    el.innerHTML = a.length ? '<b>🕘 آخر بلاغاتك</b>' + a.map(x => '<div style="margin-top:8px;display:flex;gap:8px;align-items:center;flex-wrap:wrap"><span>#' + x.id + ' · ' + String(x.w).replace(/</g, '&lt;') + ' · ' + x.t + (x.c ? ' · <b>⛔ مسحوب</b>' : '') + '</span>' + (!x.c && x.tok && x.ts && Date.now() - x.ts < 120000 ? '<button type="button" class="chip" onclick="undoRecent(\'' + x.id + '\')">↩️ تراجع</button>' : '') + '</div>').join('') : '';
+    const qn = GUARD ? lsGet(GQ_KEY, []).length : 0;
+    el.classList.toggle('hidden', !a.length && !qn);
+    el.innerHTML = (qn ? '<div style="font-weight:800;margin-bottom:6px">💾 ' + qn + ' بلاغ محفوظ — يُرسل أول ما ترجع الشبكة</div>' : '') + (a.length ? '<b>🕘 آخر بلاغاتك</b>' + a.map(x => '<div style="margin-top:8px;display:flex;gap:8px;align-items:center;flex-wrap:wrap"><span>#' + x.id + ' · ' + String(x.w).replace(/</g, '&lt;') + ' · ' + x.t + (x.c ? ' · <b>⛔ مسحوب</b>' : '') + '</span>' + (!x.c && x.tok && x.ts && Date.now() - x.ts < 120000 ? '<button type="button" class="chip" onclick="undoRecent(\'' + x.id + '\')">↩️ تراجع</button>' : '') + '</div>').join('') : '');
   }
   function nudgeKinds(strong) {   // لم يختر النوع: الأشكال تتحرك لتلفت نظره
     const k = $('gKinds'); if (!k || gKind) return;
@@ -1075,7 +1098,7 @@
     $('gDoor').classList.toggle('hidden', !v);
   }
   function pickGApt(a) { $('gapt').value = a; $('gaptv').textContent = a; updDoor(); gFlow(); }
-  let sendKey = '', gWhat = '', undoTs = 0;
+  let sendKey = '', gWhat = '', undoTs = 0, dupSig = '', gQItem = null;
   async function send() {
     if (sendingNow) return;
     showErr('');
@@ -1092,7 +1115,9 @@
       if (gKind === 'maint' && !photos.length && !video) return showErr('صوّر المشكلة');
       gWhat = ({ water: '💧 وايت ماء', sewage: '🚽 وايت صرف', maint: '🔧 صيانة', paint: '🖌️ بوية' }[gKind] || '') + ' — ' + (gScope === 'apt' ? '🚪 شقة ' + gapt : '🏢 كل العمارة');
       // بلا نافذة تأكيد (كانت تحيّر الحارس): الخطأ يُصحَّح بزر «↩️ تراجع» بعد الإرسال
-      call = () => run('submitGuard', GUARD, gScope === 'apt' ? gapt : '', gKind, photos.length + (video ? 1 : 0), sendKey, 1, photos.length ? TEMP_KEY : '', video ? VIDEO_TEMP_KEY : '', diagPayload());
+      const gSig = gKind + '|' + (gScope === 'apt' ? gapt : ''), gArgs = [GUARD, gScope === 'apt' ? gapt : '', gKind, photos.length + (video ? 1 : 0), sendKey, 1, photos.length ? TEMP_KEY : '', video ? VIDEO_TEMP_KEY : '', diagPayload()];
+      gQItem = { a: gArgs, w: gWhat, ts: Date.now() };   // لو انقطعت الشبكة: يُحفظ ويُرسل لاحقاً
+      call = () => run('submitGuard', ...gArgs, dupSig === gSig ? 1 : 0);
     } else {
       if (photos.some(p => p.uploading) || (video && video.uploading)) return showErr('⏳ انتظر لين يخضر ✓ على الصور');
       if (photos.some(p => p.error) || (video && video.error)) return showErr('🔴 اضغط 🔄 على المرفق الأحمر');
@@ -1131,7 +1156,17 @@
     sendingNow = true; $('sendBtn').disabled = true; $('overlay').style.display = 'flex'; progress('جاري الإرسال…', 5);
     let res;
     try { res = await call(); }
-    catch (e) { return endSend('تعذر الإرسال، تأكد من الإنترنت وحاول مرة ثانية'); }
+    catch (e) {
+      if (GUARD && gQItem && (!navigator.onLine || (e && e.name === 'TypeError'))) { gqAdd(gQItem); res = { ok: true, id: 0, token: '', queued: true }; }   // انقطاع شبكة: يُحفظ بالجوال ويُرسل تلقائياً
+      else return endSend('تعذر الإرسال، تأكد من الإنترنت وحاول مرة ثانية');
+    }
+    if (res && res.dup) {   // بلاغ مفتوح لنفس الشقة/النوع
+      if (GUARD) { dupSig = gKind + '|' + (gScope === 'apt' ? $('gapt').value.trim() : ''); return endSend(res.msg); }
+      $('overlay').style.display = 'none'; const dc = await uiAsk(res.msg, 'نعم، أرسل بلاغاً جديداً');
+      if (!dc.ok) { sendingNow = false; $('sendBtn').disabled = false; refreshSendBtn(); return; }
+      f.dupOk = 1; $('overlay').style.display = 'flex'; progress('جاري الإرسال…', 5);
+      try { res = await call(); } catch (e) { return endSend('تعذر الإرسال، تأكد من الإنترنت وحاول مرة ثانية'); }
+    }
     if (!res || !res.ok) return endSend(res && res.msg ? res.msg : 'تعذر الإرسال');
     if (!GUARD) lsSet('mr_profile', ident ? { lk: ident.lk, pick: ident.pick, name: ident.name, bld: ident.bld, apt: ident.apt, needPhone: ident.needPhone, ph: ident.ph || '', phone2: f.phone || '' } : { manual: true, name: f.name, bld: f.district, apt: f.apt, phone: f.phone });
     else { gScope = ''; $('gapt').value = ''; $('gaptv').textContent = '—'; gKind = ''; document.querySelectorAll('#gKinds .type, #gScope .type').forEach(x => x.classList.remove('on')); updDoor(); gFlow(); }
@@ -1148,8 +1183,9 @@
     $('tgBtn').classList.toggle('hidden', !!res.waAuto);   // الإرسال آلي: لا زر للمستأجر
     $('tgBtn').href = 'https://wa.me/' + OFFICE_WA + '?text=' + encodeURIComponent('بلاغ صيانة رقم #' + res.id + ' — ' + (GUARD ? 'من حارس العمارة' : 'أرجو تأكيد الاستلام'));
     $('overlay').style.display = 'none'; sendingNow = false; $('sendBtn').disabled = false; refreshSendBtn();
-    $('doneNum').textContent = '#' + res.id; sendKey = '';
-    if (GUARD) { $('doneWhat').textContent = '✅ ' + gWhat; try { navigator.vibrate && navigator.vibrate(200); } catch (e) {} gRecentAdd(res.id, gWhat, res.token); }
+    $('doneNum').textContent = res.queued ? '' : '#' + res.id; sendKey = ''; dupSig = '';
+    if (GUARD && res.queued) { $('doneWhat').textContent = '💾 محفوظ ✓ — يُرسل تلقائياً أول ما ترجع الشبكة'; try { navigator.vibrate && navigator.vibrate(200); } catch (e) {} drawGRecent(); }
+    else if (GUARD) { $('doneWhat').textContent = '✅ ' + gWhat; try { navigator.vibrate && navigator.vibrate(200); } catch (e) {} gRecentAdd(res.id, gWhat, res.token); }
     else if (res.id) { const _tl = (TYPES.filter(t => t[0] === (f && f.type))[0] || [])[2] || 'بلاغ'; gRecentAdd(res.id, _tl + ' — ' + (f.desc || '').slice(0, 24), res.token); }
     undoTs = Date.now(); $('undoBox').classList.toggle('hidden', !res.id || !res.token); $('undoBtn').onclick = () => undoRecent(res.id);
     const hasMedia = !!(res.id && (ph.length || vd));
