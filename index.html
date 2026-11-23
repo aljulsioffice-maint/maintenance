@@ -276,9 +276,12 @@
         <span>🔴 طارئ<small>ضرر يزيد بالعمارة: تسريب مياه، انكسار ماسورة، ماس كهربائي، فيضان</small></span>
       </label>
       <div class="hint" id="urgAuto" style="display:none;color:#b45309;font-weight:700;margin-top:6px">⚠️ حدّدناه «طارئ» تلقائياً لأن الضرر قد يزيد — تقدر تلغيه</div>
-      <div class="hint" style="margin-top:4px">🚒 للحريق أو رائحة الغاز أو احتجاز شخص بالمصعد: اتصل بالدفاع المدني <b>998</b> أولاً</div>
       <label for="desc" style="margin-top:18px">اشرح باختصار</label>
       <div class="chips hidden" id="chips"></div>
+      <div class="fld hidden" id="f_water"><label>سبب انقطاع المياه؟</label>
+        <div class="chips" style="flex-wrap:wrap"><button type="button" class="chip" id="wNet" onclick="setWater('net')">🌐 من شبكة المياه</button><button type="button" class="chip" id="wIn" onclick="setWater('in')">🏢 عطل داخل المبنى</button></div>
+        <div class="chips hidden" id="wSubs" style="flex-wrap:wrap"><button type="button" class="chip" data-s="المضخة (الماطور)" onclick="setWSub(this)">⚙️ المضخة (الماطور)</button><button type="button" class="chip" data-s="الخزان" onclick="setWSub(this)">🛢️ الخزان</button><button type="button" class="chip" data-s="غير متأكد" onclick="setWSub(this)">❔ غير متأكد</button></div>
+        <div id="waterNote" style="display:none;color:#b91c1c;font-weight:800;margin-top:8px;font-size:14px"></div><div class="em">اختر سبب الانقطاع</div></div>
       <div class="fld hidden" id="f_src"><label>من أين المشكلة؟</label>
         <div class="chips" style="flex-wrap:wrap"><button type="button" class="chip" id="srcSame" onclick="setSrc('same')">من شقتي</button><button type="button" class="chip" id="srcUp" onclick="setSrc('up')">من شقة أخرى</button><button type="button" class="chip" id="srcRoof" onclick="setSrc('roof')">من السطح أو المبنى</button><button type="button" class="chip" id="srcUnk" onclick="setSrc('unk')">لا أعرف</button></div>
         <input type="text" id="srcApt" class="hidden" inputmode="numeric" placeholder="رقم الشقة اللي فوقك" style="margin-top:6px"><div class="em">اختر مصدر المشكلة، ولو من الشقة اللي فوقك اكتب رقمها</div></div>
@@ -348,14 +351,14 @@
   const TYPES = [['plumb','🚿','سباكة','#1f7ae0'],['elec','⚡','كهرباء','#f0a000'],['elev','🛗','مصعد','#6b7686'],['other','🛠️','أخرى','#7a4bd1']];
   // عبارات جاهزة (ضغطة واحدة بدل الكتابة) حسب نوع المشكلة
   const QUICK = {
-    plumb: [{ t: 'شطاف خربان' }, { t: 'تهريب مياه', src: 1 }, { t: 'انسداد مجاري' }, { t: 'مياه مكيف', src: 1 }, { t: 'إزعاج مكيف', src: 1 }],
+    plumb: [{ t: 'شطاف خربان' }, { t: 'تهريب مياه', src: 1 }, { t: 'انسداد مجاري' }, { t: 'انقطاع المياه' }, { t: 'مياه مكيف', src: 1 }, { t: 'إزعاج مكيف', src: 1 }],
     elec: [{ t: 'أفياش لا تعمل' }, { t: 'التماس كهربائي' }, { t: 'مشكلة بالطبلون' }],
     elev: [{ t: 'المصعد معطّل' }, { t: 'باب المصعد لا يغلق' }],
     other: [],
   };
   // مشاكل خارج الشقة (المبنى/الأسياب/الأحواش…)
   const QUICK_OUT = {
-    plumb: [{ t: 'تسرب مياه بالحوش' }, { t: 'انسداد مجاري' }, { t: 'مشكلة بالخزان أو المضخة' }],
+    plumb: [{ t: 'تسرب مياه بالحوش' }, { t: 'انسداد مجاري' }, { t: 'مشكلة بالخزان أو المضخة' }, { t: 'انقطاع المياه' }],
     elec: [{ t: 'إنارة معطلة' }],
     elev: [{ t: 'المصعد معطّل' }, { t: 'باب المصعد لا يغلق' }],
     other: [{ t: 'باب المدخل' }, { t: 'البوابة' }, { t: 'الحوش' }],
@@ -412,9 +415,24 @@
     const list = curQuick();
     $('chips').classList.toggle('hidden', !list.length);
     chipSel = [];
-    paintChips();
+    paintChips(); waterUi();
     needSrc = false; srcMode = ''; $('f_src').classList.add('hidden'); $('srcSame').classList.remove('on'); $('srcUp').classList.remove('on'); $('srcRoof').classList.remove('on'); $('srcUnk').classList.remove('on'); $('srcApt').classList.add('hidden');
   }
+  // انقطاع المياه: يحدد السبب. شبكة ⇒ اعتذار ولا يُرسل. داخلي ⇒ مضخة/خزان/غير متأكد
+  let waterMode = '', waterSub = '';
+  const waterSelected = () => chipSel.indexOf('انقطاع المياه') >= 0;
+  const WATER_NET_MSG = 'نعتذر، انقطاع المياه من الشبكة خارج إرادتنا ولا نقدر نتعامل معه، فلا حاجة لرفع بلاغ.';
+  function waterUi() {
+    const on = waterSelected(); $('f_water').classList.toggle('hidden', !on);
+    if (!on) { waterMode = ''; waterSub = ''; }
+    $('wNet').classList.toggle('on', waterMode === 'net'); $('wIn').classList.toggle('on', waterMode === 'in');
+    $('wSubs').classList.toggle('hidden', waterMode !== 'in');
+    document.querySelectorAll('#wSubs .chip').forEach(b => b.classList.toggle('on', b.dataset.s === waterSub));
+    const n = $('waterNote'); n.style.display = waterMode === 'net' ? 'block' : 'none'; n.textContent = waterMode === 'net' ? WATER_NET_MSG : '';
+    $('f_water').classList.remove('bad'); refreshSendBtn();
+  }
+  function setWater(m) { waterMode = waterMode === m ? '' : m; if (waterMode !== 'in') waterSub = ''; waterUi(); }
+  function setWSub(b) { waterSub = waterSub === b.dataset.s ? '' : b.dataset.s; waterUi(); }
   function clearChipsFromDesc() {
     if (!chipSel.length) return;
     const d = $('desc'); d.value = d.value.split('،').map(x => x.trim()).filter(x => x && chipSel.indexOf(x) < 0).join('، ');
@@ -434,10 +452,10 @@
     needSrc = chipSel.some(t => (list.filter(x => x.t === t)[0] || {}).src);
     if (!needSrc && !/تهريب|تسريب|تسرب|مكيف|نقط|سقف|سطح/.test(d.value)) { $('f_src').classList.add('hidden'); srcMode = ''; ['srcSame', 'srcUp', 'srcRoof', 'srcUnk'].forEach(x => $(x).classList.remove('on')); $('srcApt').classList.add('hidden'); }
     if (needSrc) $('f_src').classList.remove('hidden');
-    paintChips(); saveDraftText(); autoUrgent();
+    paintChips(); waterUi(); saveDraftText(); autoUrgent();
     $('f_desc').classList.remove('bad'); refreshSteps();
   }
-  $('desc').addEventListener('input', () => { const v = $('desc').value, n = chipSel.filter(t => v.indexOf(t) >= 0); if (n.length !== chipSel.length) { chipSel = n; paintChips(); } });
+  $('desc').addEventListener('input', () => { const v = $('desc').value, n = chipSel.filter(t => v.indexOf(t) >= 0); if (n.length !== chipSel.length) { chipSel = n; paintChips(); waterUi(); } });
   // تهريب/مياه مكيف: هل المصدر شقتي أم الشقة اللي فوقي (ورقمها)
   function setSrc(m) {
     srcMode = m; $('srcSame').classList.toggle('on', m === 'same'); $('srcUp').classList.toggle('on', m === 'up'); $('srcRoof').classList.toggle('on', m === 'roof'); $('srcUnk').classList.toggle('on', m === 'unk');
@@ -577,7 +595,7 @@
   async function dbClear() {
     try { const all = await dbAll(), db = await dbOpen(); await new Promise((res, rej) => { const tx = db.transaction('files', 'readwrite'), st = tx.objectStore('files'); all.forEach(x => st.delete(x.id)); tx.oncomplete = res; tx.onerror = () => rej(tx.error); }); db.close(); } catch (e) {}
   }
-  // طارئ صيانة تلقائي (تسريب/انكسار ماسورة/ماس كهربائي/فيضان) ما لم يغيّره المستخدم. الحريق والغاز والاحتجاز بالمصعد: دفاع مدني لا صيانة
+  // طارئ صيانة تلقائي (تسريب/انكسار ماسورة/ماس كهربائي/فيضان) ما لم يغيّره المستخدم
   let urgentTouched = false;
   const URG_RE = /تسريب|تسرب|تهريب\s*مياه|انكسار\s*(ال)?ماسورة|كسر\s*(ال)?ماسورة|ماسورة\s*مكسورة|انفجار\s*(ال)?ماسورة|ماس\s*كهربائي|التماس|فيضان|غرق/;
   function autoUrgent() {
@@ -700,7 +718,9 @@
       b.disabled = true; b.classList.add('waiting'); b.style.setProperty('--p', p + '%'); b.textContent = '⏳ جاري رفع المرفقات… ' + p + '%';
     } else {
       if (waitTimer) { clearInterval(waitTimer); waitTimer = null; }
-      waitFake = 0; b.classList.remove('waiting'); b.style.removeProperty('--p'); b.disabled = false; b.textContent = 'إرسال البلاغ';
+      waitFake = 0; b.classList.remove('waiting'); b.style.removeProperty('--p');
+      const blocked = typeof waterSelected === 'function' && waterSelected() && waterMode === 'net';
+      b.disabled = blocked; b.textContent = blocked ? 'لا حاجة لرفع بلاغ — انقطاع الشبكة' : 'إرسال البلاغ';
     }
   }
   function drawThumbs() {
@@ -774,6 +794,12 @@
       } else return bad('lk');
       if (!f.type) return bad('type');
       if (f.desc.length < 3 && !f.mediaCount) return bad('desc');
+      if (waterSelected()) {
+        if (waterMode === 'net') return showErr(WATER_NET_MSG);
+        if (!waterMode) return bad('water', 'اختر سبب انقطاع المياه');
+        if (!waterSub) return bad('water', 'اختر: المضخة أو الخزان أو غير متأكد');
+        f.desc += ' — عطل داخل المبنى (' + waterSub + ')';
+      }
       if (!locOut && (needSrc || (selType === 'plumb' && /تهريب|تسريب|تسرب|مكيف|نقط|سقف|سطح/.test(f.desc)))) {
         $('f_src').classList.remove('hidden');
         if (!srcMode) return bad('src', 'اختر مصدر المشكلة');
@@ -799,6 +825,7 @@
     if (preUp && res.id) fire('flushMedia', res.id, res.token);
     if (res.id) { const t = lsGet('mr_tokens', []); t.push(res.token); lsSet('mr_tokens', t); }
     lastToken = res.token;
+    $('tgBtn').classList.toggle('hidden', !!res.waAuto);   // الإرسال آلي: لا زر للمستأجر
     $('tgBtn').href = 'https://wa.me/' + OFFICE_WA + '?text=' + encodeURIComponent('بلاغ صيانة رقم #' + res.id + ' — ' + (GUARD ? 'من حارس العمارة' : 'أرجو تأكيد الاستلام'));
     $('overlay').style.display = 'none'; sendingNow = false; $('sendBtn').disabled = false; refreshSendBtn();
     $('doneNum').textContent = '#' + res.id;
