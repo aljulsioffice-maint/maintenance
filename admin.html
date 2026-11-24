@@ -600,7 +600,7 @@
     const r = DETAIL.req, done = isDone(r.st);
     const wa = (r.waPhone ? `<a class="btn ok" target="_blank" rel="noopener" href="https://wa.me/${esc(r.waPhone)}">💬 واتساب المستأجر</a><a class="btn" href="tel:+${esc(r.waPhone)}">📞 اتصال</a>` : '') + (r.waPhoneG ? `<a class="btn ok" target="_blank" rel="noopener" href="https://wa.me/${esc(r.waPhoneG)}">💬 واتساب الحارس</a>` : '');
     const techOpts = '<option value="">— اختر الفني —</option>' + DATA.techs.map(t => `<option value="${esc(t.row)}">${esc(t.name)}${t.spec ? ' — ' + esc(t.spec) : ''}</option>`).join('');
-    const files = r.files || [];
+    const files = r.files || [], nb = r.nb != null ? r.nb : files.length;
     $('detail').innerHTML = `
       <button class="btn back" onclick="closeDetail()">→ رجوع للقائمة</button>
       <div class="dh">
@@ -622,8 +622,9 @@
       ${diagHtml(r.diag)}
       ${r.question ? `<h3>❓ سؤال الإدارة</h3><div class="desc">${esc(r.question)}${r.reply ? '<hr style="border:0;border-top:1px solid var(--bd)">💬 ' + esc(r.reply) : ''}</div>` : ''}
       ${r.note ? `<h3>🗒 ملاحظة الإغلاق</h3><div class="desc">${esc(r.note)}</div>` : ''}${r.reason ? `<h3>🚫 سبب الرفض</h3><div class="desc">${esc(r.reason)}</div>` : ''}
-      ${r.links.length || r.after ? `<h3>📎 المرفقات</h3>
-        <div class="thumbs">${files.map((f, i) => `<div class="th" data-fid="${esc(f)}" onclick="openThumb(${i})">⏳</div>`).join('')}</div>
+      ${r.links.length || r.after ? `${nb > 0 || !r.after ? `<h3>${r.after ? '📷 قبل الإصلاح' : '📎 المرفقات'}</h3>
+        <div class="thumbs">${files.slice(0, nb).map((f, i) => `<div class="th" data-fid="${esc(f)}" onclick="openThumb(${i})">⏳</div>`).join('')}</div>` : ''}
+        ${r.after ? `<h3>✅ بعد الإصلاح</h3><div class="thumbs">${files.slice(nb).map((f, j) => `<div class="th" data-fid="${esc(f)}" onclick="openThumb(${nb + j})">⏳</div>`).join('')}</div>` : ''}
         <div class="row">${r.links.map((u, i) => `<a class="btn sm" target="_blank" rel="noopener" href="${esc(u)}">فتح مرفق ${i + 1} في Drive</a>`).join('')}${r.after ? `<a class="btn sm" target="_blank" rel="noopener" href="${esc(r.after)}">✅ صورة بعد الإصلاح</a>` : ''}</div>` : ''}
       <div class="row">${wa}</div>
       ${r.vis ? `<h3>📅 موعد الزيارة</h3><div class="desc"><b>${esc(r.vis)}${r.vdate ? ' — ' + esc(r.vdate) : ''}</b></div>` : ''}
