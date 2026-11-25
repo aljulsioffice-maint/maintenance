@@ -453,7 +453,7 @@
     $('locIn').classList.toggle('on', !locOut); $('locOut').classList.toggle('on', locOut);
     const h = $('locHint'); h.style.display = locOut ? 'block' : 'none'; h.classList.toggle('hidden', !locOut);
     $('desc').placeholder = locOut ? 'اكتب المشكلة ومكانها… مثال: إنارة الدرج الثاني معطلة' : 'اكتب المشكلة باختصار… أو اختر من الأعلى';
-    $('desc').value = ''; $('srcApt').value = ''; $('f_desc').classList.remove('bad');   // غيّر رأيه: كل ما اختاره للمكان السابق يُمسح (النوع والوصف والطارئ) فلا يبقى اختيار غير متوافق
+    { const dd = $('desc'); dd.value = dd.value.split('،').map(x => x.trim()).filter(x => x && chipSel.indexOf(x) < 0).join('، '); } $('srcApt').value = ''; $('f_desc').classList.remove('bad');   // غيّر رأيه: كل ما اختاره للمكان السابق يُمسح (النوع والوصف والطارئ) فلا يبقى اختيار غير متوافق
     selType = ''; document.querySelectorAll('#types .type').forEach(x => x.classList.remove('on'));
     $('urgent').checked = false; $('urgentBox').classList.remove('on'); $('urgAuto').style.display = 'none'; try { urgentTouched = false; } catch (e) {}
     drawChips(); saveDraftText(); refreshSteps();
@@ -480,6 +480,10 @@
     return apiPost(fn, args).then(r => r.json()).then(j => { if (!j.ok) throw new Error(j.error); return j.result; });
   }
   // بلا انتظار: يكمل في الخادم حتى لو أُغلقت الصفحة
+  function runKA(fn, ...args) {   // يكمل حتى لو أُغلقت الصفحة (keepalive)
+    if (!API_URL) return run(fn, ...args);
+    return apiPost(fn, args, true).then(r => r.json()).then(j => { if (!j.ok) throw new Error(j.error); return j.result; });
+  }
   function fire(fn, ...args) {
     try { if (!API_URL) google.script.run[fn](...args); else apiPost(fn, args, true).catch(() => {}); } catch (e) {}
   }
@@ -562,12 +566,14 @@
     $('tenFields').classList.toggle('hidden', which !== 'manual');
     $('f_phone2').classList.toggle('hidden', !(which === 'prof' && ident && ident.needPhone));
     $('contactBox').classList.toggle('hidden', !(which === 'prof' && ident && !ident.needPhone && ident.ph));
-    if (ident && ident.ph) $('cbPhone').textContent = ident.ph;
+    if (ident && ident.ph) $('cbPhone').textContent = maskPh(ident.ph);
   }
   function showAlt() { $('f_alt').classList.toggle('hidden'); if (!$('f_alt').classList.contains('hidden')) $('alt').focus(); }
+  const maskPh = p => String(p || '').split(/\s*[\/،,]\s*/).map(x => { const d = x.replace(/\s/g, ''); return d.length >= 8 ? d.slice(0, 4) + '••••' + d.slice(-2) : d; }).join(' / ');
+  const maskName = n => { const w = String(n || '').trim().split(/\s+/); return w.length > 1 ? w[0] + ' ' + w.slice(1).map(x => x.charAt(0) + '.').join(' ') : (w[0] || ''); };
   function drawProf() {
     if (ident) {
-      $('psName').textContent = 'أهلاً ' + ident.name + ' 👋'; $('psAv').textContent = ident.name.charAt(0) || '👤';
+      $('psName').textContent = 'أهلاً ' + maskName(ident.name) + ' 👋'; $('psAv').textContent = ident.name.charAt(0) || '👤';
       $('psSub').textContent = (ident.bld ? ident.bld + ' — ' : '') + 'شقة ' + ident.apt;
     } else {
       $('psName').textContent = $('name').value.trim(); $('psAv').textContent = $('name').value.trim().charAt(0) || '👤';
@@ -577,8 +583,10 @@
   function setIdent(lk, pick, u, needPhone) {
     ident = { lk: lk, pick: pick, name: u.name, bld: u.bld, apt: u.apt, needPhone: !!needPhone, ph: u.ph || '' };
     manualOn = false; show1('prof'); drawProf(); refreshSteps();
+    try { if (!GUARD) history.pushState({ mr: 1 }, ''); } catch (e) {}   // زر الرجوع يعيد لخطوة الهوية بدل مغادرة الصفحة
   }
-  function editProf() { ident = null; manualOn = false; $('lk').value = ''; $('lkSt').textContent = 'اكتب رقم هويتك أو جوالك'; $('lkSt').className = 'lkst'; show1('id'); $('lk').focus(); refreshSteps(); }
+  window.addEventListener('popstate', () => { try { if (!GUARD && ident && !sendingNow) editProf(true); } catch (e) {} });
+  function editProf(keep) { ident = null; manualOn = false; if (keep !== true) { lsSet('mr_profile', {}); ['name', 'bld', 'apt', 'phone', 'phone2', 'alt'].forEach(i => { const e = $(i); if (e) e.value = ''; }); } $('lk').value = ''; $('lkSt').textContent = 'اكتب رقم هويتك أو جوالك'; $('lkSt').className = 'lkst'; show1('id'); $('lk').focus(); refreshSteps(); }
   function manualMode(msg) {
     manualOn = true; ident = null; show1('manual');
     $('nfMsg').textContent = typeof msg === 'string' ? msg : 'سجّل بياناتك وبنكمل 👇'; $('nfMsg').classList.remove('hidden');
@@ -654,7 +662,7 @@
     run('guardInfo', GUARD).then(r => {
       if (r && r.ok) { $('guardH').textContent = 'حارس عمارة ' + r.building; $('gAptList').innerHTML = (r.apartments || []).map(a => { const q = String(a).replace(/[^0-9A-Za-z\-]/g, ''); return `<button type="button" class="chip" data-a="${q}" onclick="pickGApt('${q}')">${q}</button>`; }).join(''); if (!(r.apartments || []).length) $('keypad').classList.remove('hidden'); }
       else { $('formView').innerHTML = '<div class="card"><h2>⚠️</h2>' + ((r && r.msg) || 'الرابط غير صالح') + '</div>'; }
-    }).catch(() => { $('guardH').textContent = '⚠️ تعذّر الاتصال — تأكد من الإنترنت ثم أعد فتح الصفحة'; });
+    }).catch(() => { $('guardH').innerHTML = '⚠️ تعذّر الاتصال — تأكد من الإنترنت <button type="button" class="chip" onclick="location.reload()">🔄 أعد المحاولة</button>'; });
   } else refreshSteps();
   if (TRACK && !GUARD) { const t = lsGet('mr_tokens', []); if (t.indexOf(TRACK) < 0) { t.push(TRACK); lsSet('mr_tokens', t); } showTrack(); }
 
@@ -696,6 +704,8 @@
   let TEMP_KEY = lsGet('mr_temp_key', ''), VIDEO_TEMP_KEY = lsGet('mr_video_temp_key', '');
   if (!/^tmp_[a-z0-9_-]{12,60}$/i.test(TEMP_KEY)) { TEMP_KEY = newKey(); lsSet('mr_temp_key', TEMP_KEY); }
   if (!/^tmp_[a-z0-9_-]{12,60}$/i.test(VIDEO_TEMP_KEY)) { VIDEO_TEMP_KEY = newKey('_v'); lsSet('mr_video_temp_key', VIDEO_TEMP_KEY); }
+  // الحارس لا يسترجع صوراً سابقة بعد إعادة فتح الرابط: نبدأ بمفتاح جديد، وإلا تبقى صور الجلسة السابقة محسوبة بالخادم فيرفض الرفع («الحد 4») وتبقى الصورة حمراء
+  if (GUARD) { TEMP_KEY = newKey(); lsSet('mr_temp_key', TEMP_KEY); VIDEO_TEMP_KEY = newKey('_v'); lsSet('mr_video_temp_key', VIDEO_TEMP_KEY); }
   let DRAFT_RESTORING = !GUARD;
   function dbOpen() {
     return new Promise((res, rej) => { try { const q = indexedDB.open('maintenance-draft-v2', 1); q.onupgradeneeded = () => { if (!q.result.objectStoreNames.contains('files')) q.result.createObjectStore('files', { keyPath: 'id' }); }; q.onsuccess = () => res(q.result); q.onerror = () => rej(q.error); } catch (e) { rej(e); } });
@@ -743,7 +753,7 @@
   function diagPayload() { try { const o = devInfo(); o.btn = DG.btn; o.m = DG.m.slice(-6); o.r = DG.retries; return JSON.stringify(o); } catch (e) { return ''; } }
   async function retryRun(fn, ...args) {
     let last;
-    for (let i = 0; i < 3; i++) { try { return await run(fn, ...args); } catch (e) { last = e; DG.retries++; if (i < 2) await new Promise(r => setTimeout(r, 700 * Math.pow(2, i))); } }
+    for (let i = 0; i < 3; i++) { try { return await run(fn, ...args); } catch (e) { last = e; DG.retries++; if (/[؀-ۿ]/.test(String((e && e.message) || ''))) break; if (i < 2) await new Promise(r => setTimeout(r, 700 * Math.pow(2, i))); } }
     throw last || new Error('تعذر الاتصال بالخادم');
   }
 
@@ -757,7 +767,11 @@
   async function sendPhotoUp(p) {
     const f = p.file, t0 = Date.now();
     try {
-      const r = await retryRun('uploadTempPhoto', await compress(f), TEMP_KEY, p.clientId);
+      const cz = await compress(f);
+      let r = await retryRun('uploadTempPhoto', cz, TEMP_KEY, p.clientId);
+      if (r && !r.ok && /الحد/.test(String(r.msg || '')) && !photos.some(x => x !== p && !x.error)) {   // صور قديمة عالقة بالمفتاح: نبدأ بمفتاح جديد مرة واحدة
+        TEMP_KEY = newKey(); lsSet('mr_temp_key', TEMP_KEY); r = await retryRun('uploadTempPhoto', cz, TEMP_KEY, p.clientId);
+      }
       if (!r || !r.ok) throw new Error((r && r.msg) || 'upload');
       DG.m.push({ k: 'p', mb: +(f.size / 1e6).toFixed(1), s: Math.round((Date.now() - t0) / 1000) });
       p.uploading = false; p.error = false;
@@ -765,7 +779,7 @@
       if (!photos.some(x => x.error) && !(video && video.error)) showErr('');
     } catch (e) {
       DG.m.push({ k: 'p', mb: +(f.size / 1e6).toFixed(1), e: String((e && (e.name || e.message)) || 'fail').slice(0, 30) });
-      p.uploading = false; p.error = true; showErr('🔴 صورة ما انرفعت — اضغط على الصورة الحمراء 🔄');
+      p.uploading = false; p.error = true; const why = /[؀-ۿ]/.test(String((e && e.message) || '')) ? ' (' + String(e.message).slice(0, 60) + ')' : ''; showErr('🔴 صورة ما انرفعت' + why + ' — اضغط على الصورة الحمراء 🔄', true);
     }
     drawThumbs();
   }
@@ -859,7 +873,7 @@
       v.uploading = false; v.progress = 100; DG.m.push({ k: 'v', mb: +(f.size / 1e6).toFixed(1), c: v.cmpFrom || 0, s: Math.round((Date.now() - t0) / 1000) });
     } catch (e) {
       DG.m.push({ k: 'v', mb: +(f.size / 1e6).toFixed(1), c: v.cmpFrom || 0, e: String((e && (e.name || e.message)) || 'fail').slice(0, 30) });
-      if (video === v) { v.uploading = false; v.error = true; showErr('🔴 الفيديو ما انرفع — اضغط على الفيديو الأحمر 🔄'); }
+      if (video === v) { v.uploading = false; v.error = true; showErr('🔴 الفيديو ما انرفع — اضغط على الفيديو الأحمر 🔄', true); }
     }
     drawThumbs();
   }
@@ -1021,7 +1035,7 @@
 
   // ---------- الإرسال ----------
   let _errT = null;
-  function showErr(m) { const e = $('err'); e.textContent = m; e.style.display = m ? 'block' : 'none'; clearTimeout(_errT); if (m && !GUARD) window.scrollTo({ top: 0, behavior: 'smooth' }); if (m && GUARD) { try { navigator.vibrate && navigator.vibrate(120); } catch (x) {} _errT = setTimeout(() => { e.style.display = 'none'; }, 7000); } }   // الحارس: الخطأ يظهر فوق زر الإرسال (حيث ينظر) بدل أعلى الصفحة
+  function showErr(m, ns) { const e = $('err'); e.textContent = m; e.style.display = m ? 'block' : 'none'; clearTimeout(_errT); if (m && !GUARD && !ns) window.scrollTo({ top: 0, behavior: 'smooth' }); if (m && GUARD) { try { navigator.vibrate && navigator.vibrate(120); } catch (x) {} _errT = setTimeout(() => { e.style.display = 'none'; }, 7000); } }   // الحارس: الخطأ يظهر فوق زر الإرسال (حيث ينظر) بدل أعلى الصفحة
   // خطأ على حقل بعينه: يلوّنه ويمرّر إليه
   function bad(field, msg) {
     showErr('');
@@ -1063,6 +1077,7 @@
   setInterval(() => { try { drawGRecent(); const u = $('undoBox'); if (u && Date.now() - undoTs > 120000) u.classList.add('hidden'); } catch (e) {} }, 15000);
   // ---------- حفظ بلاغ الحارس عند انقطاع الشبكة وإرساله تلقائياً (المرفقات رُفعت مسبقاً فلا تضيع) ----------
   function gqAdd(it) { const q = lsGet(GQ_KEY, []); q.push(it); lsSet(GQ_KEY, q.slice(-10)); }
+  function gqFailClear() { lsSet('mr_gq_fail', 0); drawGRecent(); }
   let gqBusy = false;
   async function gqFlush() {
     if (!GUARD || gqBusy || !navigator.onLine) return;
@@ -1072,10 +1087,15 @@
       for (const it of q.slice()) {
         if (Date.now() - it.ts > GQ_MAX_AGE) { q = q.filter(x => x !== it && x.ts !== it.ts); lsSet(GQ_KEY, q); continue; }
         let r; try { r = await run('submitGuard', ...it.a, 1); } catch (e) { break; }   // الشبكة لسا ضعيفة: نحاول لاحقاً
+        if (!(r && r.ok)) {   // رُفض (مثلاً الخادم مشغول): يبقى بالطابور ونعدّ المحاولات بدل ضياعه بصمت
+          const cur = lsGet(GQ_KEY, []), me = cur.filter(x => x.ts === it.ts)[0];
+          if (me) { me.n = (me.n || 0) + 1; if (me.n >= 8) { lsSet(GQ_KEY, cur.filter(x => x.ts !== it.ts)); lsSet('mr_gq_fail', (lsGet('mr_gq_fail', 0) || 0) + 1); } else lsSet(GQ_KEY, cur); }
+          break;
+        }
         q = lsGet(GQ_KEY, []).filter(x => x.ts !== it.ts); lsSet(GQ_KEY, q);
         if (r && r.ok && r.id) {
           gRecentAdd(r.id, it.w, r.token);
-          run('finishRequest', r.id, r.token).catch(() => {}); fire('flushMedia', r.id, r.token);
+          runKA('finishRequest', r.id, r.token).catch(() => {}); fire('flushMedia', r.id, r.token);
           try { navigator.vibrate && navigator.vibrate(150); } catch (e) {}
         }
       }
@@ -1086,7 +1106,9 @@
     const a = lsGet('mr_gseen', []), el = $('gRecent'); if (!el) return;
     const qn = GUARD ? lsGet(GQ_KEY, []).length : 0;
     el.classList.toggle('hidden', !a.length && !qn);
-    el.innerHTML = (qn ? '<div style="font-weight:800;margin-bottom:6px">💾 ' + qn + ' بلاغ محفوظ — يُرسل أول ما ترجع الشبكة</div>' : '') + (a.length ? '<b>🕘 آخر بلاغاتك</b>' + a.map(x => '<div style="margin-top:8px;display:flex;gap:8px;align-items:center;flex-wrap:wrap"><span>#' + x.id + ' · ' + String(x.w).replace(/</g, '&lt;') + ' · ' + x.t + (x.c ? ' · <b>⛔ مسحوب</b>' : '') + '</span>' + (!x.c && x.tok && x.ts && Date.now() - x.ts < 120000 ? '<button type="button" class="chip" onclick="undoRecent(\'' + x.id + '\')">↩️ تراجع</button>' : '') + '</div>').join('') : '');
+    const qf = GUARD ? Number(lsGet('mr_gq_fail', 0)) || 0 : 0;
+    el.classList.toggle('hidden', !a.length && !qn && !qf);
+    el.innerHTML = (qf ? '<div style="font-weight:800;margin-bottom:6px;color:#b91c1c">⚠️ ' + qf + ' بلاغ لم يُرسل — أعد إرساله من جديد <button type="button" class="chip" onclick="gqFailClear()">حسناً</button></div>' : '') + (qn ? '<div style="font-weight:800;margin-bottom:6px">💾 ' + qn + ' بلاغ محفوظ — يُرسل أول ما ترجع الشبكة</div>' : '') + (a.length ? '<b>🕘 آخر بلاغاتك</b>' + a.map(x => '<div style="margin-top:8px;display:flex;gap:8px;align-items:center;flex-wrap:wrap"><span>#' + x.id + ' · ' + String(x.w).replace(/</g, '&lt;') + ' · ' + x.t + (x.c ? ' · <b>⛔ مسحوب</b>' : '') + '</span>' + (!x.c && x.tok && x.ts && Date.now() - x.ts < 120000 ? '<button type="button" class="chip" onclick="undoRecent(\'' + x.id + '\')">↩️ تراجع</button>' : '') + '</div>').join('') : '');
   }
   function nudgeKinds(strong) {   // لم يختر النوع: الأشكال تتحرك لتلفت نظره
     const k = $('gKinds'); if (!k || gKind) return;
@@ -1120,7 +1142,11 @@
       call = () => run('submitGuard', ...gArgs, dupSig === gSig ? 1 : 0);
     } else {
       if (photos.some(p => p.uploading) || (video && video.uploading)) return showErr('⏳ انتظر لين يخضر ✓ على الصور');
-      if (photos.some(p => p.error) || (video && video.error)) return showErr('🔴 اضغط 🔄 على المرفق الأحمر');
+      if (photos.some(p => p.error) || (video && video.error)) {   // مرفق فاشل لا يمنع البلاغ: يُرسل بدونه بعد موافقة
+        const dq = await uiAsk('تعذّر رفع مرفق. هل أرسل البلاغ بدونه؟', 'نعم، أرسل بدونه');
+        if (!dq.ok) return showErr('🔴 اضغط 🔄 على المرفق الأحمر لإعادة رفعه');
+        photos = photos.filter(p => !p.error); if (video && video.error) video = null; drawThumbs();
+      }
       f = { desc: $('desc').value.trim(), type: selType, urgent: $('urgent').checked, website: $('website').value, mediaCount: photos.length + (video ? 1 : 0), tmpKey: photos.length ? TEMP_KEY : '', videoTmpKey: video ? VIDEO_TEMP_KEY : '' };
       f.outside = locOut ? 1 : 0; f.reqKey = sendKey; f.diag = diagPayload();
       if (ident) {
@@ -1157,7 +1183,7 @@
     let res;
     try { res = await call(); }
     catch (e) {
-      if (GUARD && gQItem && (!navigator.onLine || (e && e.name === 'TypeError'))) { gqAdd(gQItem); res = { ok: true, id: 0, token: '', queued: true }; }   // انقطاع شبكة: يُحفظ بالجوال ويُرسل تلقائياً
+      if (GUARD && gQItem) { gqAdd(gQItem); res = { ok: true, id: 0, token: '', queued: true }; }   // انقطاع شبكة: يُحفظ بالجوال ويُرسل تلقائياً
       else return endSend('تعذر الإرسال، تأكد من الإنترنت وحاول مرة ثانية');
     }
     if (res && res.dup) {   // بلاغ مفتوح لنفس الشقة/النوع
@@ -1176,7 +1202,7 @@
     const preUp = !!(photos.length || video);
     TEMP_KEY = newKey(); lsSet('mr_temp_key', TEMP_KEY); VIDEO_TEMP_KEY = newKey('_v'); lsSet('mr_video_temp_key', VIDEO_TEMP_KEY); if (!GUARD) { lsSet('mr_draft', {}); dbClear(); }
     // إنهاء البلاغ بالخلفية (نقل المرفقات + إرسال البطاقة للفريق) — الشاشة لا تنتظره
-    const fin = res.deferred && res.id ? run('finishRequest', res.id, res.token).catch(() => {}) : Promise.resolve();
+    const fin = res.deferred && res.id ? runKA('finishRequest', res.id, res.token).catch(() => {}) : Promise.resolve();
     if (preUp && res.id) fin.then(() => fire('flushMedia', res.id, res.token));
     if (res.id) { const t = lsGet('mr_tokens', []); t.push(res.token); lsSet('mr_tokens', t); }
     lastToken = res.token;
