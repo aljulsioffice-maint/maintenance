@@ -226,6 +226,7 @@
   <aside class="side">
     <div class="brandrow"><div class="logo">🏢</div><div class="bt">مكتب عبد الله الجلسي للعقارات<small>لوحة التحكم — الصيانة</small></div></div>
     <nav class="nav">
+      <button class="tab" id="tab_today" onclick="setTab('today')"><span class="ico">🌅</span><span>اليوم</span></button>
       <button class="tab on" id="tab_req" onclick="setTab('req')"><span class="ico">📋</span><span>الطلبات</span><span class="cnt hidden" id="cntOpen"></span></button>
       <button class="tab" id="tab_vis" onclick="setTab('vis')"><span class="ico">📅</span><span>المواعيد</span></button>
       <button class="tab" id="tab_rat" onclick="setTab('rat')"><span class="ico">⭐</span><span>التقييمات</span></button>
@@ -233,6 +234,7 @@
       <button class="tab" id="tab_perf" onclick="setTab('perf')"><span class="ico">🏆</span><span>الأداء</span></button>
       <button class="tab" id="tab_team" onclick="setTab('team')"><span class="ico">👥</span><span>الفريق</span></button>
       <button class="tab" id="tab_dir" onclick="setTab('dir')"><span class="ico">🏢</span><span>العمائر</span></button>
+      <button class="tab" id="tab_log" onclick="setTab('log')"><span class="ico">🧾</span><span>سجل النشاط</span></button>
       <button class="tab" id="tab_set" onclick="setTab('set')"><span class="ico">⚙️</span><span>الإعدادات</span></button>
     </nav>
     <div class="foot">
@@ -257,7 +259,7 @@
       <div class="chipsbar" id="stats"></div>
       <div class="wrap">
         <div id="list">
-          <div class="tools"><input id="q" placeholder="🔎 ابحث: رقم الطلب، اسم، عمارة، شقة، فني…" oninput="draw()"><button class="btn pri" id="newReqBtn" onclick="newReq()" style="margin-inline-start:8px">➕ طلب جديد</button><button class="btn pri hidden" id="newTaskBtn" onclick="newTask()" style="margin-inline-start:8px">🗓️ مهمة اليوم</button></div>
+          <div class="tools"><input id="q" placeholder="🔎 ابحث: رقم الطلب، اسم، عمارة، شقة، فني…" oninput="draw()"><button class="btn" onclick="deepFind()" style="margin-inline-start:8px">🔎 بحث شامل</button><button class="btn pri" id="newReqBtn" onclick="newReq()" style="margin-inline-start:8px">➕ طلب جديد</button><button class="btn pri hidden" id="newTaskBtn" onclick="newTask()" style="margin-inline-start:8px">🗓️ مهمة اليوم</button></div>
           <div id="items"></div>
         </div>
         <div id="detail" class="panel"><div class="empty">👈 اختر طلباً من القائمة لعرض تفاصيله</div></div>
@@ -270,6 +272,8 @@
     <div id="vperf" class="page" style="display:none"></div>
     <div id="vteam" class="page" style="display:none"></div>
     <div id="vdir" class="page" style="display:none"></div>
+    <div id="vtoday" class="page" style="display:none"></div>
+    <div id="vlog" class="page" style="display:none"></div>
     <div id="vset" class="page" style="display:none"></div>
   </main>
 </div>
@@ -287,7 +291,7 @@
   const $ = id => document.getElementById(id);
   const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
   const TYPE_LIST = ['سباكة', 'كهرباء', 'مصعد', 'أخرى', 'وايت ماء', 'وايت صرف صحي', 'بوية'];
-  const TITLES = { req: 'الطلبات', rat: 'تقييمات الفنيين', vis: 'جدول المواعيد', rep: 'الإحصاءات', perf: 'الأداء', team: 'الفريق والحراس', dir: 'العمائر والمستأجرون', set: 'الإعدادات والميزات' };
+  const TITLES = { today: 'اليوم', log: 'سجل النشاط', req: 'الطلبات', rat: 'تقييمات الفنيين', vis: 'جدول المواعيد', rep: 'الإحصاءات', perf: 'الأداء', team: 'الفريق والحراس', dir: 'العمائر والمستأجرون', set: 'الإعدادات والميزات' };
   let KEY = '', DATA = null, FILTER = 'open', SEL = '', DETAIL = null, busy = false, TAB = 'req', BLDS = null;
   let TEAM = null, GUARDS = null, TENROWS = [];
   const IMG = {};
@@ -349,9 +353,9 @@
   // ---------- التبويبات ----------
   function setTab(t) {
     TAB = t; $('ttl').textContent = TITLES[t];
-    ['req', 'vis', 'rat', 'rep', 'perf', 'team', 'dir', 'set'].forEach(k => { $('tab_' + k).classList.toggle('on', k === t); $('v' + k).style.display = k === t ? '' : 'none'; });
+    ['today', 'req', 'vis', 'rat', 'rep', 'perf', 'team', 'dir', 'log', 'set'].forEach(k => { $('tab_' + k).classList.toggle('on', k === t); $('v' + k).style.display = k === t ? '' : 'none'; });
     window.scrollTo({ top: 0 });
-    if (t === 'rep') loadReport(); if (t === 'perf') loadPerf(); if (t === 'team') loadTeam(); if (t === 'dir') loadDir(); if (t === 'set') loadSet(); if (t === 'vis') drawVisits(); if (t === 'rat') loadRatings();
+    if (t === 'rep') loadReport(); if (t === 'perf') loadPerf(); if (t === 'team') loadTeam(); if (t === 'dir') loadDir(); if (t === 'set') loadSet(); if (t === 'vis') drawVisits(); if (t === 'rat') loadRatings(); if (t === 'today') loadToday(); if (t === 'log') loadLog();
   }
   // ---------- لوحة الأداء ----------
   let PR = 'week', PD = null;
@@ -439,6 +443,7 @@
       if (!r.ok) { $('app').style.display = 'none'; $('gate').style.display = 'block'; $('gateMsg').textContent = r.msg || 'الرابط غير صالح'; return; }
       DATA = r; $('gate').style.display = 'none'; $('app').style.display = 'block';
       ['team', 'dir', 'set'].forEach(k => $('tab_' + k).classList.toggle('hidden', !r.owner));
+      $('tab_log').classList.toggle('hidden', !r.superAdmin);
       ['vis', 'rat', 'rep', 'perf'].forEach(k => $('tab_' + k).classList.toggle('hidden', !can('view_dashboard')));
       if (!can('view_dashboard') && ['vis', 'rat', 'rep'].includes(TAB)) setTab('req');   // الفريق والعمائر للمالك فقط
       if (!r.owner && (TAB === 'team' || TAB === 'dir' || TAB === 'set')) setTab('req');
@@ -476,8 +481,9 @@
   const aptTxt = a => (/\d/.test(String(a || '')) ? 'شقة ' : '') + (a || '');
   const place = r => (r.bld ? r.bld + ' · ' + aptTxt(r.apt) : (r.dis ? 'حي ' + r.dis + ' · ' : '') + aptTxt(r.apt)) + (r.out ? ' 🏢 خارج الشقة' : '');
 
+  const isPk = r => !!(DATA && DATA.parked && DATA.parked.indexOf(String(r.id)) >= 0);
   const FILTERS = [
-    ['open', 'مفتوحة', r => !isDone(r.st)], ['new', 'جديدة', r => r.st === 'جديد'], ['wip', 'قيد المعالجة', r => r.st === 'قيد المعالجة'],
+    ['open', 'مفتوحة', r => !isDone(r.st) && !isPk(r)], ['new', 'جديدة', r => r.st === 'جديد' && !isPk(r)], ['park', '⏸ مؤجّلة', r => !isDone(r.st) && isPk(r)], ['wip', 'قيد المعالجة', r => r.st === 'قيد المعالجة'],
     ['wait', 'بانتظار تأكيدك', r => r.st === 'أنجزه الفني'], ['ask', 'بانتظار المستأجر', r => r.st === 'بانتظار المستأجر'],
     ['urg', '🔴 عاجلة', r => r.urg && !isDone(r.st)], ['done', '✅ منجزة', r => r.st === 'تمت المعالجة'], ['rej', '🚫 مرفوضة', r => r.st === 'مرفوض'], ['can', '⛔ ملغية', r => r.st === 'ملغي'], ['all', 'الكل', () => true],
   ];
@@ -489,7 +495,8 @@
       <div class="kpi" style="--c:var(--pri)"><b>${nOpen}</b><span>طلب مفتوح</span></div>
       <div class="kpi" style="--c:var(--new)"><b>${nNew}</b><span>جديد بلا معالجة</span></div>
       <div class="kpi" style="--c:var(--wait)"><b>${nWait}</b><span>بانتظار تأكيدك</span></div>
-      <div class="kpi ${nUrg ? 'red' : ''}" style="--c:var(--bad)"><b>${nUrg}</b><span>عاجل</span></div>`;
+      <div class="kpi ${nUrg ? 'red' : ''}" style="--c:var(--bad)"><b>${nUrg}</b><span>عاجل</span></div>`
+      + (DATA.capped ? `<div class="hint" style="flex-basis:100%;color:var(--bad);font-weight:700">⚠️ يُعرض أحدث 500 من أصل ${DATA.total} طلب — للأقدم استخدم «🔎 بحث شامل»</div>` : '');
     const c = $('cntOpen'); c.textContent = nOpen; c.classList.toggle('hidden', !nOpen);
     $('stats').innerHTML = FILTERS.map(f => {
       const n = cnt(f[0]);
@@ -511,6 +518,47 @@
         <div class="m"><span class="badge ${bcls(r.st)}">${esc(r.st)}</span>${r.tech ? '<span class="s">👷 ' + esc(r.tech) + '</span>' : ''}${r.media ? '<span class="s">📎 ' + r.media + '</span>' : ''}${tagHtml(r)}</div>
         <div class="r">${esc(age(r.ts))}</div>
       </div>`).join('') : '<div class="empty">🎉 لا توجد طلبات هنا</div>');
+  }
+
+  // ---------- شاشة اليوم / بحث شامل / دمج / سجل النشاط ----------
+  const rowMini = r => `<div class="dit" onclick="goReq('${esc(r.id)}')"><b>#${esc(r.id)}</b> · 🏢 <bdi>${esc(r.bld || '')}</bdi> · ${esc(aptTxt(r.apt))}${r.urg ? ' 🔴' : ''}<br><small>${esc(r.type)} · ${esc(r.tenant || r.name)}${r.tech ? ' · 👷 ' + esc(r.tech) : ''} · ${esc(r.st)} · ${esc(age(r.ts))}</small></div>`;
+  function goReq(id) { setTab('req'); openReq(id); }
+  async function loadToday() {
+    const v = $('vtoday'); v.innerHTML = skel(4);
+    try {
+      const r = await api('today'); if (!r.ok) { v.innerHTML = '<div class="empty">' + esc(r.msg || 'تعذّر') + '</div>'; return; }
+      const sec = (t, a) => a.length ? `<div class="dcard"><h4><span>${t}</span><b>${a.length}</b></h4>${a.map(rowMini).join('')}</div>` : '';
+      v.innerHTML = `<div class="sumline"><div class="kpi" style="--c:var(--new)"><b>${r.newToday}</b><span>وصل اليوم</span></div><div class="kpi" style="--c:var(--ok)"><b>${r.closedToday}</b><span>أُغلق اليوم</span></div><div class="kpi" style="--c:var(--wait)"><b>${r.waiting.length}</b><span>بانتظار تأكيدك</span></div><div class="kpi ${r.late.length ? 'red' : ''}" style="--c:var(--bad)"><b>${r.late.length}</b><span>متأخر +48س</span></div><div class="kpi" style="--c:var(--mut)"><b>${r.parkedCount}</b><span>مؤجّل</span></div></div>`
+        + sec('🔴 عاجلة', r.urgent) + sec('⏳ بانتظار تأكيدك', r.waiting) + sec('🐢 متأخرة أكثر من يومين', r.late) + sec('🆕 جديدة', r.fresh) + sec('📅 زيارات اليوم', r.visits)
+        + (!r.urgent.length && !r.waiting.length && !r.late.length && !r.fresh.length && !r.visits.length ? '<div class="empty">🎉 لا شيء عاجل اليوم</div>' : '');
+    } catch (e) { v.innerHTML = '<div class="empty">تعذّر التحميل</div>'; }
+  }
+  function deepFind() {
+    openForm('🔎 بحث شامل (كل الطلبات)', [{ label: 'رقم / اسم / عمارة / شقة / جوال', v: '' }], async ([q]) => {
+      if (q.length < 1) { toast('اكتب كلمة البحث'); return false; }
+      const r = await call('find', q, '', ''); if (!r) return false;
+      $('mTitle').textContent = '🔎 النتائج (' + r.total + ')';
+      $('mBody').innerHTML = r.reqs.length ? r.reqs.map(rowMini).join('').replace(/goReq\(/g, 'closeModal();goReq(') : '<div class="empty">لا نتائج</div>';
+      $('mOk').textContent = 'إغلاق'; $('mOk').onclick = () => closeModal(); $('modal').classList.add('on');
+      return false;
+    }, 'بحث');
+  }
+  function mergeForm() {
+    openForm('🔗 دمج بلاغين', [{ label: 'رقم البلاغ الثاني (يُدمج مع #' + SEL + ')', v: '', ph: 'مثال: 1050' }], async ([o]) => {
+      o = o.replace(/\D/g, ''); if (!o) { toast('اكتب رقم البلاغ'); return false; }
+      const pl = await call('mergeplan', SEL, o, ''); if (!pl) return false;
+      confirmBox('🔗 تأكيد الدمج', 'يبقى: ' + pl.keep + '\nيُحذف نهائياً: ' + pl.drop + '\nتنتقل المرفقات للأول ولا يمكن التراجع.', async () => {
+        const r = await call('merge', SEL, o, '✅ تم الدمج'); if (r) { SEL = String(r.id); await load(false); await openReq(SEL, true); }
+      }, 'ادمج نهائياً');
+      return false;
+    }, 'معاينة');
+  }
+  async function loadLog() {
+    const v = $('vlog'); v.innerHTML = skel(5);
+    try {
+      const r = await api('activity'); if (!r.ok) { v.innerHTML = '<div class="empty">' + esc(r.msg || 'غير مصرح') + '</div>'; return; }
+      v.innerHTML = '<div class="hint" style="margin:6px 0">آخر ' + r.log.length + ' حدث</div>' + r.log.map(x => `<div class="dit"><b>${esc(x.ev)}</b> ${x.id ? '· <a href="#" onclick="goReq(\'' + esc(x.id) + '\');return false">#' + esc(x.id) + '</a>' : ''}<br><small>${esc(x.t)} · ${esc(x.by)}${x.d ? ' · ' + esc(x.d) : ''}</small></div>`).join('');
+    } catch (e) { v.innerHTML = '<div class="empty">تعذّر التحميل</div>'; }
   }
   // ---------- تحديد وحذف عدة طلبات ----------
   let SELS = new Set(), VISIBLE = [];
@@ -638,6 +686,8 @@
           ${r.st === 'جديد' && can('update_status') ? '<button class="btn" onclick="act(\'wip\')">⏳ قيد المعالجة</button>' : ''}
           ${!can('update_status') ? '' : r.st === 'أنجزه الفني' ? '<button class="btn ok" onclick="ask2(\'close\',\'✅ تأكيد الإغلاق\',\'ملاحظة الإغلاق (اختياري)\',true)">✅ تأكيد الإغلاق</button><button class="btn" onclick="act(\'back\')">↩️ إرجاع للفني</button>' : '<button class="btn ok" onclick="ask2(\'close\',\'✅ إغلاق الطلب\',\'ملاحظة الإغلاق (اختياري)\',true)">✅ إغلاق</button>'}
           ${can('change_urgent') ? `<button class="btn" onclick="act('urgent')">${r.urg ? '⚪ اجعله عادي' : '🔴 اجعله عاجل'}</button>` : ''}
+          <button class="btn" onclick="act('park')">${isPk(r) ? '▶️ أرجعه للعمل' : '⏸ أجّله (غير مستعجل)'}</button>
+          ${DATA.superAdmin ? '<button class="btn" onclick="mergeForm()">🔗 دمج مع بلاغ</button>' : ''}
         </div>
         ${can('manage_visits') ? `<div class="row"><button class="btn pri" onclick="visitForm()">📅 ${r.vis ? 'إعادة جدولة' : 'تحديد موعد زيارة'}</button>${r.vis && can('withdraw_tech') ? '<button class="btn" onclick="visitWait()">⏸ إرجاع للانتظار</button>' : ''}</div>` : ''}
         <div class="row">
