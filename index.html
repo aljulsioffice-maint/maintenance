@@ -380,7 +380,7 @@
       <input type="file" id="galleryPhotoIn" accept="image/*" multiple class="hidden">
       <input type="file" id="galleryVideoIn" accept="video/*" class="hidden">
       <div class="thumbs" id="thumbs"></div>
-      <div class="hint">حتى 4 صور، وفيديو واحد لا يزيد عن 30 ثانية. الصورة تسرّع الحل. المرفقات تُرفع فور اختيارها وتُحفظ لو أغلقت الصفحة.</div>
+      <div class="hint">حتى 5 صور، وفيديو واحد لا يزيد عن 30 ثانية. الصورة تسرّع الحل. المرفقات تُرفع فور اختيارها وتُحفظ لو أغلقت الصفحة.</div>
       <div id="uploadProgress" class="hint" style="color:var(--accent);font-weight:800;display:none;margin-top:8px"></div>
       </div>
     </div>
@@ -460,7 +460,7 @@
   }
   const BOT_USER = 'Aljulsi_maint_bot';   // بوت تليجرام: ربط المستأجر بتحديثات طلبه
   const OFFICE_WA = '966572294942';   // رقم واتساب المكتب (يظهر في زر «واتساب المكتب»)
-  const MAX_PHOTOS = 4, MAX_VIDEO_SEC = 30, MAX_VIDEO_MB = 45, CHUNK = 4 * 1024 * 1024; // مضاعف 256KB (شرط Drive)
+  const MAX_PHOTOS = 5, MAX_VIDEO_SEC = 30, MAX_VIDEO_MB = 45, CHUNK = 4 * 1024 * 1024; // مضاعف 256KB (شرط Drive)
   let selType = '', photos = [], video = null, lastToken = '', gKind = '', needSrc = false, srcMode = '';
   // رابط الحارس: ?g=رمز — يعرض نموذجاً مبسطاً (رقم شقة + صورة) بلا تسجيل
   const GUARD = (new URLSearchParams(location.search).get('g') || '').replace(/[^a-f0-9]/g, '').slice(0, 12);
